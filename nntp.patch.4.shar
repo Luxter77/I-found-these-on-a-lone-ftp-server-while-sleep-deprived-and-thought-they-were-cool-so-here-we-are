@@ -1,0 +1,2248 @@
+#! /bin/sh
+# This is a shell archive, meaning:
+# 1. Remove everything above the #! /bin/sh line.
+# 2. Save the resulting text in a file.
+# 3. Execute the file with /bin/sh (not csh) to create:
+#	CHANGES.diff
+#	README.1.5.4
+#	common/common.diff
+#	doc/doc.diff
+#	inews/inews.diff
+#	server/server.diff
+#	support/support.diff
+#	xmit/xmit.diff
+# This archive created: Sat Jan 14 23:09:30 1989
+export PATH; PATH=/bin:/usr/bin:$PATH
+echo shar: "extracting 'README.1.5.4'" '(3112 characters)'
+if test -f 'README.1.5.4'
+then
+	echo shar: "will not over-write existing file 'README.1.5.4'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'README.1.5.4'
+	XWelcome to patch number 4 for NNTP 1.5.
+	X
+	X	If you have not installed the first three patches, you must do so
+	X	before proceeding. You can get those patches (and this one) from
+	X	anoymous ftp on bcm.tmc.edu [128.249.2.1] or by sending a message
+	X	to the archive-server@bcm.tmc.edu with the following text:
+	X	send public nntp.patch.1
+	X	send public nntp.patch.2
+	X	send public nntp.patch.3
+	X
+	X	If you have all three patches installed, you are ready to install
+	X	this set of patches. These patches are packaged as a shell archive.
+	X	They are as follows:
+	X	CHANGES.diff  -- This will patch the CHANGES file in the root
+	X	of the nntp distrbution to reflect changes since the release of 1.5.
+	X	server.diff -- This patch is for the files in the server subdirectory.
+	X	To install, change directory to the server directory and type
+	X	patch < server.diff.
+	X	common.diff -- This patch is for the files in the common sub-
+	X	directory. To install, change directory to the common directory
+	X	and type patch < common.diff
+	X	doc.diff -- This patch is for the files in the doc subdirectory.
+	X	To install, change directory to the doc directory and type
+	X	patch < doc.diff.
+	X	xmit.diff -- This is a patch for nntpxmit.c in the xmit directory.
+	X	To install, change directory to the xmit directory and type
+	X	patch < xmit.diff.
+	X	inews.diff -- This patch is for the files in the inews subdirectory.
+	X	To install, change directory to the inews directory and type
+	X	patch < inews.diff.
+	X	support.diff -- This patch is for the files in the support sub-
+	X	directory. To install, change directory to the support directory
+	X	and type patch < support.diff.
+	X	
+	X	Now, look at common/conf.h and common/README for the new functions
+	X	you may want to use (DOMAINMATCH, HIDDENNET, etc.).
+	X
+	X	If you don't need HIDDENNET, you only need to rebuild nntpxmit and
+	X	nntpd. If you need HIDDENNET, you will have to rebuild inews and
+	X	reinstall it on all the nntp clients (NOT the server!).
+	X
+	XPlease read the CHANGES file (following application of the patch) for
+	Xa list of new features.
+	X
+	XSome specific comments:
+	X
+	X	TMNN support: The LIST command has been extended to provide some
+	X	initial support to TMNN (someday to be News 3.0). These extensions
+	X	are:
+	X	LIST ACTIVE --- Lists the news active file. Just like LIST with no
+	X		arguements.
+	X	LIST DISTRIBUTIONS -- List the news distributions file.
+	X	LIST NEWSGROUPS -- List the news group discriptions file.
+	X
+	X	out-of-space support: BSD, SunOS, Ultrix, and System V are supported.
+	X	If NNTP knows that there is no space when an xfer-only system connects
+	X	it will greet that client with a 503 message. Clients listed in
+	X	nntp_access with read enabled will be greeted normally. If
+	X	the server runs out of space following a transfer, when the
+	X	client enters the next IHAVE, the server will respond with 436
+	X	and close the connection. nntpxmit will requeue when this
+	X	happens. Posting will be rejected similiarly unless you have
+	X	some value greater than zero set for the POST_BUFFER. See
+	X	post.c for the nitty gritty.
+	X
+	XBug reports and enhancements welcome,
+	XStan Barber
+	X
+	Xsob@bcm.tmc.edu
+	X
+	XP.S. I expect Phil will take the reins back following this patch.
+	X
+	X
+	X
+SHAR_EOF
+if test 3112 -ne "`wc -c < 'README.1.5.4'`"
+then
+	echo shar: "error transmitting 'README.1.5.4'" '(should have been 3112 characters)'
+fi
+fi
+echo shar: "extracting 'CHANGES.diff'" '(1841 characters)'
+if test -f 'CHANGES.diff'
+then
+	echo shar: "will not over-write existing file 'CHANGES.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'CHANGES.diff'
+	X*** CHANGES	Thu Feb 25 21:47:47 1988
+	X--- ../nntp_patch/CHANGES	Sat Jan 14 22:18:39 1989
+	X***************
+	X*** 3,8 ****
+	X--- 3,39 ----
+	X  since the initial release.  Individuals who either reported or
+	X  inspired the bug/bug fix are in square brackets.
+	X  
+	X+ 1.5.4	May 11, 1989
+	X+ 	README and documentation updated to reflect reality. [sob@bcm.tmc.edu]
+	X+ 	Added HIDDENNET support (like news 2.11.17) to nntp "fake-inews."
+	X+ 	[allan@cs.strath.ac.uk]
+	X+ 	Clearer error messages from the GROUP command. [dww@stl.stc.co.uk
+	X+ 	(David Wright)]
+	X+ 	Out-of-space support for SunOS, ULTRIX and 4.[23]BSD added. [Tad Guy
+	X+ 	<tadguy@cs.odu.edu>, Chris Japeway <japeway@utkcs2.cs.utk.edu>]
+	X+ 	Initial TMNN reader support added. [suggested by erict@snark.UUCP,
+	X+ 	written by sob@bcm.tmc.edu] (NOTE: Support for the TMNN history file
+	X+ 	format IS NOT in this release.)
+	X+ 	Extended the nntp_access file to include domain name suffix support.
+	X+ 	[someone whose original message I lost :-(]
+	X+ 	Replaced the 4.2-like fakesyslog with 4.3-like fakesyslog.
+	X+ 	[another someone whose original message I lost :-(]
+	X+ 1.5.3	September 18, 1988
+	X+ 	Under the USGHIST option, the history file was not being closed
+	X+ 	before the next article coming in (via XFER) was processed. After
+	X+ 	about 20 articles, "No more files" would come up on the console.
+	X+ 	NNTP would take articles from incoming connection even though there
+	X+ 	was no space to store them. [sob@bcm.tmc.edu]
+	X+ 
+	X+ 1.5.2	May 6, 1988
+	X+ 	Arguements were reversed in ahbs.c.
+	X+ 	Stoopid typo in strcasecmp.c for System V. [sob@bcm.tmc.edu]
+	X+ 
+	X+ 1.5.1   March 1, 1988
+	X+ 	System V fixes to strcasecmp.c, SIGCLD handling and memory
+	X+ 	management. [sob@bcm.tmc.edu, apt@uhnix1.uh.edu]
+	X+ 	Fixed Excelan support. [sob@bcm.tmc.edu]
+	X+ 	
+	X  1.5	February 26, 1988
+	X  
+	X  	New top level Makefile.  [Casey Leedom, casey@lll-crg.llnl.gov]
+SHAR_EOF
+if test 1841 -ne "`wc -c < 'CHANGES.diff'`"
+then
+	echo shar: "error transmitting 'CHANGES.diff'" '(should have been 1841 characters)'
+fi
+fi
+if test -d common
+then
+echo entering common directory
+cd common
+echo shar: "extracting 'common.diff'" '(7786 characters)'
+if test -f 'common.diff'
+then
+	echo shar: "will not over-write existing file 'common.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'common.diff'
+	X*** README	Thu Feb 25 21:55:56 1988
+	X--- ../..nntp_patch/common/README	Thu May 11 11:59:57 1989
+	X***************
+	X*** 175,180 ****
+	X--- 175,185 ----
+	X  >>>	If GHNAME and UUNAME are undefined, mini-inews will	<<<
+	X  >>>	get the host name from /usr/include/whoami.h		<<<
+	X  
+	X+ DOMAINMATCH	(defined)
+	X+      Defined to allow the use of domain specifications in the nntp access
+	X+ file. Specifications for domains are of the form *.domain.name and can be
+	X+ used instead of individually naming hosts or networks.
+	X+ 
+	X  FCNTL		(defined if SYSV is defined)
+	X  
+	X       Some systems define things like O_RDONLY, etc. in <fcntl.h>.
+	X***************
+	X*** 205,210 ****
+	X--- 210,223 ----
+	X  If your hostname system call does return a fully-qualified name,
+	X  simply undef DOMAIN.
+	X  
+	X+ HIDDENNET	(undefined)
+	X+ 
+	X+      If HIDDENNET is defined, it forces inews to interpret DOMAIN as
+	X+ a complete host name, i.e. the local host is not prepended in the From:
+	X+ header. The Path: header is generated with only the login name, allowing
+	X+ inews on the nntp server to fill in the UUCP path. This has the effect of
+	X+ making all machines on a local network look, to the outside world, as a
+	X+ single host.
+	X  
+	X  SERVER_FILE	("/usr/local/lib/rn/server")
+	X  
+	X*** conf.h	Sun Feb  7 01:01:15 1988
+	X--- ../..nntp_patch/common/conf.h	Thu May 11 12:30:16 1989
+	X***************
+	X*** 9,20 ****
+	X  
+	X  #undef	ALONE		/* True if we're running without inetd */
+	X  #undef	FASTFORK	/* True if we don't want to read active file on start */
+	X! #undef	BSD_42		/* 4.2 compatability code -- if this is defined, */
+	X  			/* DBM probably wants to be defined as well. */
+	X  
+	X! #define NDBM		/* Use new-style (4.3) ndbm(3x) libraries */
+	X  
+	X! #undef	DBM		/* True if we want to use the old dbm(3x) libraries */
+	X  			/* IF YOU DEFINE THIS, change CFLAGS in makefile to */
+	X  			/* be -ldbm */
+	X  
+	X--- 9,20 ----
+	X  
+	X  #undef	ALONE		/* True if we're running without inetd */
+	X  #undef	FASTFORK	/* True if we don't want to read active file on start */
+	X! #define	BSD_42		/* 4.2 compatability code -- if this is defined, */
+	X  			/* DBM probably wants to be defined as well. */
+	X  
+	X! #undef NDBM		/* Use new-style (4.3) ndbm(3x) libraries */
+	X  
+	X! #define	DBM		/* True if we want to use the old dbm(3x) libraries */
+	X  			/* IF YOU DEFINE THIS, change CFLAGS in makefile to */
+	X  			/* be -ldbm */
+	X  
+	X***************
+	X*** 27,42 ****
+	X  #undef U_LONG		/* Define this if your <sys/types.h> is missing */
+	X  			/* typedefs for u_long */
+	X  
+	X  /*
+	X   * If you DON'T have vfork, make this "#define vfork fork"
+	X   * vfork will speed up article transfer nntpds by about 2.5 times.
+	X   */
+	X  
+	X! #undef	vfork
+	X  
+	X  /*
+	X   * If you have the syslog library routine, define SYSLOG to
+	X!  * be thef syslog facility name under which stats should be
+	X   * logged.  Newer 4.3 systems might choose LOG_NEWS;
+	X   * LOG_LOCAL7 is an acceptable substitute.
+	X   *
+	X--- 27,44 ----
+	X  #undef U_LONG		/* Define this if your <sys/types.h> is missing */
+	X  			/* typedefs for u_long */
+	X  
+	X+ #define MINFREE 4000	/* NNTP will not allow an XFER if there is less */
+	X+ 			/* than this much diskspace (in blocks) */
+	X  /*
+	X   * If you DON'T have vfork, make this "#define vfork fork"
+	X   * vfork will speed up article transfer nntpds by about 2.5 times.
+	X   */
+	X  
+	X! /* #define	vfork fork */
+	X  
+	X  /*
+	X   * If you have the syslog library routine, define SYSLOG to
+	X!  * be the syslog facility name under which stats should be
+	X   * logged.  Newer 4.3 systems might choose LOG_NEWS;
+	X   * LOG_LOCAL7 is an acceptable substitute.
+	X   *
+	X***************
+	X*** 46,56 ****
+	X   *
+	X   *	#define	FAKESYSLOG	"/usr/lib/news/nntplog"
+	X   *
+	X   * If you don't want any syslog-type activity, #undef SYSLOG.
+	X   * Obviously, this means that you can't define LOG, either.
+	X   */
+	X  
+	X! #undef	FAKESYSLOG
+	X  
+	X  #define	SYSLOG	LOG_NEWS
+	X  
+	X--- 48,63 ----
+	X   *
+	X   *	#define	FAKESYSLOG	"/usr/lib/news/nntplog"
+	X   *
+	X+  * If your host supports the BSD fdopen() function and the O_APPEND flag
+	X+  * to open(), you should define FAKEAPPEND with FAKESYSLOG so that
+	X+  * multiple copies of nntpd don't trash the log with buffered fprintf's.
+	X+  *
+	X   * If you don't want any syslog-type activity, #undef SYSLOG.
+	X   * Obviously, this means that you can't define LOG, either.
+	X   */
+	X  
+	X! #undef	FAKESYSLOG	"/usr/lib/news/nntplog"
+	X! #undef	FAKEAPPEND
+	X  
+	X  #define	SYSLOG	LOG_NEWS
+	X  
+	X***************
+	X*** 62,67 ****
+	X--- 69,81 ----
+	X  #   ifndef DBM		/* which will probably get me in trouble. */
+	X  #	define DBM	/* Kill it if you have 4.2 *and* ndbm.  */
+	X  #   endif not DBM
+	X+ #   ifndef sun		/* not a sun */
+	X+ #       ifndef ultrix   /* not ultrix */
+	X+ #           ifndef READ_SUPER
+	X+ #               define READ_SUPER	/* read super block for space() */
+	X+ #           endif
+	X+ #       endif
+	X+ #   endif
+	X  #endif BSD_42
+	X  
+	X  #ifdef USG		/* Another similar assumption */
+	X***************
+	X*** 77,83 ****
+	X  			/* the server more.  If your server is heavily */
+	X  			/* loaded already, defining this may be a bad idea */
+	X  
+	X! #define	SUBNET		/* If you have 4.3 subnetting */
+	X  #undef	DAMAGED_NETMASK	/* If your subnet mask is not a multiple of */
+	X  			/* four bits (e.g., UCSD) */
+	X  
+	X--- 91,97 ----
+	X  			/* the server more.  If your server is heavily */
+	X  			/* loaded already, defining this may be a bad idea */
+	X  
+	X! #undef	SUBNET		/* If you have 4.3 subnetting */
+	X  #undef	DAMAGED_NETMASK	/* If your subnet mask is not a multiple of */
+	X  			/* four bits (e.g., UCSD) */
+	X  
+	X***************
+	X*** 93,98 ****
+	X--- 107,116 ----
+	X  			/* inews will use the contents of */
+	X  			/* /usr/include/whoami.h */
+	X  
+	X+ #define DOMAINMATCH	/* allows use of domain specifications in the */
+	X+ 			/* access list instead of just hostnames. */
+	X+ 			/* See README for more information */
+	X+ 
+	X  /*
+	X   * System V compatability
+	X   */
+	X***************
+	X*** 146,156 ****
+	X   * Suggestions are .UUCP if you don't belong to the Internet.
+	X   * If your hostname returns the fully-qualified domain name
+	X   * as some 4.3 BSD systems do, simply undefine DOMAIN.
+	X   *
+	X   * e.g.  #define	DOMAIN		"berkeley.edu"
+	X   */
+	X  
+	X! #define	DOMAIN	"uucp"
+	X  
+	X  /*
+	X   * A file containing the name of the host which is running
+	X--- 164,177 ----
+	X   * Suggestions are .UUCP if you don't belong to the Internet.
+	X   * If your hostname returns the fully-qualified domain name
+	X   * as some 4.3 BSD systems do, simply undefine DOMAIN.
+	X+  * If you want your network to appear to be one host, define
+	X+  * HIDDENNET.
+	X   *
+	X   * e.g.  #define	DOMAIN		"berkeley.edu"
+	X   */
+	X  
+	X! #define	DOMAIN	"bcm.tmc.edu"
+	X! #undef HIDDENNET
+	X  
+	X  /*
+	X   * A file containing the name of the host which is running
+	X***************
+	X*** 158,170 ****
+	X   * too.
+	X   */
+	X  
+	X! #define	SERVER_FILE	"/usr/local/lib/rn/server"
+	X  
+	X  /*
+	X   * Person (user name) to post news as.
+	X   */
+	X  
+	X! #define	POSTER		"news"
+	X  
+	X  /*
+	X   * These files are generated by the support programs, and are needed
+	X--- 179,191 ----
+	X   * too.
+	X   */
+	X  
+	X! #define	SERVER_FILE	"/usr/lib/news/server"
+	X  
+	X  /*
+	X   * Person (user name) to post news as.
+	X   */
+	X  
+	X! #define	POSTER		"usenet"
+	X  
+	X  /*
+	X   * These files are generated by the support programs, and are needed
+	X***************
+	X*** 182,187 ****
+	X--- 203,210 ----
+	X  
+	X  #define	ACTIVE_FILE	"/usr/lib/news/active"
+	X  #define ACCESS_FILE	"/usr/lib/news/nntp_access"
+	X+ #define DISTRIBUTIONS_FILE	"/usr/lib/news/distributions"
+	X+ #define NEWSGROUPS_FILE	"/usr/lib/news/newsgroups"
+	X  #define HISTORY_FILE	"/usr/lib/news/history"
+	X  #define	SPOOLDIR	"/usr/spool/news"
+	X  #define INEWS		"/usr/lib/news/inews"
+	XNo differences encountered
+	X*** version.c	Sat Jan 14 22:32:36 1989
+	X--- ../..nntp_patch/common/version.c	Sat Jan 14 22:43:13 1989
+	X***************
+	X*** 2,5 ****
+	X   * Provide the version number of this release.
+	X   */
+	X  
+	X! char	nntp_version[] = "1.5.3 (18 Sep 88)";
+	X--- 2,5 ----
+	X   * Provide the version number of this release.
+	X   */
+	X  
+	X! char	nntp_version[] = "1.5.4 (11 May 89)";
+SHAR_EOF
+if test 7786 -ne "`wc -c < 'common.diff'`"
+then
+	echo shar: "error transmitting 'common.diff'" '(should have been 7786 characters)'
+fi
+fi
+cd ..
+echo done in common directory
+else
+echo error in directory structure -- common directory not found.
+echo quiting
+exit 1
+fi
+if test -d doc
+then
+echo entering doc directory
+cd doc
+echo shar: "extracting 'doc.diff'" '(7075 characters)'
+if test -f 'doc.diff'
+then
+	echo shar: "will not over-write existing file 'doc.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'doc.diff'
+	X*** nntpd.dst	Thu Oct 15 20:15:12 1987
+	X--- ../../nntp_patch/doc/nntpd.dst	Sat Jan 14 15:40:10 1989
+	X***************
+	X*** 1,7 ****
+	X  .\"
+	X! .\" @(#)nntpd.dst	1.3	(Berkeley) 10/15/87
+	X  .\"
+	X! .TH NNTPD 8C "8 July 1987"
+	X  .UC 4
+	X  .SH NAME
+	X  nntpd \- Network News Transfer Protocol server
+	X--- 1,7 ----
+	X  .\"
+	X! .\" @(#)nntpd.dst	1.4	(Berkeley) 5/11/89
+	X  .\"
+	X! .TH NNTPD 8C "11 May 1989"
+	X  .UC 4
+	X  .SH NAME
+	X  nntpd \- Network News Transfer Protocol server
+	X***************
+	X*** 24,34 ****
+	X  .IR SERVICES ;
+	X  the port number assigned by the Network Information Center
+	X  for this service is 119.
+	X! For use with DECNET,
+	X! xxx.
+	X  This manual page describes
+	X  .I nntpd
+	X! from version 1.4 of the NNTP package.
+	X  .PP
+	X  .I Nntpd
+	X  can operate either as a stand-alone server, or as a
+	X--- 24,41 ----
+	X  .IR SERVICES ;
+	X  the port number assigned by the Network Information Center
+	X  for this service is 119.
+	X! For use with DECNET (which is only known to work under ULTRIX),
+	X! define the NNTP object with NCP.
+	X! .sp
+	X! .nf
+	X! ncp define object NNTP number 0 file LNNTPD
+	X! ncp define object NNTP default user guest type stream
+	X! ncp set object NNTP all
+	X! .fi
+	X! .sp
+	X  This manual page describes
+	X  .I nntpd
+	X! from version 1.5.4 of the NNTP package.
+	X  .PP
+	X  .I Nntpd
+	X  can operate either as a stand-alone server, or as a
+	X***************
+	X*** 37,49 ****
+	X  For stand-alone use,
+	X  .I nntpd
+	X  must be compiled with the -DALONE option, and is
+	X! invoked as mentioned in the synopsis above.
+	X  Under
+	X  .IR inetd (1),
+	X  the appropriate entry must be made in
+	X  .IR INETDCONFIG ,
+	X  and the server must be compiled without the
+	X! -DALONE flag.
+	X  .PP
+	X  The server handles clients on a one to one basis,
+	X  forking to take care of clients as they request
+	X--- 44,61 ----
+	X  For stand-alone use,
+	X  .I nntpd
+	X  must be compiled with the -DALONE option, and is
+	X! usually invoked at system startup by the
+	X! .IR /etc/rc.local 
+	X! script.
+	X  Under
+	X  .IR inetd (1),
+	X  the appropriate entry must be made in
+	X  .IR INETDCONFIG ,
+	X  and the server must be compiled without the
+	X! -DALONE flag. You may need to halt and restart 
+	X! .IR inetd (1)
+	X! or send it SIGHUP to force it to reread
+	X! .IR INETDCONFIG .
+	X  .PP
+	X  The server handles clients on a one to one basis,
+	X  forking to take care of clients as they request
+	X***************
+	X*** 71,77 ****
+	X  This file consists of three or four fields in the following form:
+	X  .sp
+	X  .nf
+	X! host/net		read/xfer/no	post/no		newsgroups
+	X  .fi
+	X  .sp
+	X  where
+	X--- 83,89 ----
+	X  This file consists of three or four fields in the following form:
+	X  .sp
+	X  .nf
+	X! host/net/*domain.suffix   read/xfer/no  post/no  newsgroups
+	X  .fi
+	X  .sp
+	X  where
+	X***************
+	X*** 82,88 ****
+	X  .I net
+	X  is a valid network name as found in
+	X  .I NETWORKFILE,
+	X! and
+	X  .I ``read'',
+	X  .I ``xfer'',
+	X  .I ``post'',
+	X--- 94,101 ----
+	X  .I net
+	X  is a valid network name as found in
+	X  .I NETWORKFILE,
+	X! .I *.domain.suffix
+	X! is a valid domain part of a hostname preceeded by an asterisk, and
+	X  .I ``read'',
+	X  .I ``xfer'',
+	X  .I ``post'',
+	X***************
+	X*** 96,102 ****
+	X  .PP
+	X  The presence of an entry in this file
+	X  implies that specific host, or
+	X! hosts on the named network, are
+	X  allowed to read news, but not to post news.
+	X  The absence of a entry corresponding
+	X  to a client's host or network implies that the client
+	X--- 109,115 ----
+	X  .PP
+	X  The presence of an entry in this file
+	X  implies that specific host, or
+	X! hosts on the named network, or hosts with a domain suffix that matches, are
+	X  allowed to read news, but not to post news.
+	X  The absence of a entry corresponding
+	X  to a client's host or network implies that the client
+	X***************
+	X*** 147,156 ****
+	X  #
+	X  # Example access file
+	X  #
+	X! default		xfer	no
+	X! ucb-ether	read	post
+	X! shadow		no	no
+	X! ic		read	post	!ucb.postgres
+	X  .fi
+	X  .sp
+	X  .PP
+	X--- 160,170 ----
+	X  #
+	X  # Example access file
+	X  #
+	X! default         xfer    no
+	X! ucb-ether       read    post
+	X! shadow          no      no
+	X! *.stanford.edu  no      no
+	X! ic              read    post     !ucb.postgres
+	X  .fi
+	X  .sp
+	X  .PP
+	X***************
+	X*** 160,165 ****
+	X--- 174,181 ----
+	X  read and post news.
+	X  The host ``shadow'' would not be allowed
+	X  to read or post news.
+	X+ Hosts that have a domain suffix of ``.stanford.edu'' are denied access
+	X+ to this server.
+	X  Finally, the host ``ic'' is allowed to read and post
+	X  news, but cannot access articles in the newsgroup
+	X  ``ucb.postgres'' or any of its child newsgroups
+	X***************
+	X*** 182,192 ****
+	X  was fallible and could present a hefty load
+	X  on the serving system.
+	X  Consequently, it is no longer supported, and its use is discouraged.
+	X! .SH AUTHOR
+	X  Phil Lapsley (Internet: phil@berkeley.edu; UUCP: ...!ucbvax!phil)
+	X  .SH SEE ALSO
+	X  services(5),
+	X! inetd(8C)
+	X  .PP
+	X  RFC 977, ``Network News Transfer Protocol:
+	X  A Proposed Standard for the Stream Based Transmission
+	X--- 198,211 ----
+	X  was fallible and could present a hefty load
+	X  on the serving system.
+	X  Consequently, it is no longer supported, and its use is discouraged.
+	X! .SH AUTHORS
+	X  Phil Lapsley (Internet: phil@berkeley.edu; UUCP: ...!ucbvax!phil)
+	X+ .br
+	X+ Stan Barber (Internet: sob@tmc.edu; UUCP: ...!bcm!sob)
+	X  .SH SEE ALSO
+	X  services(5),
+	X! inetd(8C),
+	X! rc.local(8)
+	X  .PP
+	X  RFC 977, ``Network News Transfer Protocol:
+	X  A Proposed Standard for the Stream Based Transmission
+	X*** nntpxmit.1	Fri Dec 18 17:29:37 1987
+	X--- ../../nntp_patch/doc/nntpxmit.1	Sat Jan 14 15:46:46 1989
+	X***************
+	X*** 1,4 ****
+	X! .TH NNTPXMIT 1 netnews/NNTP
+	X  .SH NAME
+	X  .I nntpxmit
+	X  \- transmit netnews articles to a remote NNTP server
+	X--- 1,4 ----
+	X! .TH NNTPXMIT 1 "11 May 1989"
+	X  .SH NAME
+	X  .I nntpxmit
+	X  \- transmit netnews articles to a remote NNTP server
+	X***************
+	X*** 122,137 ****
+	X  fetch out the message-id (required on all netnews articles),
+	X  and send the command IHAVE <message-id> to the remote.
+	X  .IP 2.
+	X! The remote will then say either "I've seen it already" or "please send
+	X! that article to me."
+	X  .IP 3.
+	X! If the response was negative,
+	X  .I nntpxmit
+	X  loops back to step 1 and offers the next article (until queue file EOF).
+	X! Otherwise,
+	X  .I nntpxmit
+	X  will send the article, using SMTP [RFC821] text transmission conventions
+	X  (i.e. CRLF line terminators, and dot escaping).
+	X  .IP 4.
+	X  .I Nntpxmit
+	X  waits for the remote to say whether the article was successfully
+	X--- 122,139 ----
+	X  fetch out the message-id (required on all netnews articles),
+	X  and send the command IHAVE <message-id> to the remote.
+	X  .IP 2.
+	X! The remote will then say "I've seen it already" or "please send
+	X! that article to me" or "please send it later as I am out of space right now."
+	X  .IP 3.
+	X! If the response was "I've see it already",
+	X  .I nntpxmit
+	X  loops back to step 1 and offers the next article (until queue file EOF).
+	X! If the response was "please send that article to me",
+	X  .I nntpxmit
+	X  will send the article, using SMTP [RFC821] text transmission conventions
+	X  (i.e. CRLF line terminators, and dot escaping).
+	X+ Otherwise, that article and all following articles are requeued for the
+	X+ next invocation and the current process is terminated. 
+	X  .IP 4.
+	X  .I Nntpxmit
+	X  waits for the remote to say whether the article was successfully
+	X
+SHAR_EOF
+if test 7075 -ne "`wc -c < 'doc.diff'`"
+then
+	echo shar: "error transmitting 'doc.diff'" '(should have been 7075 characters)'
+fi
+fi
+cd ..
+echo done in doc directory
+else
+echo error in directory structure -- doc directory not found.
+echo quiting
+exit 1
+fi
+if test -d inews
+then
+echo entering inews directory
+cd inews
+echo shar: "extracting 'inews.diff'" '(2031 characters)'
+if test -f 'inews.diff'
+then
+	echo shar: "will not over-write existing file 'inews.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'inews.diff'
+	X*** README	Thu Oct 22 15:56:37 1987
+	X--- /home/watson/crc/sob/src/nntp_patch/inews/README	Thu May 11 11:58:16 1989
+	X***************
+	X*** 14,22 ****
+	X  	Path: hostname!login
+	X  
+	X  where DOMAIN is a #define in ../common/conf.h, and should be changed
+	X! to reflect your system.  A good choice is .UUCP if you are not a
+	X  member of the Internet.  "Full_name" understands the & hack in
+	X! password files.
+	X  
+	X       "hostname" is figured out by what you've #defined in ../common/conf.h.
+	X  If you have defined GHNAME, it uses the gethostname() call.
+	X--- 14,26 ----
+	X  	Path: hostname!login
+	X  
+	X  where DOMAIN is a #define in ../common/conf.h, and should be changed
+	X! to reflect your system.  A good choice is "UUCP" if you are not a
+	X  member of the Internet.  "Full_name" understands the & hack in
+	X! password files. If "HIDDENNET" is defined in ../common/conf.h,
+	X! DOMAIN is used as the complete host name, and the format used is
+	X! 
+	X! 	From: login@DOMAIN (Full_name)
+	X! 	Path: login
+	X  
+	X       "hostname" is figured out by what you've #defined in ../common/conf.h.
+	X  If you have defined GHNAME, it uses the gethostname() call.
+	X*** inews.c	Sat Feb  6 17:44:00 1988
+	X--- /home/watson/crc/sob/src/nntp_patch/inews/inews.c	Thu May 11 11:58:18 1989
+	X***************
+	X*** 217,222 ****
+	X--- 217,227 ----
+	X  	}
+	X  
+	X  #ifdef DOMAIN
+	X+ #ifdef HIDDENNET
+	X+ 		fprintf(ser_wr_fp, "From: %s@%s (",
+	X+ 			passwd->pw_name,
+	X+ 			DOMAIN);
+	X+ #else /* HIDDENNET */
+	X  
+	X  	/* A heuristic to see if we should tack on a domain */
+	X  
+	X***************
+	X*** 230,235 ****
+	X--- 235,241 ----
+	X  			passwd->pw_name,
+	X  			host_name,
+	X  			DOMAIN);
+	X+ #endif /* HIDDENNET */
+	X  #else
+	X  	fprintf(ser_wr_fp, "From: %s@%s (",
+	X  		passwd->pw_name,
+	X***************
+	X*** 246,252 ****
+	X--- 252,263 ----
+	X  
+	X  	fprintf(ser_wr_fp, ")\r\n");
+	X  
+	X+ #ifdef HIDDENNET
+	X+ 	/* Only the login name - nntp server will add uucp name */
+	X+ 	fprintf(ser_wr_fp, "Path: %s\r\n", passwd->pw_name);
+	X+ #else /* HIDDENNET */
+	X  	fprintf(ser_wr_fp, "Path: %s!%s\r\n", host_name, passwd->pw_name);
+	X+ #endif /* HIDDENNET */
+	X  }
+	X  
+	X  
+SHAR_EOF
+if test 2031 -ne "`wc -c < 'inews.diff'`"
+then
+	echo shar: "error transmitting 'inews.diff'" '(should have been 2031 characters)'
+fi
+fi
+cd ..
+echo done in inews directory
+else
+echo error in directory structure -- inews directory not found.
+echo quiting
+exit 1
+fi
+if test -d server
+then
+echo entering server directory
+cd server
+echo shar: "extracting 'server.diff'" '(26936 characters)'
+if test -f 'server.diff'
+then
+	echo shar: "will not over-write existing file 'server.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'server.diff'
+	X*** README	Thu Oct 22 16:15:06 1987
+	X--- ../../nntp_patch/server/README	Thu May 11 12:22:29 1989
+	X***************
+	X*** 30,37 ****
+	X  
+	X  	   a. Add a line to /etc/inetd.conf, or whatever your
+	X  	      configuration file is, to reflect the presence
+	X! 	      of the news server.  On 4.3 BSD machines this should
+	X! 	      look like:
+	X  
+	X  nntp	stream	tcp	nowait	root	/etc/nntpd	nntpd
+	X  
+	X--- 30,37 ----
+	X  
+	X  	   a. Add a line to /etc/inetd.conf, or whatever your
+	X  	      configuration file is, to reflect the presence
+	X! 	      of the news server.  On 4.3 BSD machines and on Suns
+	X!               running SunOS 4.X, this should look like:
+	X  
+	X  nntp	stream	tcp	nowait	root	/etc/nntpd	nntpd
+	X  
+	X***************
+	X*** 39,45 ****
+	X  
+	X  nntp	stream	tcp	nowait	/etc/nntpd	nntpd
+	X  
+	X! 	      On a Sun, the file is /etc/servers; the line looks like:
+	X  
+	X  nntp	tcp	/usr/etc/in.nntpd
+	X  
+	X--- 39,46 ----
+	X  
+	X  nntp	stream	tcp	nowait	/etc/nntpd	nntpd
+	X  
+	X! 	      On a Sun running SunOS 3.X the file is /etc/servers;
+	X!               the line looks like:
+	X  
+	X  nntp	tcp	/usr/etc/in.nntpd
+	X  
+	X***************
+	X*** 46,52 ****
+	X  	      Be sure to yppush your /etc/servers file if you run
+	X  	      yellow pages.
+	X  
+	X! 	      Don't forget to kill -HUP your inetd.
+	X  
+	X  	   If you're NOT using inetd,
+	X  
+	X--- 47,54 ----
+	X  	      Be sure to yppush your /etc/servers file if you run
+	X  	      yellow pages.
+	X  
+	X! 	      Don't forget to kill -HUP your inetd (or kill it and restart
+	X!               it if you are on SunOS).
+	X  
+	X  	   If you're NOT using inetd,
+	X  
+	X*** SYSLOG	Thu Oct 15 21:08:49 1987
+	X--- ../../nntp_patch/server/SYSLOG	Sat Jan 14 13:50:22 1989
+	X***************
+	X*** 6,11 ****
+	X--- 6,15 ----
+	X  
+	X  host connect			"host" connected to the server.
+	X  host refused connection		"host" tried to connect, but was denied.
+	X+ host no space			"host" tried to connect when there was
+	X+ 				no space available for xfers
+	X+ host no groups			"host" tried to connect when the local
+	X+ 				server could not read the active file
+	X  host unrecognized %s		"host" gave an unknown command, %s.
+	X  host group newsgroup		"host" isssued GROUP to "newsgroup".
+	X  host post rejected		"host" tried to POST, but was denied.
+	X*** active.c	Sat Jan 14 22:31:09 1989
+	X--- ../../nntp_patch/server/active.c	Sat Oct  8 12:50:40 1988
+	X***************
+	X*** 72,78 ****
+	X  		return (0);
+	X  	}
+	X  
+	X! 	if (read(act_fd, actbuf, (int)statbuf.st_size) != statbuf.st_size) {
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "read_groups: read %d bytes: %m",
+	X  			statbuf.st_size);
+	X--- 72,78 ----
+	X  		return (0);
+	X  	}
+	X  
+	X! 	if (read(act_fd, actbuf, (iolen_t)statbuf.st_size) != statbuf.st_size) {
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "read_groups: read %d bytes: %m",
+	X  			statbuf.st_size);
+	X*** common.h	Sat Jan 14 22:30:58 1989
+	X--- ../../nntp_patch/server/common.h	Thu May 11 12:19:27 1989
+	X***************
+	X*** 1,7 ****
+	X  /*
+	X   * Common declarations, includes, and other goodies.
+	X   *
+	X!  * @(#)common.h	1.26	(Berkeley) 2/10/88
+	X   */
+	X  
+	X  
+	X--- 1,7 ----
+	X  /*
+	X   * Common declarations, includes, and other goodies.
+	X   *
+	X!  * @(#)common.h	1.27	(Berkeley) 5/11/89
+	X   */
+	X  
+	X  
+	X***************
+	X*** 30,39 ****
+	X--- 30,41 ----
+	X  
+	X  #ifdef USG
+	X  extern struct passwd *getpwent(), *getpwuid(), *getpwnam();
+	X+ #define iolen_t unsigned
+	X  # include <string.h>
+	X  #else not USG
+	X  # include <strings.h>
+	X  # include <sys/wait.h>
+	X+ #define iolen_t int
+	X  #endif not USG
+	X  
+	X  #ifdef NDIR
+	X***************
+	X*** 46,51 ****
+	X--- 48,57 ----
+	X  # include <fcntl.h>
+	X  #endif FCNTL
+	X  
+	X+ #ifdef ultrix
+	X+ extern char * index();
+	X+ #endif
+	X+ 
+	X  /*
+	X   * <dbm.h> stupidly defines NULL, which is why the following
+	X   * brain death is necessary.
+	X***************
+	X*** 61,67 ****
+	X  #ifdef NDBM
+	X  # include <ndbm.h>
+	X  #endif
+	X- 
+	X  /*
+	X   * Some generic maximums.
+	X   */
+	X--- 67,72 ----
+	X***************
+	X*** 74,79 ****
+	X--- 79,92 ----
+	X  #define	MAXHOSTNAMELEN	256
+	X  #endif not MAXHOSTNAMELEN
+	X  
+	X+ #ifndef MINFREE
+	X+ #define MINFREE         0
+	X+ #endif
+	X+ 
+	X+ #ifndef POSTBUFFER
+	X+ #define POSTBUFFER      0
+	X+ #endif
+	X+ 
+	X  #define	MAXBUFLEN	1024
+	X  
+	X  /*
+	X***************
+	X*** 107,112 ****
+	X--- 120,127 ----
+	X  
+	X  extern	char	spooldir[];
+	X  extern	char	activefile[];
+	X+ extern	char	distributionsfile[];
+	X+ extern	char	newsgroupsfile[];
+	X  extern	char	accessfile[];
+	X  extern	char	historyfile[];
+	X  extern	char	ngdatefile[];
+	X*** fakesyslog.c	Sat Feb  6 18:34:54 1988
+	X--- ../../nntp_patch/server/fakesyslog.c	Thu May 11 12:16:07 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)fakesyslog.c	1.3	(Berkeley) 2/6/88";
+	X  #endif
+	X  
+	X  /*
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)fakesyslog.c	1.4	(Berkeley) 5/11/89";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 11,36 ****
+	X   * Warning: this file contains joe code that may offend you.
+	X   */
+	X  
+	X- #include <stdio.h>
+	X- 
+	X  #include "../common/conf.h"
+	X  
+	X  #ifdef FAKESYSLOG
+	X  
+	X  extern	int	errno;
+	X  extern	int	sys_nerr;
+	X  extern	char	*sys_errlist[];
+	X  
+	X  static FILE	*logfp;
+	X  
+	X! char	*strcpy(), *strcat(), *ctime();
+	X  
+	X! openlog()
+	X  {
+	X  	logfp = fopen(FAKESYSLOG, "a");
+	X  }
+	X  
+	X  
+	X  syslog(pri, msg, x1, x2, x3, x4, x5, x6)
+	X  	int	pri;
+	X  	char	*msg, *x1, *x2, *x3, *x4, *x5, *x6;
+	X--- 11,116 ----
+	X   * Warning: this file contains joe code that may offend you.
+	X   */
+	X  
+	X  #include "../common/conf.h"
+	X  
+	X  #ifdef FAKESYSLOG
+	X  
+	X+ #include "fakesyslog.h"
+	X+ 
+	X+ #include <stdio.h>
+	X+ #include <sys/signal.h>
+	X+ #include <sys/types.h>
+	X+ 
+	X+ #ifdef FAKEAPPEND
+	X+ #include <sys/file.h>
+	X+ #endif
+	X+ 
+	X+ #ifdef FCNTL
+	X+ #include <fcntl.h>
+	X+ #endif
+	X+ 
+	X  extern	int	errno;
+	X  extern	int	sys_nerr;
+	X  extern	char	*sys_errlist[];
+	X  
+	X  static FILE	*logfp;
+	X+ static int	failed = 0;
+	X+ static char	*ident = "syslog";
+	X+ static int 	opt = 0;
+	X+ #ifndef BSD_42
+	X+ static int	fac = 0;
+	X+ #endif
+	X  
+	X! extern char	*strcpy(), *strcat(), *ctime(), *sprintf();
+	X! extern time_t	time();
+	X  
+	X! resetlog()
+	X  {
+	X+ 	closelog();
+	X+ 	failed = 0;
+	X+ 	if (logfp == NULL) {
+	X+ #ifdef BSD_42
+	X+ 		openlog(ident, opt);
+	X+ #else
+	X+ 		openlog(ident, opt, fac);
+	X+ #endif
+	X+ 		if (logfp == NULL) {
+	X+ 			failed = 1;
+	X+ 			return;
+	X+ 		}
+	X+ 	}
+	X+ }
+	X+ 
+	X+ #ifdef BSD_42
+	X+ openlog(newident,logopt)
+	X+ 	char *newident;
+	X+ 	int logopt;
+	X+ #else
+	X+ openlog(newident,logopt,facility)
+	X+ 	char *newident;
+	X+ 	int logopt, facility;
+	X+ #endif
+	X+ {
+	X+ #ifdef FAKEAPPEND
+	X+ /*
+	X+  * why can't stdio give us the capability of O_APPEND?
+	X+  */
+	X+ 	int fd;
+	X+ 
+	X+ 	fd = open(FAKESYSLOG, O_WRONLY|O_APPEND, 0664);
+	X+ 	if (fd < 0)
+	X+ 		logfp = NULL;
+	X+ 	else
+	X+ 		logfp = fdopen(fd, "a");
+	X+ #else
+	X  	logfp = fopen(FAKESYSLOG, "a");
+	X+ #endif
+	X+ 
+	X+ 	(void)signal(SIGHUP, resetlog);
+	X+ 
+	X+ 	if (newident && *newident)
+	X+ 		ident = newident;
+	X+ 	opt = logopt;
+	X+ #ifndef BSD_42
+	X+ 	fac = facility;
+	X+ #endif
+	X  }
+	X  
+	X+ closelog()
+	X+ {
+	X+ 	if (logfp) {
+	X+ 		(void)fclose(logfp);
+	X+ 		failed = 0;
+	X+ 		logfp = NULL;
+	X+ 	}
+	X+ }
+	X  
+	X+ /*ARGSUSED*/
+	X+ setlogmask(maskpri)
+	X+ 	int maskpri;
+	X+ {
+	X+ }
+	X+ 
+	X  syslog(pri, msg, x1, x2, x3, x4, x5, x6)
+	X  	int	pri;
+	X  	char	*msg, *x1, *x2, *x3, *x4, *x5, *x6;
+	X***************
+	X*** 37,50 ****
+	X  {
+	X  	char		buf[1024];
+	X  	char		*cp, *bp;
+	X! 	long		clock;
+	X! 	static int	failed = 0;
+	X  
+	X  	if (failed)
+	X  		return;
+	X  
+	X  	if (logfp == NULL) {
+	X! 		openlog();
+	X  		if (logfp == NULL) {
+	X  			failed = 1;
+	X  			return;
+	X--- 117,133 ----
+	X  {
+	X  	char		buf[1024];
+	X  	char		*cp, *bp;
+	X! 	time_t		clock;
+	X  
+	X  	if (failed)
+	X  		return;
+	X  
+	X  	if (logfp == NULL) {
+	X! #ifdef BSD_42
+	X! 		openlog(ident, opt);
+	X! #else
+	X! 		openlog(ident, opt, fac);
+	X! #endif
+	X  		if (logfp == NULL) {
+	X  			failed = 1;
+	X  			return;
+	X***************
+	X*** 52,71 ****
+	X  	}
+	X  
+	X  	(void) time(&clock);
+	X! 	(void) strcpy(buf, ctime(&clock));
+	X  
+	X! 	bp = buf + strlen(buf)-1;
+	X! 	*bp++ = ' ';
+	X! 	*bp = '\0';
+	X  	for (cp = msg; *cp; cp++) {
+	X  		if (*cp == '%' && cp[1] == 'm') {
+	X  			*bp = '\0';
+	X  			if (errno >= sys_nerr || errno < 0) {
+	X  				char	work[32];
+	X! 				sprintf(work, "unknown error #%d", errno);
+	X! 				(void) strcat(bp, work);
+	X  			} else
+	X! 				(void) strcat(bp, sys_errlist[errno]);
+	X  			bp = buf + strlen(buf);
+	X  			cp++;
+	X  		} else {
+	X--- 135,169 ----
+	X  	}
+	X  
+	X  	(void) time(&clock);
+	X! 	(void) strcpy(buf, ctime(&clock)+4);
+	X! 	*(bp = buf + 16) = '\0';
+	X  
+	X! 	(void) sprintf(bp, "localhost %s", ident ? ident : "");
+	X! 	bp += strlen(bp);
+	X! 
+	X! 	if (opt&LOG_PID) {
+	X! 		/* don't cache getpid() - who knows when we'll fork() */
+	X! 		(void) sprintf(bp, "[%d]", getpid());
+	X! 		bp += strlen(bp);
+	X! 	}
+	X! 
+	X! 	if (ident) {
+	X! 		(void) strcat(bp, ": ");
+	X! 		bp += 2;
+	X! 	} else {
+	X! 		(void) strcat(bp, " ");
+	X! 		bp ++;
+	X! 	}
+	X! 
+	X  	for (cp = msg; *cp; cp++) {
+	X  		if (*cp == '%' && cp[1] == 'm') {
+	X  			*bp = '\0';
+	X  			if (errno >= sys_nerr || errno < 0) {
+	X  				char	work[32];
+	X! 				(void)sprintf(work, "unknown error #%d", errno);
+	X! 				(void)strcat(bp, work);
+	X  			} else
+	X! 				(void)strcat(bp, sys_errlist[errno]);
+	X  			bp = buf + strlen(buf);
+	X  			cp++;
+	X  		} else {
+	X***************
+	X*** 78,83 ****
+	X--- 176,182 ----
+	X  		(void) strcat(bp, "\n");
+	X  
+	X  	fprintf(logfp, buf, x1, x2, x3, x4, x5, x6);
+	X+ 	(void) fflush(logfp);
+	X  }
+	X  
+	X  #endif
+	X*** fakesyslog.h	Fri Dec 18 17:15:25 1987
+	X--- ../../nntp_patch/server/fakesyslog.h	Wed May 10 22:34:49 1989
+	X***************
+	X*** 56,62 ****
+	X   *  Option flags for openlog.
+	X   */
+	X  
+	X! #define	LOG_PID		0
+	X  #define	LOG_CONS	0
+	X  #define	LOG_ODELAY	0
+	X  #define LOG_NDELAY	0
+	X--- 56,62 ----
+	X   *  Option flags for openlog.
+	X   */
+	X  
+	X! #define	LOG_PID		1
+	X  #define	LOG_CONS	0
+	X  #define	LOG_ODELAY	0
+	X  #define LOG_NDELAY	0
+	X*** globals.c	Sat Jan 14 22:30:49 1989
+	X--- ../../nntp_patch/server/globals.c	Thu May 11 12:20:23 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)globals.c	1.4	(Berkeley) 7/17/87";
+	X  #endif
+	X  
+	X  /*
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)globals.c	1.5	(Berkeley) 5/11/89";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 15,20 ****
+	X--- 15,22 ----
+	X  char	spooldir[] = SPOOLDIR;
+	X  char	activefile[] = ACTIVE_FILE;
+	X  char	accessfile[] = ACCESS_FILE;
+	X+ char	distributionsfile[] = DISTRIBUTIONS_FILE;
+	X+ char	newsgroupsfile[] = NEWSGROUPS_FILE;
+	X  char	historyfile[] = HISTORY_FILE;
+	X  char	ngdatefile[] = NGDATE_FILE;
+	X  char	inews[] = INEWS;
+	X*** group.c	Sat Feb  6 19:28:09 1988
+	X--- ../../nntp_patch/server/group.c	Thu May 11 12:15:24 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)group.c	1.11	(Berkeley) 2/6/88";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)group.c	1.12	(Berkeley) 5/11/89";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 37,49 ****
+	X  	}
+	X  
+	X  	if (index(argv[1], '/') != (char *) NULL) {
+	X! 		printf("%d Invalid group name.\r\n", ERR_NOGROUP);
+	X  		(void) fflush(stdout);
+	X  		return;
+	X  	}
+	X  
+	X  	if (find_group(argv[1], num_groups, &low_msg, &high_msg) < 0) {
+	X! 		printf("%d Invalid group name.\r\n", ERR_NOGROUP);
+	X  		(void) fflush(stdout);
+	X  		return;
+	X  	}
+	X--- 37,50 ----
+	X  	}
+	X  
+	X  	if (index(argv[1], '/') != (char *) NULL) {
+	X! 		printf("%d Invalid group name (bad format).\r\n", ERR_NOGROUP);
+	X  		(void) fflush(stdout);
+	X  		return;
+	X  	}
+	X  
+	X  	if (find_group(argv[1], num_groups, &low_msg, &high_msg) < 0) {
+	X! 		printf("%d Invalid group name (not in active).\r\n",
+	X! 			ERR_NOGROUP);
+	X  		(void) fflush(stdout);
+	X  		return;
+	X  	}
+	X
+	X*** ihave.c	Tue Jan 12 01:53:11 1988
+	X--- ../../nntp_patch/server/ihave.c	Thu May 11 12:20:56 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)ihave.c	1.11	(Berkeley) 1/11/88";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)ihave.c	1.12	(Berkeley) 5/11/89";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 42,49 ****
+	X  #endif LOG
+	X  		return;
+	X  	}
+	X! 		
+	X! 	retcode = spawn(rnews, "rnews", (char *) 0, CONT_XFER, ERR_XFERFAIL, errbuf);
+	X  	if (retcode <= 0)
+	X  		printf("%d %s\r\n", ERR_XFERFAIL, errbuf);
+	X  	else if (retcode > 0)
+	X--- 42,60 ----
+	X  #endif LOG
+	X  		return;
+	X  	}
+	X! 
+	X! 	if (space() != 0) {
+	X! 	    /* force error reporting code into sending */
+	X! 	    /* an out-of-space error message	       */
+	X! 	    if (gethostname(errbuf, MAXHOSTNAMELEN) < 0)
+	X! 		(void) strcpy(errbuf, "Amnesiac");
+	X! 
+	X! 	    (void) strcat(errbuf, " NNTP server out of space. Try later.");
+	X! 
+	X! 	    retcode = 0;		/* indicates that an error occurred */
+	X! 	} else retcode =
+	X! 	    spawn(rnews, "rnews", (char *) 0, CONT_XFER, ERR_XFERFAIL, errbuf);
+	X! 
+	X  	if (retcode <= 0)
+	X  		printf("%d %s\r\n", ERR_XFERFAIL, errbuf);
+	X  	else if (retcode > 0)
+	X*** list.c	Sat Feb  6 19:28:10 1988
+	X--- ../../nntp_patch/server/list.c	Thu May 11 12:19:55 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)list.c	1.10	(Berkeley) 2/6/88";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)list.c	1.11	(Berkeley) 5/11/89";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 7,13 ****
+	X  /*
+	X   * LIST
+	X   *
+	X!  * List active newsgroups.
+	X   *
+	X   */
+	X  
+	X--- 7,13 ----
+	X  /*
+	X   * LIST
+	X   *
+	X!  * List active newsgroups, newsgroup descriptions, and distributions.
+	X   *
+	X   */
+	X  
+	X***************
+	X*** 17,43 ****
+	X  {
+	X  	char		line[NNTP_STRLEN];
+	X  	char		*grparray[2];
+	X  	register char	*cp;
+	X! 	register FILE	*active_fp;
+	X  
+	X  	grparray[0] = line;
+	X  	grparray[1] = NULL;
+	X  
+	X! 	active_fp = fopen(activefile, "r");
+	X  
+	X! 	if (active_fp == NULL) {
+	X! 		printf("%d No list of newsgroups available.\r\n", ERR_FAULT);
+	X  		(void) fflush(stdout);
+	X  #ifdef SYSLOG
+	X! 		syslog(LOG_ERR, "list: fopen %s: %m", activefile);
+	X  #endif
+	X  		return;
+	X  	}
+	X  
+	X! 	printf("%d Newsgroups in form \"group high low y/n/m\".\r\n",
+	X! 		OK_GROUPS);
+	X  
+	X! 	while (fgets(line, sizeof(line), active_fp) != NULL) {
+	X  		if ((cp = index(line, '\n')) != NULL)
+	X  			*cp = '\0';
+	X  		if (ngpermcount)
+	X--- 17,65 ----
+	X  {
+	X  	char		line[NNTP_STRLEN];
+	X  	char		*grparray[2];
+	X+ 	char		*filename;
+	X+ 	char		*items;
+	X+ 	char		*format;
+	X  	register char	*cp;
+	X! 	register FILE	*list_fp;
+	X! 	
+	X! 	if (argc == 1 || (argc == 2 && !strcasecmp(argv[1],"active"))){
+	X! 		filename = activefile;
+	X! 		items = "active newsgroups";
+	X! 		format = "Newsgroups in form \"group high low y/n/m\".";
+	X! 	} else if (argc == 2 && !strcasecmp(argv[1],"distributions")){
+	X! 		filename = distributionsfile;
+	X! 		items = "newsgroup distributions";
+	X! 		format = "Distributions in form \"area description\".";
+	X! 	} else if (argc == 2 && !strcasecmp(argv[1],"newsgroups")){
+	X! 		filename = newsgroupsfile;
+	X! 		items = "newsgroup descriptions";
+	X! 		format = "Descriptions in form \"group description\".";
+	X! 	} else {
+	X! 		printf("%d Usage: LIST [ACTIVE|NEWSGROUPS|DISTRIBUTIONS]\r\n",
+	X! 			ERR_CMDSYN);
+	X! 		(void) fflush(stdout);
+	X! 		return;
+	X! 	}
+	X  
+	X  	grparray[0] = line;
+	X  	grparray[1] = NULL;
+	X  
+	X! 	list_fp = fopen(filename, "r");
+	X  
+	X! 	if (list_fp == NULL) {
+	X! 		printf("%d No list of %s available.\r\n", ERR_FAULT,
+	X! 			items);
+	X  		(void) fflush(stdout);
+	X  #ifdef SYSLOG
+	X! 		syslog(LOG_ERR, "list: fopen %s: %m", filename);
+	X  #endif
+	X  		return;
+	X  	}
+	X  
+	X! 	printf("%d %s\r\n",OK_GROUPS,format);
+	X  
+	X! 	while (fgets(line, sizeof(line), list_fp) != NULL) {
+	X  		if ((cp = index(line, '\n')) != NULL)
+	X  			*cp = '\0';
+	X  		if (ngpermcount)
+	X***************
+	X*** 47,53 ****
+	X  				continue;
+	X  		putline(line);
+	X  	}
+	X! 	(void) fclose(active_fp);
+	X  
+	X  	putline(".");
+	X  	(void) fflush(stdout);
+	X--- 69,75 ----
+	X  				continue;
+	X  		putline(line);
+	X  	}
+	X! 	(void) fclose(list_fp);
+	X  
+	X  	putline(".");
+	X  	(void) fflush(stdout);
+	X*** main.c	Sat Jan 14 22:32:22 1989
+	X--- ../../nntp_patch/server/main.c	Thu May 11 12:17:24 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)main.c	1.10	(Berkeley) 2/6/88";
+	X  #endif
+	X  
+	X  /*
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)main.c	1.11	(Berkeley) 5/11/89";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 8,13 ****
+	X--- 8,16 ----
+	X   *	Phil Lapsley
+	X   *	University of California, Berkeley
+	X   *	(Internet: phil@berkeley.edu; UUCP: ...!ucbvax!phil)
+	X+  *	Stan Barber
+	X+  *	Baylor College of Medicine
+	X+  *	(Internet: sob@tmc.edu; UUCP: ...!bcm!sob)
+	X   */
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 37,43 ****
+	X  	for(sockt = 3; sockt < 40; sockt++)
+	X  		(void) close(sockt);
+	X  
+	X- #ifndef FAKESYSLOG
+	X  #ifdef SYSLOG
+	X  #ifdef BSD_42
+	X  	openlog("nntpd", LOG_PID);			/* fd 3 */
+	X--- 40,45 ----
+	X***************
+	X*** 45,51 ****
+	X  	openlog("nntpd", LOG_PID, SYSLOG);		/* fd 3 */
+	X  #endif
+	X  #endif
+	X! #endif
+	X  
+	X  #ifdef FASTFORK
+	X  	num_groups = read_groups();	/* Read active file now (fd 4) */
+	X--- 47,53 ----
+	X  	openlog("nntpd", LOG_PID, SYSLOG);		/* fd 3 */
+	X  #endif
+	X  #endif
+	X! 
+	X  
+	X  #ifdef FASTFORK
+	X  	num_groups = read_groups();	/* Read active file now (fd 4) */
+	X*** misc.c	Sat Jan 14 22:32:15 1989
+	X--- ../../nntp_patch/server/misc.c	Thu May 11 12:18:57 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)misc.c	1.25	(Berkeley) 2/6/88";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)misc.c	1.26	(Berkeley) 5/11/89";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 181,192 ****
+	X  #endif SYSLOG
+	X  			return (NULL);
+	X  		}
+	X  	}
+	X  
+	X  	bcopy(content.dptr, (char *)&ltmp, sizeof (long));
+	X  	if (fseek(hfp, ltmp, 0) < 0) {
+	X  #ifdef SYSLOG
+	X! 		syslog(LOG_ERR, "message: fseek: %m");
+	X  #endif SYSLOG
+	X  		return (NULL);
+	X  	}
+	X--- 181,195 ----
+	X  #endif SYSLOG
+	X  			return (NULL);
+	X  		}
+	X+ 	} else {
+	X+ 		rewind(hfp);
+	X  	}
+	X  
+	X  	bcopy(content.dptr, (char *)&ltmp, sizeof (long));
+	X  	if (fseek(hfp, ltmp, 0) < 0) {
+	X  #ifdef SYSLOG
+	X! 		syslog(LOG_ERR, "message: %s: fseek to %ld on %d: %m", 
+	X! 		       historyfile, ltmp, hfp);
+	X  #endif SYSLOG
+	X  		return (NULL);
+	X  	}
+	X***************
+	X*** 625,647 ****
+	X  	return(fcntl(x, F_DUPFD,y ));
+	X  }
+	X  
+	X! #include <ustat.h>
+	X! /* 
+	X!  * determine if there is enough free space on the device
+	X!  * return 0 if there is and
+	X!  * anything appropriate if there is not 
+	X!  * written by Stan Barber (sob@soma.bcm.tmc.edu)
+	X   */
+	X  int
+	X  space()
+	X  {
+	X! 	struct stat file;
+	X! 	struct ustat device;
+	X! 	if (stat(SPOOLDIR,&file))
+	X! 		return(-1);	/* can't stat spool */
+	X! 	if (ustat(file.st_dev, &device))
+	X! 		return(-2);	/* can't stat the device */
+	X! 	if(device.f_tfree < MINFREE) return(-3);
+	X! 	return(0);
+	X  }
+	X  #endif USG
+	X--- 628,791 ----
+	X  	return(fcntl(x, F_DUPFD,y ));
+	X  }
+	X  
+	X! #endif
+	X! 
+	X! /*
+	X!  * The following is a mish-mosh of code submitted to the net
+	X!  * by Stan Barber <sob@watson.bcm.tmc.edu>, Tad Guy <tadguy@cs.odu.edu>
+	X!  * and Chris Jepeway <jepeway@utkcs2.cs.utk.edu>.
+	X   */
+	X+ 
+	X+ /*
+	X+  * returns 0 if there are free blocks for the nntp server to use
+	X+  */
+	X  int
+	X  space()
+	X  {
+	X!     long room_for_news, dfree();
+	X! 
+	X!     room_for_news = dfree(SPOOLDIR);
+	X!     if (room_for_news < MINFREE)
+	X! 	return(room_for_news);
+	X! 
+	X!     return(0);
+	X  }
+	X+ 
+	X+ #ifndef READ_SUPER
+	X+ #ifdef sun
+	X+ #include <sys/vfs.h>
+	X+ #define statfilesys	statfs		/* routine to call when trying to  */
+	X+ 					/* stat a file system to get the # */
+	X+ 					/* of free blocks available	   */
+	X+ typedef struct statfs statfs_type;	/* the data type into which statfs() */
+	X+ 					/* wants to return useful information*/
+	X+ #define bombed(call)    ((call) == -1)	/* boolean expression returning 1 if */
+	X+ 					/* a call to statfs() fails	     */
+	X+ #define blkfree(fs)	((fs).f_bfree)	/* given a statfs_type, return total */
+	X+ 					/* # of free blocks		     */
+	X+ #define blkavail(fs)	((fs).f_bavail)	/* given a statfs_type called fs,  */
+	X+ 					/* return # of blocks available to */
+	X+ 					/* a non-privileged user	   */
+	X+ #endif 
+	X+ 
+	X+ #ifdef ultrix
+	X+ #include <sys/mount.h>
+	X+ typedef struct fs_data statfs_type;
+	X+ #define statfilesys	statfs
+	X+ #define bombed(call)	((call) <= 0)
+	X+ #define blkfree(fs)	((fs).fd_req.bfree)
+	X+ #define blkavail(fs)	((fs).fd_req.bfreen)
+	X+ #endif 
+	X+ 
+	X+ #ifdef USG
+	X+ #include <ustat.h>
+	X+ typedef struct ustat statfs_type;
+	X+ /*
+	X+  * You've got to make calls to 2 functions to get
+	X+  * free blocks on a USG system, so statfilesys can't just be a macro.
+	X+  * This code is copied from the patch 3 to nntp1.5
+	X+  * written by Stan Barber <sob@watson.bcm.tmc.edu>
+	X+  */
+	X+ int
+	X+ statfilesys(dir, fs)
+	X+ char *dir;
+	X+ statfs_type *fs;
+	X+ {
+	X+     struct stat file;
+	X+     if (stat(dir,&file)) return(-1);
+	X+     if (ustat(file.st_dev, fs)) return(-2);
+	X+     return(0);
+	X+ }
+	X+ #define bombed(call)	(call != 0)
+	X+ #define blkfree(fs)	((fs).f_tfree)
+	X+ #define blkavail(fs)	((fs).f_tfree)	/* USG doesn't reserve blocks for root */
+	X  #endif USG
+	X+ 
+	X+ long
+	X+ dfree(spool)
+	X+ char *spool;
+	X+ {
+	X+     statfs_type fsys;
+	X+     int err;
+	X+ 
+	X+     if (bombed(err = statfilesys(SPOOLDIR, &fsys)))
+	X+ 	return(err);			/* can't get file system info */
+	X+ 
+	X+     if (blkavail(fsys) == -1)
+	X+ 	/* the bavail field doesn't apply to this file system */
+	X+ 	return(blkfree(fsys));
+	X+ 
+	X+     return(blkavail(fsys));
+	X+ }
+	X+ 
+	X+ #else READ_SUPER
+	X+ /*
+	X+  * This code is used if you've got to directly read the superblock
+	X+  * to determine how much space you've got left.  It's copied from
+	X+  * from patches posted by Tad Guy <tadguy@cs.odu.edu>
+	X+  */
+	X+ 
+	X+ #include <sys/fs.h>
+	X+ #include <fstab.h>
+	X+ 
+	X+ /*
+	X+  * return the number of free kilobytes remaining on the filesystem where
+	X+  * the named file resides.  returns -1 on error.
+	X+  */
+	X+ 
+	X+ off_t lseek();
+	X+ 
+	X+ int
+	X+ dfree(name)
+	X+ char *name;
+	X+ {
+	X+     struct stat namest, fsst;
+	X+     struct fstab *fsp;
+	X+     char lname[MAXPATHLEN];
+	X+     int fd;
+	X+     union {
+	X+ 	struct fs u_fs;
+	X+ 	char dummy[SBSIZE];
+	X+     } sb;
+	X+ #define sblock sb.u_fs
+	X+ 
+	X+     strcpy(lname,name);
+	X+     do {
+	X+ 	if (stat(lname,&namest))		/* if stat fails, die */
+	X+ 	  return -1;			
+	X+ 	if ((namest.st_mode & S_IFMT) == S_IFLNK) { /* if symlink */
+	X+ 	    if ((fd = readlink(lname,lname,sizeof(lname))) < 0) 
+	X+ 	      return -1;
+	X+ 	    lname[fd] = '\0';
+	X+ 	}
+	X+     } while ((namest.st_mode & S_IFMT) == S_IFLNK);
+	X+ 
+	X+     (void) setfsent();
+	X+ 
+	X+     while (fsp = getfsent()) {
+	X+ 	if (stat(fsp->fs_spec,&fsst))
+	X+ 	  continue;
+	X+ 	if (fsst.st_rdev == namest.st_dev)
+	X+ 	  break;
+	X+     }
+	X+ 
+	X+     if (!fsp ||	(fd = open(fsp->fs_spec,O_RDONLY)) < 0) {
+	X+ 	(void) endfsent();
+	X+ 	return -1;
+	X+     }
+	X+     (void) endfsent();
+	X+ 
+	X+     (void) lseek(fd,SBLOCK*DEV_BSIZE,L_SET);
+	X+     if (read(fd,(char *)&sblock,SBSIZE) != SBSIZE ||
+	X+ 	(sblock.fs_magic != FS_MAGIC))
+	X+       return -1;
+	X+     (void) close(fd);
+	X+ 
+	X+     return ((((sblock.fs_dsize) * ( 100 - sblock.fs_minfree) / 100)
+	X+ 	     - ((sblock.fs_dsize) 
+	X+ 		- (sblock.fs_cstotal.cs_nbfree 
+	X+ 		   * sblock.fs_frag + sblock.fs_cstotal.cs_nffree))) 
+	X+ 	    * sblock.fs_fsize / 1024);
+	X+ }
+	X+ 
+	X+ #endif READ_SUPER
+	X
+	X
+	X
+	X
+	X
+	X
+	X*** post.c	Tue Jan 12 01:53:18 1988
+	X--- ../../nntp_patch/server/post.c	Thu May 11 12:18:00 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)post.c	1.12	(Berkeley) 1/11/88";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)post.c	1.13	(Berkeley) 5/11/89";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 15,21 ****
+	X  	char	*argv[];
+	X  {
+	X  	char	errbuf[2 * NNTP_STRLEN];
+	X! 	int	retcode;
+	X  
+	X  	if (!canpost) {
+	X  		printf("%d Sorry, you're not allowed to post.\r\n",
+	X--- 15,21 ----
+	X  	char	*argv[];
+	X  {
+	X  	char	errbuf[2 * NNTP_STRLEN];
+	X! 	int	retcode, blocks;
+	X  
+	X  	if (!canpost) {
+	X  		printf("%d Sorry, you're not allowed to post.\r\n",
+	X***************
+	X*** 39,45 ****
+	X  	}
+	X  #endif
+	X  
+	X! 	retcode = spawn(inews, "inews", "-h", CONT_POST, ERR_POSTFAIL, errbuf);
+	X  	if (retcode <= 0)
+	X  		printf("%d %s\r\n", ERR_POSTFAIL, errbuf);
+	X  	else if (retcode > 0)
+	X--- 39,57 ----
+	X  	}
+	X  #endif
+	X  
+	X! 	if ((blocks = space()) != 0 && blocks < MINFREE - POSTBUFFER) {
+	X! 	    /* force error reporting code into sending */
+	X! 	    /* an out-of-space error message	       */
+	X! 	    if (gethostname(errbuf, MAXHOSTNAMELEN) < 0)
+	X! 		(void) strcpy(errbuf, "Amnesiac");
+	X! 
+	X! 	    (void) strcat(errbuf, " NNTP server out of space. Try later.");
+	X! 
+	X! 	    retcode = 0;		/* indicates that an error occurred */
+	X! 	}
+	X! 	else retcode =
+	X! 	    spawn(inews, "inews", "-h", CONT_POST, ERR_POSTFAIL, errbuf);
+	X! 
+	X  	if (retcode <= 0)
+	X  		printf("%d %s\r\n", ERR_POSTFAIL, errbuf);
+	X  	else if (retcode > 0)
+	X
+	X
+	X*** serve.c	Sat Jan 14 22:32:29 1989
+	X--- ../../nntp_patch/server/serve.c	Sat Jan 14 13:47:06 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)serve.c	1.29	(Berkeley) 2/6/88";
+	X  #endif
+	X  
+	X  /*
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)serve.c	1.30	(Berkeley) 5/11/89";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 74,81 ****
+	X  	double		user, sys;
+	X  #ifdef USG
+	X  	time_t		start, finish;
+	X- 	extern int	space();
+	X- 	int		out_of_space;
+	X  #else not USG
+	X  	struct timeval	start, finish;
+	X  #endif not USG
+	X--- 74,79 ----
+	X***************
+	X*** 105,118 ****
+	X  
+	X  	/* If we're ALONE, then we've already opened syslog */
+	X  
+	X! #ifndef FAKESYSLOG
+	X! # ifndef ALONE
+	X! #  ifdef SYSLOG
+	X! #   ifdef BSD_42
+	X  	openlog("nntpd", LOG_PID);
+	X! #   else
+	X  	openlog("nntpd", LOG_PID, SYSLOG);
+	X- #   endif
+	X  #  endif
+	X  # endif
+	X  #endif
+	X--- 103,114 ----
+	X  
+	X  	/* If we're ALONE, then we've already opened syslog */
+	X  
+	X! #ifndef ALONE
+	X! # ifdef SYSLOG
+	X! #  ifdef BSD_42
+	X  	openlog("nntpd", LOG_PID);
+	X! #  else
+	X  	openlog("nntpd", LOG_PID, SYSLOG);
+	X  #  endif
+	X  # endif
+	X  #endif
+	X***************
+	X*** 144,153 ****
+	X  		exit(1);
+	X  	}
+	X  
+	X- #ifdef USG
+	X  	if (space() < 0 && !canpost ) {
+	X  		printf("%d %s NNTP server out of space. Try later.\r\n",
+	X! 			ERR_FAULT, host);
+	X  		(void) fflush(stdout);
+	X  #ifdef LOG
+	X  		syslog(LOG_INFO, "%s no space", hostname);
+	X--- 140,148 ----
+	X  		exit(1);
+	X  	}
+	X  
+	X  	if (space() < 0 && !canpost ) {
+	X  		printf("%d %s NNTP server out of space. Try later.\r\n",
+	X! 			ERR_GOODBYE, host);
+	X  		(void) fflush(stdout);
+	X  #ifdef LOG
+	X  		syslog(LOG_INFO, "%s no space", hostname);
+	X***************
+	X*** 154,161 ****
+	X  #endif
+	X  		exit(1);
+	X  	}
+	X- 	out_of_space = 0;
+	X- #endif
+	X  
+	X  	/* If we can talk, proceed with initialization */
+	X  
+	X--- 149,154 ----
+	X***************
+	X*** 177,182 ****
+	X--- 170,189 ----
+	X  	signal(SIGALRM, SIG_IGN);	/* Children don't deal with */
+	X  					/* these things */
+	X  #endif
+	X+ 	/*
+	X+  	 * num_groups may be zero if expire is running and the active
+	X+ 	 * file is locked. (Under System V with lockf, for example.)
+	X+ 	 * Or, something may be really screwed up....
+	X+ 	 */
+	X+ 	if (num_groups == 0){ /* can't get a group list */
+	X+ 		printf("%d %s NNTP server unavailable. Try later.\r\n",
+	X+ 			ERR_FAULT, host);
+	X+ 		(void) fflush(stdout);
+	X+ #ifdef LOG
+	X+ 		syslog(LOG_INFO, "%s no groups", hostname);
+	X+ #endif
+	X+ 		exit(1);
+	X+ 	}
+	X  
+	X  	art_fp = NULL;
+	X  	argp = (char **) NULL;		/* for first time */
+	X***************
+	X*** 226,237 ****
+	X  				*cp = '\0';
+	X  		}
+	X  
+	X- #ifdef USG
+	X- 		if (space() < 0 && !canpost ) {
+	X- 			out_of_space++;
+	X- 			break;
+	X- 		}
+	X- #endif
+	X  		if ((argnum = parsit(line, &argp)) == 0)
+	X  			continue;		/* Null command */
+	X  		else {
+	X--- 233,238 ----
+	X***************
+	X*** 258,274 ****
+	X  #endif TIMEOUT
+	X  	}
+	X  
+	X! #ifdef USG
+	X! 	if(out_of_space) {
+	X! 		printf("%d %s NNTP server out of space. Quitting.\r\n",
+	X! 			ERR_GOODBYE, host);
+	X! #ifdef LOG
+	X! 		syslog(LOG_INFO, "%s no space", hostname);
+	X! #endif
+	X! 	} else 
+	X! #endif
+	X! 		printf("%d %s closing connection.  Goodbye.\r\n",
+	X! 			OK_GOODBYE, host);
+	X  
+	X  	(void) fflush(stdout);
+	X  
+	X--- 259,266 ----
+	X  #endif TIMEOUT
+	X  	}
+	X  
+	X! 	printf("%d %s closing connection.  Goodbye.\r\n",
+	X! 		OK_GOODBYE, host);
+	X  
+	X  	(void) fflush(stdout);
+	X  
+SHAR_EOF
+if test 26936 -ne "`wc -c < 'server.diff'`"
+then
+	echo shar: "error transmitting 'server.diff'" '(should have been 26936 characters)'
+fi
+fi
+cd ..
+echo done in server directory
+else
+echo error in directory structure -- server directory not found.
+echo quiting
+exit 1
+fi
+if test -d support
+then
+echo entering support directory
+cd support
+echo shar: "extracting 'support.diff'" '(1780 characters)'
+if test -f 'support.diff'
+then
+	echo shar: "will not over-write existing file 'support.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'support.diff'
+	X*** access_file	Wed Jul  8 18:38:05 1987
+	X--- ../../nntp_patch/support/access_file	Sat Jan 14 15:47:48 1989
+	X***************
+	X*** 1,22 ****
+	X  #
+	X  # Sample NNTP access file.  "read" implies "xfer".
+	X  # Note that "default" must be the first entry in the
+	X! # table.
+	X  #
+	X  # If you defined SUBNET when you compiled the server,
+	X  # this file can have subnets as well as class A, B, C
+	X! # networks and hosts.
+	X  #
+	X! # host/net	read/xfer/no	post/no
+	X  #
+	X  # by default, let anyone transfer news, but not read or post
+	X! default		xfer		no
+	X! # hosts on the Berkeley campus can read and post news
+	X! ucb-ether	read		post
+	X  # bugs, a notorious undergraduate machine, is not allowed
+	X  # to read or post news at all.
+	X! bugs		read		no
+	X  # ic can read and post news, but users on ic cannot read
+	X  # articles in the group ucb.postgres or any of its decendents
+	X  # (e.g., ucb.postgres.core)
+	X! ic		read		post	!ucb.postgres
+	X--- 1,23 ----
+	X  #
+	X  # Sample NNTP access file.  "read" implies "xfer".
+	X  # Note that "default" must be the first entry in the
+	X! # table. Order is important. Put the most restictive
+	X! # entried just behind "default"
+	X  #
+	X  # If you defined SUBNET when you compiled the server,
+	X  # this file can have subnets as well as class A, B, C
+	X! # networks, hosts, and domains.
+	X  #
+	X! # host/net		read/xfer/no	post/no
+	X  #
+	X  # by default, let anyone transfer news, but not read or post
+	X! default			xfer		no
+	X  # bugs, a notorious undergraduate machine, is not allowed
+	X  # to read or post news at all.
+	X! bugs.berkeley.edu	no		no
+	X  # ic can read and post news, but users on ic cannot read
+	X  # articles in the group ucb.postgres or any of its decendents
+	X  # (e.g., ucb.postgres.core)
+	X! ic			read		post	!ucb.postgres
+	X! # hosts on the Berkeley campus can read and post news
+	X! *.berkeley.edu		read		post
+SHAR_EOF
+if test 1780 -ne "`wc -c < 'support.diff'`"
+then
+	echo shar: "error transmitting 'support.diff'" '(should have been 1780 characters)'
+fi
+fi
+cd ..
+echo done in support directory
+else
+echo error in directory structure -- support directory not found.
+echo quiting
+exit 1
+fi
+if test -d xmit
+then
+echo entering xmit directory
+cd xmit
+echo shar: "extracting 'xmit.diff'" '(3050 characters)'
+if test -f 'xmit.diff'
+then
+	echo shar: "will not over-write existing file 'xmit.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'xmit.diff'
+	X*** nntpxmit.c	Sat Jan 14 22:32:01 1989
+	X--- ../../nntp_patch/xmit/nntpxmit.c	Sat Jan 14 02:42:58 1989
+	X***************
+	X*** 122,128 ****
+	X  char	ReQueue_Fails = TRUE;
+	X  
+	X  char	*USAGE = "USAGE: nntpxmit [-d][-s][-r][-T][-F][-D] hostname|hostname:file [...]";
+	X! char	*Fmt = "%s: %s\n";
+	X  char	*E_fopen = "fopen(%s, \"%s\"): %s";
+	X  char	*E_unlk = "unlink(%s): %s";
+	X  #ifdef	USELOG
+	X--- 122,128 ----
+	X  char	ReQueue_Fails = TRUE;
+	X  
+	X  char	*USAGE = "USAGE: nntpxmit [-d][-s][-r][-T][-F][-D] hostname|hostname:file [...]";
+	X! char	*Fmt = "%s localhost %s[%d]: %s\n";
+	X  char	*E_fopen = "fopen(%s, \"%s\"): %s";
+	X  char	*E_unlk = "unlink(%s): %s";
+	X  #ifdef	USELOG
+	X***************
+	X*** 181,187 ****
+	X  	Pname = ((Pname = rindex(av[0],'/')) ? Pname + 1 : av[0]);
+	X  	
+	X  	if (ac < 2) {
+	X! 		fprintf(stderr, Fmt, Pname, USAGE);
+	X  		exit(EX_USAGE);
+	X  	}
+	X  
+	X--- 181,187 ----
+	X  	Pname = ((Pname = rindex(av[0],'/')) ? Pname + 1 : av[0]);
+	X  	
+	X  	if (ac < 2) {
+	X! 		fprintf(stderr, "%s: %s\n", Pname, USAGE);
+	X  		exit(EX_USAGE);
+	X  	}
+	X  
+	X***************
+	X*** 229,235 ****
+	X  			default:
+	X  				fprintf(stderr, "%s: no such option: -%c\n",
+	X  					Pname, av[i][1]);
+	X! 				fprintf(stderr, Fmt, Pname, USAGE);
+	X  				exit(EX_USAGE);
+	X  			}
+	X  			continue;
+	X--- 229,235 ----
+	X  			default:
+	X  				fprintf(stderr, "%s: no such option: -%c\n",
+	X  					Pname, av[i][1]);
+	X! 				fprintf(stderr, "%s: %s\n", Pname, USAGE);
+	X  				exit(EX_USAGE);
+	X  			}
+	X  			continue;
+	X***************
+	X*** 323,331 ****
+	X  	if (Logfp != (FILE *)NULL) {
+	X  		char * loc;
+	X  		(void) time(&tstamp);
+	X! 		tp = ctime(&tstamp);
+	X! 		if ((loc = index(tp,'\n')) != NULL) *(loc) = '\0';
+	X! 		fprintf(Logfp, Fmt, tp, buf);
+	X  	}
+	X  #endif	USELOG
+	X  
+	X--- 323,331 ----
+	X  	if (Logfp != (FILE *)NULL) {
+	X  		char * loc;
+	X  		(void) time(&tstamp);
+	X! 		tp = (ctime(&tstamp))+4;	/* skip day of the week */
+	X! 		*(loc = tp + 16) = '\0';	/* get rid of year */
+	X! 		fprintf(Logfp, Fmt, tp, Pname, getpid(), buf);
+	X  	}
+	X  #endif	USELOG
+	X  
+	X***************
+	X*** 334,340 ****
+	X  	log(L_INFO, buf);
+	X  #ifdef 	USELOG
+	X  	if (Logfp != (FILE *)NULL) {
+	X! 		fprintf(Logfp, Fmt, tp, buf);
+	X  		(void) fflush(Logfp);
+	X  	}
+	X  #endif	USELOG
+	X--- 334,340 ----
+	X  	log(L_INFO, buf);
+	X  #ifdef 	USELOG
+	X  	if (Logfp != (FILE *)NULL) {
+	X! 		fprintf(Logfp, Fmt, tp, Pname, getpid(), buf);
+	X  		(void) fflush(Logfp);
+	X  	}
+	X  #endif	USELOG
+	X***************
+	X*** 495,500 ****
+	X--- 495,504 ----
+	X  	case ERR_GOTIT:
+	X  		/* they don't want it */
+	X  		break;
+	X+ 	case ERR_XFERFAIL:
+	X+ 		/* they can't do it right now, but maybe later */
+	X+ 		return(FALSE);
+	X+ 		break;
+	X  	default:
+	X  		if (code < 0) {
+	X  			if (errno > 0) {
+	X***************
+	X*** 1096,1103 ****
+	X  char	*error;
+	X  {
+	X  	FILE	*report = (importance == L_INFO ? stdout : stderr);
+	X! 
+	X! 	fprintf(report, Fmt, Pname, error);
+	X  #ifdef	SYSLOG
+	X  	switch(importance) {
+	X  	case L_INFO:	importance = LOG_INFO;		break;
+	X--- 1100,1106 ----
+	X  char	*error;
+	X  {
+	X  	FILE	*report = (importance == L_INFO ? stdout : stderr);
+	X! 	fprintf(report, "%s: %s\n", Pname, error);
+	X  #ifdef	SYSLOG
+	X  	switch(importance) {
+	X  	case L_INFO:	importance = LOG_INFO;		break;
+	X
+SHAR_EOF
+if test 3050 -ne "`wc -c < 'xmit.diff'`"
+then
+	echo shar: "error transmitting 'xmit.diff'" '(should have been 3050 characters)'
+fi
+fi
+cd ..
+echo done in xmit directory
+else
+echo error in directory structure -- xmit directory not found.
+echo quiting
+exit 1
+fi
+exit 0
+#	End of shell archive

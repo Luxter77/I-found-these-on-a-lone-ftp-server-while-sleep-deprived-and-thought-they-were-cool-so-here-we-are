@@ -1,0 +1,1524 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 17-Aug-1991
+
+This is not the last of two patches, in fact, but the second of three.
+Once again:  we don't guarantee that these three patches will produce
+working software unless applied together in sequence, and we warn that
+archive copies might not be updated until all three are out.
+
+Some touchups to the previous patch, in particular avoiding >14-character
+filenames and making the (undocumented) debugging option on the spacefor
+auxiliaries work right.  Document the inews -N option that checks the
+article but doesn't post.  Docs on new relaynews option, -u, to speed bulk
+processing (newsrun needs some non-trivial mods to do it -- this was
+another UUNET special -- and those have not yet been done).  Improve
+the sys-file prototype to include more odd cases, and update the news.5
+example to match.  Fix a bug in the (not yet much used) grade facility
+in newsrun.  Fix a machine dependency in the built-in-test stuff in the
+split() function.  Add a new routine, mkinperm(), for handling input
+temporaries; this makes newsspool faster on systems with lots of news
+processing by reducing name contention.  And add a bunch more commentary
+to doc/trouble.
+
+start of patch 17-Aug-1991
+(suggested archive name: `pch17Aug91.Z')
+this should be run with   patch -p0 <thisfile
+
+Please do the following (there is no easy way we can convince
+patch to do this automatically):
+rm conf/spacefor.proto
+rm conf/spacefor.statfs
+rm conf/spacefor.ultrix
+rm conf/spacefor.ustat
+rm notebook/bdiffs
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+Prereq: 13-Dec-1990
+Prereq: 14-Dec-1990
+Prereq: 15-Dec-1990
+Prereq: 16-Mar-1991
+Prereq: 17-Mar-1991
+Prereq: 23-Mar-1991
+Prereq: 24-Mar-1991
+Prereq: 6-Jul-1991
+Prereq: 9-Aug-1991
+*** PATCHDATES.old	Sat Aug 17 22:51:32 1991
+--- PATCHDATES	Sat Aug 17 22:51:32 1991
+***************
+*** 1,29 ****
+--- 1,30 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
+  13-Dec-1990
+  14-Dec-1990
+  15-Dec-1990
+  16-Mar-1991
+  17-Mar-1991
+  23-Mar-1991
+  24-Mar-1991
+  6-Jul-1991
+  9-Aug-1991
++ 17-Aug-1991
+
+Changed files, if any:
+
+*** cnpatch/old/conf/Makefile	Sat Aug 17 22:52:07 1991
+--- conf/Makefile	Wed Aug 14 17:58:36 1991
+***************
+*** 24,30 ****
+  	chmod +x $(PGMS)
+  	-if test -r hostname ; then chmod +x hostname ; fi
+- 	-if test -r dostatfs ; then chmod +x dostatfs ; fi
+- 	-if test -r doustat ; then chmod +x doustat ; fi
+- 	-if test -r doultrix ; then chmod +x doultrix ; fi
+  
+  bininstall:	$(PGMS)
+--- 24,27 ----
+***************
+*** 36,45 ****
+  	: and build takes care of setnewsids if needed
+  
+- pcmp:	$(PGMS)
+- 	for f in $(PGMS) ; do cmp $(NEWSBIN)/$$f $$f ; done
+- 
+  cmp:
+! 	: nothing
+  
+  newsinstall:
+  	: build stuff does the real work
+--- 33,46 ----
+  	: and build takes care of setnewsids if needed
+  
+  cmp:
+! 	: nothing, but check does something
+  
++ check:	$(PGMS)
++ 	for f in $(PGMS) ; do cmp $(NEWSBIN)/$$f $$f || true ; done
++ 	if test -r hostname ; then cmp hostname $(NEWSBIN)/hostname || true  ; fi
++ 	if test -r dostatfs ; then cmp dostatfs $(NEWSBIN)/dostatfs || true  ; fi
++ 	if test -r doustat ; then cmp doustat $(NEWSBIN)/doustat || true  ; fi
++ 	if test -r doultrix ; then cmp doultrix $(NEWSBIN)/doultrix || true  ; fi
++ 
+  newsinstall:
+  	: build stuff does the real work
+***************
+*** 55,81 ****
+  	touch $@
+  
+! spacefor.bsd:	spacefor.proto Makefile
+! 	cp spacefor.proto $@
+  
+! spacefor.v7:	spacefor.proto Makefile
+! 	sed '/dfunit=/s/1024/512/;/nr = 2/s//nr = 1/;/nf = 4/s//nf = 2/;/stupid/d' spacefor.proto >$@
+  
+! spacefor.sysv:	spacefor.proto Makefile
+! 	sed '/dfunit=/s/1024/512/;/awk/s~|~| sed "s/.*:/: :/" |~;/nf = 4/s//nf = 3/;/stupid/s/4BSD/System V/' spacefor.proto >$@
+  
+! spacefor.xenix:	spacefor.proto Makefile
+! 	sed '/dfunit=/s/1024/512/;/awk/s~|~| sed "s/.*:/: :/" |~;/nr = 2/s//nr = 1/;/nf = 4/s//nf = 3/;/stupid/s/4BSD/Xenix/' spacefor.proto >$@
+  
+! spacefor.sgi:	spacefor.proto Makefile
+! 	sed '/dfunit=/s/1024/512/;/nf = 4/s//nf = 5/;/stupid/s/4BSD/SGI/' spacefor.proto >$@
+  
+! #spacefor.ultrix:	spacefor.proto Makefile
+! #	sed '/nr = 2/s//nr = 3/;/stupid/s/4BSD/Ultrix/' spacefor.proto >$@
+  
+! spacefor.null:	Makefile
+  	echo '#! /bin/sh' >$@
+  	echo 'echo 100' >>$@
+  
+! spacefor.statfs:	dostatfs
+  
+  dostatfs:	dostatfs.o
+--- 56,82 ----
+  	touch $@
+  
+! sf.bsd:	sf.proto Makefile
+! 	cp sf.proto $@
+  
+! sf.v7:	sf.proto Makefile
+! 	sed '/dfunit=/s/1024/512/;/nr = 2/s//nr = 1/;/nf = 4/s//nf = 2/;/stupid/d' sf.proto >$@
+  
+! sf.sysv:	sf.proto Makefile
+! 	sed '/dfunit=/s/1024/512/;/awk/s~|~| sed "s/.*:/: :/" |~;/nf = 4/s//nf = 3/;/stupid/s/4BSD/System V/' sf.proto >$@
+  
+! sf.xenix:	sf.proto Makefile
+! 	sed '/dfunit=/s/1024/512/;/awk/s~|~| sed "s/.*:/: :/" |~;/nr = 2/s//nr = 1/;/nf = 4/s//nf = 3/;/stupid/s/4BSD/Xenix/' sf.proto >$@
+  
+! sf.sgi:	sf.proto Makefile
+! 	sed '/dfunit=/s/1024/512/;/nf = 4/s//nf = 5/;/stupid/s/4BSD/SGI/' sf.proto >$@
+  
+! #sf.ultrix:	sf.proto Makefile
+! #	sed '/nr = 2/s//nr = 3/;/stupid/s/4BSD/Ultrix/' sf.proto >$@
+  
+! sf.null:	Makefile
+  	echo '#! /bin/sh' >$@
+  	echo 'echo 100' >>$@
+  
+! sf.statfs:	dostatfs
+  
+  dostatfs:	dostatfs.o
+***************
+*** 82,86 ****
+  	$(CC) $(CFLAGS) $(LDFLAGS) dostatfs.o $(PRE) $(LIBS) $(POST) -o $@
+  
+! spacefor.ultrix:	doultrix
+  
+  doultrix:	doultrix.o
+--- 83,87 ----
+  	$(CC) $(CFLAGS) $(LDFLAGS) dostatfs.o $(PRE) $(LIBS) $(POST) -o $@
+  
+! sf.ultrix:	doultrix
+  
+  doultrix:	doultrix.o
+***************
+*** 87,91 ****
+  	$(CC) $(CFLAGS) $(LDFLAGS) doultrix.o $(PRE) $(LIBS) $(POST) -o $@
+  
+! spacefor.ustat:	doustat
+  
+  doustat:	doustat.o
+--- 88,92 ----
+  	$(CC) $(CFLAGS) $(LDFLAGS) doultrix.o $(PRE) $(LIBS) $(POST) -o $@
+  
+! sf.ustat:	doustat
+  
+  doustat:	doustat.o
+***************
+*** 116,125 ****
+  
+  clean:
+! 	rm -f spacefor.sysv spacefor.v7 spacefor.null queuelen.null
+! 	rm -f spacefor.sgi spacefor.xenix queuelen.pre
+  	rm -f *.o dostatfs doustat doultrix
+  	rm -f config mailname organization server whoami hostname errlog
+  	rm -f history history.pag history.dir active localgroups
+! 	rm -f log mailpaths sys cron rc setnewsids setnewsids.o spacefor.bsd
+  	rm -f replyusepath spacefor queuelen junk save readnews.ctl
+  	rm -f postdefltdist postdefltgroup
+--- 117,126 ----
+  
+  clean:
+! 	rm -f sf.sysv sf.v7 sf.null queuelen.null
+! 	rm -f sf.sgi sf.xenix queuelen.pre
+  	rm -f *.o dostatfs doustat doultrix
+  	rm -f config mailname organization server whoami hostname errlog
+  	rm -f history history.pag history.dir active localgroups
+! 	rm -f log mailpaths sys cron rc setnewsids setnewsids.o sf.bsd
+  	rm -f replyusepath spacefor queuelen junk save readnews.ctl
+  	rm -f postdefltdist postdefltgroup
+***************
+*** 150,154 ****
+  	mv $(SHS) save
+  	cp build.def save
+- 
+- check:
+- 	-for f in $(SHS) ; do diff save/$$f $$f ; done
+--- 151,152 ----
+
+*** cnpatch/old/conf/build	Sat Aug 17 22:52:14 1991
+--- conf/build	Wed Aug 14 17:33:45 1991
+***************
+*** 489,493 ****
+  echo 'C News knows about several different versions (the first three are'
+  echo 'preferred):'
+! echo '	statfs	system with statfs() (SunOS, 4.4BSD, but not Ultrix!)'
+  echo '	ustat	system with ustat() (most System Vs)'
+  echo "	ultrix	DEC Ultrix with DEC's own bizarre statfs()"
+--- 489,493 ----
+  echo 'C News knows about several different versions (the first three are'
+  echo 'preferred):'
+! echo '	statfs	system with standard statfs() (SunOS, 4.4BSD, not System V)'
+  echo '	ustat	system with ustat() (most System Vs)'
+  echo "	ultrix	DEC Ultrix with DEC's own bizarre statfs()"
+***************
+*** 507,510 ****
+--- 507,515 ----
+  		echo '"Consider it standard".  Sure.'
+  		;;
++ 	ustat)	echo 'The block size defined in doustat.c (512) may be'
++ 		echo 'too conservative, as many modern System V filesystems'
++ 		echo 'use a 1024-byte block.  There is no way to determine'
++ 		echo 'this automatically and portably.'
++ 		;;
+  	esac
+  	case "$dftype" in
+***************
+*** 784,800 ****
+  	echo 'make substs || exit 1'
+  	echo ": done"
+- 	echo ": making spacefor, queuelen, etc...."
+- 	echo "rm -f spacefor queuelen hostname setnewsids"
+- 	echo "make spacefor.$dftype || exit 1"
+- 	echo "cp spacefor.$dftype spacefor"
+- 	echo "make queuelen.$uucptype || exit 1"
+- 	echo "cp queuelen.$uucptype queuelen"
+- 	case "$hostname" in
+- 	no)	case "$uname" in
+- 		yes)	echo "echo 'uname -n' >hostname"	;;
+- 		no)	echo "echo 'echo $whoami' >hostname"	;;
+- 		esac
+- 	esac
+- 	echo ': done'
+  	echo ': making library...'
+  	case "$ranlib" in
+--- 789,792 ----
+***************
+*** 845,848 ****
+--- 837,853 ----
+  		;;
+  	esac
++ 	echo ": making spacefor, queuelen, etc...."
++ 	echo "rm -f spacefor queuelen hostname setnewsids"
++ 	echo "make sf.$dftype || exit 1"
++ 	echo "cp sf.$dftype spacefor"
++ 	echo "make queuelen.$uucptype || exit 1"
++ 	echo "cp queuelen.$uucptype queuelen"
++ 	case "$hostname" in
++ 	no)	case "$uname" in
++ 		yes)	echo "echo 'uname -n' >hostname"	;;
++ 		no)	echo "echo 'echo $whoami' >hostname"	;;
++ 		esac
++ 	esac
++ 	echo ': done'
+  	echo ': building programs'
+  	echo 'cd ../conf'
+
+*** cnpatch/old/conf/dostatfs.c	Sat Aug 17 22:52:25 1991
+--- conf/dostatfs.c	Mon Aug 12 15:38:05 1991
+***************
+*** 6,10 ****
+--- 6,15 ----
+  #include <string.h>
+  #include <sys/types.h>
++ #include <sys/mount.h>
++ #ifndef MNAMELEN
++ /* this does not seem to be a 4.4BSD, try for SunOS */
+  #include <sys/vfs.h>
++ #define	f_fsize	f_bsize		/* idiotic incompatible naming in 4.4 */
++ #endif
+  
+  int debug = 0;
+***************
+*** 39,44 ****
+  			break;
+  		}
+! 	if (errflg || optind != argc-4 || !num(argv[1]) || !num(argv[3]) ||
+! 							!num(argv[4])) {
+  		fprintf(stderr, "usage: %s ", progname);
+  		fprintf(stderr, "filesize fileonfs wantspace wantinodes\n");
+--- 44,50 ----
+  			break;
+  		}
+! 	if (errflg || optind != argc-4 || !num(argv[optind]) ||
+! 						!num(argv[optind+2]) ||
+! 						!num(argv[optind+3])) {
+  		fprintf(stderr, "usage: %s ", progname);
+  		fprintf(stderr, "filesize fileonfs wantspace wantinodes\n");
+***************
+*** 46,50 ****
+  	}
+  
+! 	process(atol(argv[1]), argv[2], atol(argv[3]), atol(argv[4]));
+  	exit(0);
+  }
+--- 52,57 ----
+  	}
+  
+! 	process(atol(argv[optind]), argv[optind+1], atol(argv[optind+2]),
+! 							atol(argv[optind+3]));
+  	exit(0);
+  }
+***************
+*** 78,86 ****
+  	if (debug)
+  		fprintf(stderr, "bsize %ld, avail %ld, inodes %ld\n",
+! 				info.f_bsize, info.f_bavail, info.f_ffree);
+  
+  	n = LOTS;
+! 	if (info.f_bavail >= 0 && info.f_bsize > 0 && filesize > 0)
+! 		n = (info.f_bavail - wantspace) / (filesize/info.f_bsize + 1);
+  	if (info.f_ffree >= 0 && info.f_ffree - wantinodes < n)
+  		n = info.f_ffree - wantinodes;
+--- 85,93 ----
+  	if (debug)
+  		fprintf(stderr, "bsize %ld, avail %ld, inodes %ld\n",
+! 				info.f_fsize, info.f_bavail, info.f_ffree);
+  
+  	n = LOTS;
+! 	if (info.f_bavail >= 0 && info.f_fsize > 0 && filesize > 0)
+! 		n = (info.f_bavail - wantspace) / (filesize/info.f_fsize + 1);
+  	if (info.f_ffree >= 0 && info.f_ffree - wantinodes < n)
+  		n = info.f_ffree - wantinodes;
+
+*** cnpatch/old/conf/doultrix.c	Sat Aug 17 22:52:29 1991
+--- conf/doultrix.c	Mon Aug 12 14:42:14 1991
+***************
+*** 40,45 ****
+  			break;
+  		}
+! 	if (errflg || optind != argc-4 || !num(argv[1]) || !num(argv[3]) ||
+! 							!num(argv[4])) {
+  		fprintf(stderr, "usage: %s ", progname);
+  		fprintf(stderr, "filesize fileonfs wantspace wantinodes\n");
+--- 40,46 ----
+  			break;
+  		}
+! 	if (errflg || optind != argc-4 || !num(argv[optind]) ||
+! 						!num(argv[optind+2]) ||
+! 						!num(argv[optind+3])) {
+  		fprintf(stderr, "usage: %s ", progname);
+  		fprintf(stderr, "filesize fileonfs wantspace wantinodes\n");
+***************
+*** 47,51 ****
+  	}
+  
+! 	process(atol(argv[1]), argv[2], atol(argv[3]), atol(argv[4]));
+  	exit(0);
+  }
+--- 48,53 ----
+  	}
+  
+! 	process(atol(argv[optind]), argv[optind+1], atol(argv[optind+2]),
+! 							atol(argv[optind+3]));
+  	exit(0);
+  }
+
+*** cnpatch/old/conf/doustat.c	Sat Aug 17 22:52:32 1991
+--- conf/doustat.c	Mon Aug 12 14:42:34 1991
+***************
+*** 40,45 ****
+  			break;
+  		}
+! 	if (errflg || optind != argc-4 || !num(argv[1]) || !num(argv[3]) ||
+! 							!num(argv[4])) {
+  		fprintf(stderr, "usage: %s ", progname);
+  		fprintf(stderr, "filesize fileonfs wantspace wantinodes\n");
+--- 40,46 ----
+  			break;
+  		}
+! 	if (errflg || optind != argc-4 || !num(argv[optind]) ||
+! 						!num(argv[optind+2]) ||
+! 						!num(argv[optind+3])) {
+  		fprintf(stderr, "usage: %s ", progname);
+  		fprintf(stderr, "filesize fileonfs wantspace wantinodes\n");
+***************
+*** 47,51 ****
+  	}
+  
+! 	process(atol(argv[1]), argv[2], atol(argv[3]), atol(argv[4]));
+  	exit(0);
+  }
+--- 48,53 ----
+  	}
+  
+! 	process(atol(argv[optind]), argv[optind+1], atol(argv[optind+2]),
+! 							atol(argv[optind+3]));
+  	exit(0);
+  }
+
+*** cnpatch/old/conf/subst.hs	Sat Aug 17 22:52:46 1991
+--- conf/subst.hs	Wed Aug 14 15:04:24 1991
+***************
+*** 10,14 ****
+  conf/queuelen.sub
+  conf/queuelen.old
+! conf/spacefor.proto
+  expire/Makefile
+  expire/doexpire
+--- 10,14 ----
+  conf/queuelen.sub
+  conf/queuelen.old
+! conf/sf.proto
+  expire/Makefile
+  expire/doexpire
+***************
+*** 52,58 ****
+  misc/newsfrom
+  misc/newshist
+! conf/spacefor.statfs
+! conf/spacefor.ultrix
+! conf/spacefor.ustat
+  misc/soonerthan
+  contrib/nntpmail/nntp_support/frontend_inews
+--- 52,58 ----
+  misc/newsfrom
+  misc/newshist
+! conf/sf.statfs
+! conf/sf.ultrix
+! conf/sf.ustat
+  misc/soonerthan
+  contrib/nntpmail/nntp_support/frontend_inews
+
+*** cnpatch/old/conf/sys.proto	Sat Aug 17 22:52:51 1991
+--- conf/sys.proto	Tue Aug 13 17:16:16 1991
+***************
+*** 3,8 ****
+  # and newsgroups.
+  
+! # line indicating what we are willing to receive; note local groups on end
+! ME:comp,news,sci,rec,misc,soc,talk,to,can,ont,tor,ut
+  
+  # sample insignificant feed not using batching (for special situations only)
+--- 3,8 ----
+  # and newsgroups.
+  
+! # line indicating what we are willing to receive; note local groups near end
+! ME:comp,news,sci,rec,misc,soc,talk,can,ont,tor,ut,to
+  
+  # sample insignificant feed not using batching (for special situations only)
+***************
+*** 15,23 ****
+  gladstone:comp.protocols.tcp-ip,rec.aviation/all:f:
+  
+! # sample major batched feed, including (unnecessary) explicit file name
+! dewey:comp,news,sci,rec,misc,soc,talk,to.dewey,can,ont,tor,ut/all:f:dewey/togo
+  
+! # sample long-haul feed; note no local groups
+! donald:comp,news,sci,rec,misc,soc,talk,to.donald/all:f:
+  
+  # sample local-postings-only feed direct to major site (gets them out fast)
+--- 15,27 ----
+  gladstone:comp.protocols.tcp-ip,rec.aviation/all:f:
+  
+! # sample major batched feed, including assorted regional newsgroups, with
+! # (unnecessary) explicit file name
+! dewey:comp,news,sci,rec,misc,soc,talk,can,ont,tor,ut,to.dewey/all:f:dewey/togo
+  
+! # sample long-haul feed; note no regional groups, exclusion of a local
+! # distribution, and exclusion of anything that passed through him under
+! # another name (needed because he puts that form, not just "donald", in
+! # his Path lines)
+! donald/donald.angry.duck:comp,news,sci,rec,misc,soc,talk,to.donald/all,!ut:f:
+  
+  # sample local-postings-only feed direct to major site (gets them out fast)
+
+*** cnpatch/old/dbz/README	Sat Aug 17 22:52:59 1991
+--- dbz/README	Wed Jul 24 16:17:01 1991
+***************
+*** 12,13 ****
+--- 12,17 ----
+  and RFC lines entirely.  That will break some of the regression tests;
+  at some point I'll fix this.
++ 
++ If you are using this independently from C News, you probably still want
++ to look through ../notebook/problems, as some of the portability problems
++ described in there can affect dbz.
+
+*** cnpatch/old/doc/trouble	Sat Aug 17 22:53:25 1991
+--- doc/trouble	Fri Aug 16 12:08:46 1991
+***************
+*** 1,3 ****
+! .DA "7 Aug 1991"
+  .TL
+  Troubleshooting C News
+--- 1,3 ----
+! .DA "16 Aug 1991"
+  .TL
+  Troubleshooting C News
+***************
+*** 38,41 ****
+--- 38,51 ----
+  format of most of the control files in considerable detail.
+  .SH
++ General Approach
++ .PP
++ In general, your first priority should be to establish
++ precisely what is going wrong and where.
++ Read the documentation on how data flows within C News and how it interfaces
++ to the rest of the system, and track down exactly where trouble is striking.
++ If the software is sort of working but isn't doing things right,
++ inspection of the \fIlog\fR and \fIerrlog\fR files in NEWSCTL often reveals
++ what it thinks it's doing.
++ .SH
+  Frequently Reported Problems
+  .PP
+***************
+*** 50,54 ****
+  See \fInews\fR(5) and the sample \fIsys\fR file in the \fIconf\fR directory.
+  Note in particular that an article is not sent to a site unless \fIboth\fR
+! the newsgroup \fIand\fR the distribution match those specified in the
+  \fIsys\fR line, and the \fIsys\fR-line distribution does \fInot\fR default
+  to ``all''.
+--- 60,64 ----
+  See \fInews\fR(5) and the sample \fIsys\fR file in the \fIconf\fR directory.
+  Note in particular that an article is not sent to a site unless \fIboth\fR
+! its newsgroup(s) \fIand\fR its distribution match those specified in the
+  \fIsys\fR line, and the \fIsys\fR-line distribution does \fInot\fR default
+  to ``all''.
+***************
+*** 69,70 ****
+--- 79,152 ----
+  Do not try to edit the config file without rebuilding the software;
+  that doesn't work.
++ .PP
++ \fII'm seeing articles filed in surprising places and/or propagated
++ (not propagated) to sites that I thought shouldn't (should) get them.\fR
++ The interaction of various policies in this area is \fInot\fR simple.
++ It is almost certain that the software is doing what you told it to do.
++ Close and careful reading of the \fInews\fR(5) and \fIrelaynews\fR(8)
++ manual pages will probably clear up the difference between what you
++ told it to do and what you \fIthought\fR you told it to do.
++ .PP
++ \fII had trouble compiling your \fRstdio\fI speedups, and/or they
++ failed the compatibility test, but I used them anyway, and now I'm
++ having bizarre problems.\fR
++ If the speedups don't compile smoothly
++ or failed the compatibility test, \fIDON'T USE THEM!\fR
++ In this area,
++ being ``a little bit broken'' is like being a little bit pregnant.
++ As \fIbuild\fR told you, there are systems where the speedups do
++ not work.
++ .PP
++ \fII'm having trouble compiling \fRlibc/datetok.c\fI with my ANSI
++ C compiler.\fR
++ We don't have ANSI C compilers handy for our own
++ use, and there are a few troublesome areas where older compilers
++ make difficulties and encourage errors.
++ Until this particular bug
++ gets fixed, a workaround is to move the definitions of \fIdatetktbl\fR
++ and \fIszdatetktbl\fR up to the beginning of the file, and delete
++ the erroneous \fIextern\fR declarations.
++ .PP
++ \fII get a news feed from my neighbor, and it arrives fine, but my system
++ sends him not just the things I post locally, but also everything I get
++ from him.\fR
++ News-loop prevention is based on the \fBPath\fR header lines.
++ The name your neighbor is known by in your \fIsys\fR file does not match
++ the one he's inserting into \fBPath\fR, so your news system thinks
++ he hasn't seen those articles yet.
++ A common cause of this is that he's putting a full domain name in \fBPath\fR
++ and you're using a short version in your \fIsys\fR file, or vice versa.
++ The best fix is to agree on names.
++ A workaround, often useful, is to alter the \fIsys\fR line to use the
++ exclusion feature.
++ Say he's putting ``abc.def.ghi'' in his Paths and your
++ sys file knows him only as ``abc''.
++ If there is some reason why you can't
++ just agree on the name, start the \fIsys\fR line with
++ ``abc/abc.def.ghi:'' rather than just ``abc:'',
++ to tell the news system ``send
++ abc only things that have not passed through abc.def.ghi''.
++ .PP
++ \fIWill C News work if my article tree is spread over more than one
++ filesystem?\fR
++ Yes, if your system supports symbolic links.
++ Some tweaking is necessary:
++ you will have to give \fIdoexpire\fR the \fB\-l\fR flag so it knows about
++ the situation, and you will need to alter \fIspacefor\fR to check
++ space on more than one filesystem.
++ .PP
++ \fIHow do I configure C News so that it will not automatically create any
++ newsgroups just because some yo-yo on the net sends out a \fRnewgroup\fI
++ message?\fR
++ This is not provided as a configuration option at present.
++ Most control messages are handled by shell files in NEWSBIN/\fIctl\fR,
++ and those can be edited to implement any local policies desired.
++ .PP
++ \fIIt ran fine for a while, but now \fRrelaynews\fI is complaining that
++ it's unable to write the history file, saying ``(File too large)''.\fR
++ This means you're on a System V or related system that implements the
++ stupid \fIulimit\fR feature, limiting the size of files, and the
++ \fIulimit\fR is too low.
++ Note that while some sensible suppliers have their \fIlogin\fR raise the
++ limit to a very high value, most of them seem to have forgotten to do
++ the same for \fIcron\fR... and much of C News is run from \fIcron\fR.
+
+*** cnpatch/old/h/news.h	Sat Aug 17 22:53:47 1991
+--- h/news.h	Sat Jul 13 20:38:49 1991
+***************
+*** 135,139 ****
+  
+  extern void warning(), error();			/* from ../libc */
+- extern void standard();				/* from ../libc */
+  extern void closeall();				/* from ../libc */
+  extern void stdfdopen();			/* from ../libc */
+--- 135,138 ----
+
+*** cnpatch/old/input/newsrun	Sat Aug 17 22:53:58 1991
+--- input/newsrun	Wed Aug 14 18:54:54 1991
+***************
+*** 66,71 ****
+  while :				# "while true", but : is faster
+  do
+! 	# Find some work.
+! 	them="`ls | egrep \"^$pat\" | sed 50q`"
+  	if test " $them" = " "		# if no work...
+  	then
+--- 66,71 ----
+  while :				# "while true", but : is faster
+  do
+! 	# Find some work.  "sort -n" gets grades ordered right.
+! 	them="`ls | egrep \"^$pat\" | sort -n | sed 50q`"
+  	if test " $them" = " "		# if no work...
+  	then
+***************
+*** 170,174 ****
+  				mv $f $bad	# Not $text, save the ORIGINAL!
+  			fi
+! 			echo "relaynews <\`$bad' failed, status $st (see errlog)" |
+  							mail "$NEWSMASTER"
+  		fi
+--- 170,174 ----
+  				mv $f $bad	# Not $text, save the ORIGINAL!
+  			fi
+! 			echo "relaynews failed ($st) on \`$bad', see errlog" |
+  							mail "$NEWSMASTER"
+  		fi
+
+*** cnpatch/old/input/newsspool.c	Sat Aug 17 22:54:06 1991
+--- input/newsspool.c	Wed Jul 17 18:26:29 1991
+***************
+*** 217,247 ****
+  	}
+  
+! 	p = fullartfile("in.coming/");
+! 	name = emalloc(strlen(p) + 20);	/* plenty for a number */
+! 	(void) strcpy(name, p);
+! 	p = name + strlen(name);
+! 
+! 	ntries = 0;
+! 	for (;;) {
+! 		now = time((time_t *)NULL);
+! 		sprintf(p, "%s%ld%s", grade, now, suffix);
+! 		if (debug)
+! 			fprintf(stderr, "trying renaming to %s\n", name);
+! 		if (link(tmpname, name) >= 0)
+! 			break;		/* NOTE BREAK OUT */
+! 		if (errno != EEXIST)	/* something strange is wrong */
+! 			error("unable to link `%s'", tmpname);
+! 		errno = 0;
+! 		if (ntries > MAXTRIES)	/* sanity check */
+! 			error("too many attempts to link `%s'", tmpname);
+! 		if (debug)
+! 			fprintf(stderr, "failed\n");
+! 		sleep(2);	/* avoid rumored race in 1-sec sleep */
+! 		ntries++;
+! 	}
+! 
+  	if (debug)
+  		fprintf(stderr, "succeeded\n");
+- 	(void) unlink(tmpname);
+  }
+  
+--- 217,224 ----
+  	}
+  
+! 	if (!mkinperm(tmpname, grade, suffix))
+! 		error("couldn't move %s into the in.coming queue", tmpname);
+  	if (debug)
+  		fprintf(stderr, "succeeded\n");
+  }
+  
+
+*** cnpatch/old/libc/split.c	Sat Aug 17 22:54:44 1991
+--- libc/split.c	Sat Aug  3 22:53:05 1991
+***************
+*** 188,202 ****
+  
+  	nf = split(string, fields, NF, seps);
+! 	print(nf, fields);
+  }
+  
+! print(nf, fields)
+  int nf;
+  char *fields[];
+  {
+  	register int fn;
+  
+  	printf("%d:\t", nf);
+! 	for (fn = 0; fn < nf; fn++)
+  		printf("\"%s\"%s", fields[fn], (fn+1 < nf) ? ", " : "\n");
+  }
+--- 188,205 ----
+  
+  	nf = split(string, fields, NF, seps);
+! 	print(nf, NF, fields);
+  }
+  
+! print(nf, nfp, fields)
+  int nf;
++ int nfp;
+  char *fields[];
+  {
+  	register int fn;
++ 	register int bound;
+  
++ 	bound = (nf > nfp) ? nfp : nf;
+  	printf("%d:\t", nf);
+! 	for (fn = 0; fn < bound; fn++)
+  		printf("\"%s\"%s", fields[fn], (fn+1 < nf) ? ", " : "\n");
+  }
+***************
+*** 306,310 ****
+  		}
+  		if (printit)
+! 			print(nf, fields);
+  	}
+  }
+--- 309,313 ----
+  		}
+  		if (printit)
+! 			print(nf, RNF, fields);
+  	}
+  }
+
+*** cnpatch/old/libcnews/Makefile	Sat Aug 17 22:54:49 1991
+--- libcnews/Makefile	Wed Jul 17 18:24:10 1991
+***************
+*** 11,18 ****
+  SRCS=complain.c config.c fopenclex.c hostname.c \
+   lock.c ltoza.c ngmatch.c readline.c \
+!  string.c strlower.c strsave.c str3save.c time.c case.c
+  OBJS = complain.o config.o fopenclex.o gethdr.o hostname.o lock.o ltoza.o \
+  	nemalloc.o ngmatch.o str3save.o string.o strlower.o strsave.o time.o \
+! 	case.o
+  # workaround for System V make bug
+  SHELL = /bin/sh
+--- 11,20 ----
+  SRCS=complain.c config.c fopenclex.c hostname.c \
+   lock.c ltoza.c ngmatch.c readline.c \
+!  string.c strlower.c strsave.c str3save.c time.c case.c mkinperm.c
+! # newstok.c fnlockfile.c
+  OBJS = complain.o config.o fopenclex.o gethdr.o hostname.o lock.o ltoza.o \
+  	nemalloc.o ngmatch.o str3save.o string.o strlower.o strsave.o time.o \
+! 	case.o mkinperm.o
+! # newstok.o fnlockfile.o
+  # workaround for System V make bug
+  SHELL = /bin/sh
+***************
+*** 37,41 ****
+  # header dependencies for libcnews.a
+  config.o: $(INCLUDE)/news.h $(INCLUDE)/config.h
+! lock.o: $(INCLUDE)/news.h
+  ngmatch.o: $(INCLUDE)/news.h
+  time.o: $(INCLUDE)/news.h
+--- 39,44 ----
+  # header dependencies for libcnews.a
+  config.o: $(INCLUDE)/news.h $(INCLUDE)/config.h
+! lock.o fnlockfile.o: $(INCLUDE)/news.h
+! mkinperm.o: $(INCLUDE)/news.h
+  ngmatch.o: $(INCLUDE)/news.h
+  time.o: $(INCLUDE)/news.h
+
+*** cnpatch/old/man/inews.1	Sat Aug 17 22:55:57 1991
+--- man/inews.1	Wed Jul 17 18:27:54 1991
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH INEWS 1 "20 February 1991"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH INEWS 1 "17 July 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 36,39 ****
+--- 36,42 ----
+  .B \-W
+  ]
++ [
++ .B \-N
++ ]
+  .br
+  .\" silly B options follow
+***************
+*** 169,172 ****
+--- 172,183 ----
+  to complete,
+  instead of running it in the background and not waiting.
++ .B \-N
++ suppresses posting
++ and
++ produces on standard output
++ the article that would have otherwise been posted;
++ the resultant article will have been checked for illegalities as usual
++ and will be suitable as input to
++ .IR relaynews (8).
+  .PP
+  The rest of the options are inherited from B news
+
+*** cnpatch/old/man/news.5	Sat Aug 17 22:55:59 1991
+--- man/news.5	Wed Aug 14 17:04:13 1991
+***************
+*** 29,33 ****
+  .LP
+  ..
+! .TH NEWS 5 "4 July 1991"
+  .BY "C News"
+  .SH NAME
+--- 29,33 ----
+  .LP
+  ..
+! .TH NEWS 5 "14 Aug 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 257,261 ****
+  the article is transmitted.
+  The rules for matching a newsgroup against a single pattern are:
+! .IP \(bu "\w'\(bu  'u"
+  .IR word s
+  in a newsgroup or a pattern
+--- 257,264 ----
+  the article is transmitted.
+  The rules for matching a newsgroup against a single pattern are:
+! .\" precompute the indent to avoid passing an argument containing
+! .\" whitespace into a macro, since this seems not to always work.
+! .nr Bw \w'\(bu  '
+! .IP \(bu \n(Bwu
+  .IR word s
+  in a newsgroup or a pattern
+***************
+*** 270,277 ****
+  matches any newsgroup word;
+  .IP \(bu
+! a newsgroup is matched against a pattern word by word, and all words
+  must match for the newsgroup to match that pattern;
+  .IP \(bu
+! if the pattern has fewer words than the newsgroup, the pattern is implicitly
+  extended to the same number of words by appending
+  .B \&.all
+--- 273,282 ----
+  matches any newsgroup word;
+  .IP \(bu
+! a newsgroup is matched against a pattern word by word,
+! and all words
+  must match for the newsgroup to match that pattern;
+  .IP \(bu
+! if the pattern has fewer words than the newsgroup,
+! the pattern is implicitly
+  extended to the same number of words by appending
+  .B \&.all
+***************
+*** 290,294 ****
+  A newsgroup matches a pattern list if, and only if, it matches at least
+  one of the patterns and:
+! .IP \(bu "\w'\(bu  'u"
+  the newsgroup
+  does not mismatch any of the patterns, or
+--- 295,299 ----
+  A newsgroup matches a pattern list if, and only if, it matches at least
+  one of the patterns and:
+! .IP \(bu \n(Bwu
+  the newsgroup
+  does not mismatch any of the patterns, or
+***************
+*** 353,356 ****
+--- 358,372 ----
+  .B "Distribution: local"
+  lines.
++ Note too
++ that the distribution
++ ``world''
++ must be permitted
++ (perhaps by the distribution
++ ``all'')
++ in order to feed
++ .BR Distribution: -less
++ articles
++ (the common case)
++ to a site.
+  .PP
+  The
+***************
+*** 361,365 ****
+  (interpret
+  .I "transmission command"
+! as a file name and write the name and size in bytes of each
+  article on the end of it),
+  .B F
+--- 377,384 ----
+  (interpret
+  .I "transmission command"
+! as a file name and
+! write the file name relative to
+! .B \*a
+! and size in bytes of each
+  article on the end of it),
+  .B F
+***************
+*** 413,428 ****
+  Some examples:
+  .Es
+! # line indicating what we are willing to receive; note local groups on end
+! ME:comp,news,sci,rec,misc,soc,talk,to,can,ont,tor,ut
+  .sp 0.3
+! # sample insignificant feed not using batching
+  huey:news.config,to.huey/all::uux - -r -gd huey!rnews
+  .sp 0.3
+! # sample major batched feed, including (unnecessary) explicit file name
+! dewey:comp,news,sci,rec,misc,soc,talk,to.dewey,can,ont,tor,ut/all:f:dewey/togo
+  .sp 0.3
+! # sample long-haul feed; note no local groups
+! donald:comp,news,sci,rec,misc,soc,talk,to.donald/all:f:
+  .sp 0.3
+  # sample local-postings-only feed direct to major site (gets them out fast)
+  scrooge:comp,news,sci,rec,misc,soc,talk,to.scrooge/all:Lf:
+--- 432,457 ----
+  Some examples:
+  .Es
+! # line indicating what we are willing to receive; note local groups near end
+! ME:comp,news,sci,rec,misc,soc,talk,can,ont,tor,ut,to
+  .sp 0.3
+! # sample insignificant feed not using batching (for special situations only)
+  huey:news.config,to.huey/all::uux - -r -gd huey!rnews
+  .sp 0.3
+! # sample of mailing newsgroups to someone (note distribution)
+! daisy:soc.women,soc.couples/all::mail daisy@duck
+  .sp 0.3
+! # sample small feed using batching
+! gladstone:comp.protocols.tcp-ip,rec.aviation/all:f:
+  .sp 0.3
++ # sample major batched feed, including assorted regional newsgroups, with
++ # (unnecessary) explicit file name
++ dewey:comp,news,sci,rec,misc,soc,talk,can,ont,tor,ut,to.dewey/all:f:dewey/togo
++ .sp 0.3
++ # sample long-haul feed; note no regional groups, exclusion of a local
++ # distribution, and exclusion of anything that passed through him under
++ # another name (needed because he puts that form, not just "donald", in
++ # his Path lines)
++ donald/donald.angry.duck:comp,news,sci,rec,misc,soc,talk,to.donald/all,!ut:f:
++ .sp 0.3
+  # sample local-postings-only feed direct to major site (gets them out fast)
+  scrooge:comp,news,sci,rec,misc,soc,talk,to.scrooge/all:Lf:
+***************
+*** 429,435 ****
+  .sp 0.3
+  # sample ihave/sendme link
+  # Send ihave telling louie what we have -- batcher turns the batch into a
+  # giant control message and posts it to "to.louie".  (#1)
+! louie:rec.music.synth/all,!sendme,!ihave:I:louie.ihave/togo
+  # Send sendme in response to ihave from louie -- again, turned by batcher
+  # into giant control message posted to "to.louie".  (#3)
+--- 458,465 ----
+  .sp 0.3
+  # sample ihave/sendme link
++ # NOTE, this is the old ihave/sendme, not related to NNTP in any way.
+  # Send ihave telling louie what we have -- batcher turns the batch into a
+  # giant control message and posts it to "to.louie".  (#1)
+! louie:comp,news,sci,rec,misc,soc,talk,!to/all,!sendme,!ihave:I:louie.ihave/togo
+  # Send sendme in response to ihave from louie -- again, turned by batcher
+  # into giant control message posted to "to.louie".  (#3)
+***************
+*** 440,443 ****
+--- 470,477 ----
+  louie-real:to.louie/sendme:f:louie/togo
+  # Actually the last two could be combined.
++ .sp 0.3
++ # also, since ihave/sendme is slow, send local postings to louie without
++ # waiting (beware ihave/sendme)
++ louie-local:comp,news,sci,rec,misc,soc,talk/all,!sendme,!ihave:L:
+  .Ee
+  (The ``to.\fIsysname\fR'' groups are normal newsgroups used for testing
+***************
+*** 558,559 ****
+--- 592,601 ----
+  One could argue that RFC 822
+  is less than an ideal base for article format.
++ .br
++ The distribution codes
++ .B ihave
++ and
++ .B sendme
++ are reserved by the news system for its internal use
++ and should be used only in support of the
++ ihave/sendme protocol.
+
+*** cnpatch/old/man/relaynews.8	Sat Aug 17 22:56:07 1991
+--- man/relaynews.8	Wed Jul 17 18:32:10 1991
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH RELAYNEWS 8 "16 March 1991"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH RELAYNEWS 8 "17 July 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 14,18 ****
+  .B relaynews
+  [
+! .B \-inrs
+  ]
+  [
+--- 14,18 ----
+  .B relaynews
+  [
+! .B \-inrsu
+  ]
+  [
+***************
+*** 72,75 ****
+--- 72,82 ----
+  justifying a non-zero exit status (for the benefit of
+  .IR inews ).
++ .B \-u
++ unlinks
++ (removes)
++ any filename arguments after successful processing
++ and
++ if their absolute paths are under
++ .BR \*a/in.coming .
+  .B \-o
+  causes articles with dates
+
+*** cnpatch/old/misc/newsdaily	Sat Aug 17 22:56:22 1991
+--- misc/newsdaily	Wed Aug 14 17:16:49 1991
+***************
+*** 98,102 ****
+  # sweep log file, once, for suspect lines
+  egrep '`
+! older
+  future
+  unparsable
+--- 98,102 ----
+  # sweep log file, once, for suspect lines
+  egrep '`
+! ancient
+  future
+  unparsable
+***************
+*** 137,141 ****
+  
+  # And other signs of problems.
+! egrep 'older than|too far in the future|unparsable Date' $sus | egrep ' - ' |
+  	awk '{print $4}' | sort | uniq -c | sort -nr | sed 5q >$tmp
+  if test -s $tmp
+--- 137,141 ----
+  
+  # And other signs of problems.
+! egrep 'ancient|too far in the future|unparsable Date' $sus | egrep ' - ' |
+  	awk '{print $4}' | sort | uniq -c | sort -nr | sed 5q >$tmp
+  if test -s $tmp
+***************
+*** 147,151 ****
+  	) >>$gripes
+  fi
+! egrep ' (no|empty) .* header|contains non-header|Message-ID' $sus |
+  	egrep ' - ' | awk '{print $4}' | sort | uniq -c | sort -nr |
+  	sed 5q >$tmp
+--- 147,151 ----
+  	) >>$gripes
+  fi
+! egrep ' (no|empty) .* header|contains non-|Message-ID' $sus |
+  	egrep ' - ' | awk '{print $4}' | sort | uniq -c | sort -nr |
+  	sed 5q >$tmp
+
+*** cnpatch/old/notebook/problems	Sat Aug 17 22:56:41 1991
+--- notebook/problems	Tue Aug  6 16:16:05 1991
+***************
+*** 1,3 ****
+! .DA "4 July 1991"
+  .TL
+  Known Porting Problems With C News
+--- 1,3 ----
+! .DA "6 Aug 1991"
+  .TL
+  Known Porting Problems With C News
+***************
+*** 688,689 ****
+--- 688,724 ----
+  Telling the compiler \fB\-nointl\fR may be helpful if you don't want
+  to go that far.
++ .SH
++ Old SCO Xenix vs. \fIsetvbuf\fP
++ .\" Ronald Khoo reported this unbelievable botch
++ .PP
++ The \fIdbz\fR package makes some use of the \fIsetvbuf\fR routine.
++ Incredible though it sounds, old versions of SCO Xenix reportedly had
++ the order of \fIsetvbuf\fR's arguments wrong!
++ If you have SCO Xenix version
++ 2.2 or earlier,
++ check the arguments to \fIsetvbuf\fR:
++ if the second and third are a type and a buffer pointer respectively
++ (they are supposed to be a buffer pointer and a type),
++ you're in trouble and will have to tinker with the \fIdbz\fR sources.
++ .SH
++ SunOS 4.1.1 vs. write()
++ .PP
++ In some circumstances, a SunOS 4.1.1 \fIwrite\fR system call to a disk
++ file can be interrupted by a signal.
++ No other Unix does this, and routines like \fIfwrite\fR are not prepared
++ to cope with it.
++ This can result in gratuitous failures of \fIdbz\fR in particular.
++ .PP
++ It is thought not to be a problem in C News, but some other packages
++ using \fIdbz\fR suffer, and we mention it just in case.
++ Sun acknowledges it as a bug.
++ The bug-id is 1052649.
++ It is fixed in patch 100293-01.
++ .SH
++ uucp Variations
++ .PP
++ There are innumerable variations on the details of \fIuucp\fR that may
++ require appropriate modifications to \fIqueuelen\fR.
++ For example, some versions of Honey DanBer (aka BNU) \fIuucp\fR cut all
++ system names down to seven characters,
++ and \fIqueuelen\fR will have to be altered to do likewise.
+
+*** cnpatch/old/notebook/rfcerrata	Sat Aug 17 22:56:51 1991
+--- notebook/rfcerrata	Thu Jul 18 16:36:02 1991
+***************
+*** 218,219 ****
+--- 218,235 ----
+  C News takes a strict position on this in cases where it cares about
+  the contents of headers.
++ .SH
++ Duplicate Headers
++ .PP
++ RFC 822 requires that at most one ``Date:''
++ header occur in a message, and likewise for ``From:'',
++ although careful reading is needed to discover this.
++ It permits more than one ``Message-ID:'' or ``Subject:'' header,
++ and is (of course) completely silent about ``Newsgroups:'' and ``Path:''.
++ With the arguable exceptions of ``From:'' and ``Subject:'', duplicates
++ of required headers are highly undesirable in news and cause difficulties
++ for current implementations.
++ RFC 1036 vaguely implies that the required headers are expected to be
++ unique, but never says this.
++ This needs to be made much more precise.
++ C News takes a strict position and rejects articles with duplicate
++ required headers.
+
+*** cnpatch/old/rna/readnews.c	Sat Aug 17 22:57:13 1991
+--- rna/readnews.c	Tue Jul 23 15:05:45 1991
+***************
+*** 370,374 ****
+  			if (delim)
+  				(void) strcpy(slist, delim + 1);
+! 			else if (slist[-1] = ',')
+  				slist[-1] = '\0';
+  			else
+--- 370,374 ----
+  			if (delim)
+  				(void) strcpy(slist, delim + 1);
+! 			else if (slist[-1] == ',')
+  				slist[-1] = '\0';
+  			else
+
+Files that are new:
+
+new conf/sf.proto (patch can't create, so diff against null):
+Index: conf/sf.proto
+*** cnpatch/old/conf/sf.proto	Sat Aug 17 22:57:17 1991
+--- conf/sf.proto	Mon Jan 15 02:21:51 1990
+***************
+*** 0 ****
+--- 1,69 ----
++ #! /bin/sh
++ # spacefor - determine available disk space
++ # About how many things of $1 bytes will fit in the available space for
++ # stuff of type $2 ("incoming", "articles", "control", "outbound $3",
++ # or "archive") without cramping things too badly?
++ #
++ # You'll have to change this -- your blocksize, minimum-free-desired amounts,
++ # and df output format will probably differ, and you may need to name
++ # your filesystems explicitly.
++ 
++ # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
++ . ${NEWSCONFIG-/usr/lib/news/bin/config}
++ 
++ PATH=$NEWSCTL/bin:$NEWSBIN:$NEWSPATH ; export PATH
++ umask $NEWSUMASK
++ 
++ # punt to server if necessary
++ if test -r $NEWSCTL/server
++ then
++ 	server="`cat $NEWSCTL/server`"
++ 	me="`hostname`"
++ 	if test " $server" != " $me"
++ 	then
++ 		exec rsh $server -n /bin/sh -c "'PATH=$PATH `basename $0` $*'"
++ 		# does not return
++ 	fi
++ fi
++ 
++ # head off special case
++ case "$1" in
++ 0)	echo 10000 ; exit 0 ;;
++ esac
++ 
++ # argument to df, df units, and free space desired (in df units)
++ dfunit=1024			# default df unit (bytes)
++ case "$2" in
++ incoming)	arg="$NEWSARTS/in.coming" ; desire=5000 ;;
++ articles)	arg="$NEWSARTS" ; desire=5000 ;;
++ control)	arg="$NEWSCTL" ; desire=3000 ;;		# for expire, mostly
++ outbound)	arg="/usr/spool/uucp" ; desire=10000 ;;	# ignore $3
++ archive)	arg="$NEWSARTS" ; desire=1 ;;		# system-specific
++ *)		echo "$0: bad type argument \`$2'!!" >&2
++ 		exit 2 ;;
++ esac
++ 
++ # In the following, the initialization of nf determines which field the
++ # block count comes from, and the one for nr determines which line.  For
++ # System V, the Makefile edits in a sed which tries to strip silliness
++ # off in a reasonably System-V-variant-independent way.  Expr would be
++ # faster than awk, but on a 16-bit machine, expr does 16-bit arithmetic,
++ # which isn't enough.
++ 
++ # this is set up for the stupid 4BSD df
++ df $arg | awk "BEGIN { nf = 4 ; nr = 2 }
++ 	NR == nr && NF >= nf {
++ 		nb = (\$nf - $desire) * $dfunit / $1
++ 		if (nb > 10000)
++ 			nb = 10000	# ensure representable as integer
++ 		nb = int(nb)
++ 		if (nb <= 0)
++ 			print 0
++ 		else
++ 			print nb
++ 		exit
++ 	}
++ 	NR == nr && NF < nf {		# idiotic Berkeley continuation
++ 		nr += 1
++ 		nf -= 1
++ 	}"
+
+new conf/sf.statfs (patch can't create, so diff against null):
+Index: conf/sf.statfs
+*** cnpatch/old/conf/sf.statfs	Sat Aug 17 22:57:18 1991
+--- conf/sf.statfs	Tue Aug  6 20:36:29 1991
+***************
+*** 0 ****
+--- 1,28 ----
++ #! /bin/sh
++ # spacefor - determine available disk space
++ # About how many things of $1 bytes will fit in the available space for
++ # stuff of type $2 ("incoming", "articles", "control", "outbound $3",
++ # or "archive") without cramping things too badly?
++ #
++ # You'll have to change this -- your blocksize and minimum-free-desired 
++ # amounts will probably differ, and you may need to name filesystems
++ # explicitly.
++ 
++ # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
++ . ${NEWSCONFIG-/usr/lib/news/bin/config}
++ 
++ PATH=$NEWSCTL/bin:$NEWSBIN:$NEWSPATH ; export PATH
++ umask $NEWSUMASK
++ 
++ # file to look at, free blocks desired, and free inodes desired
++ case "$2" in
++ incoming)	arg="$NEWSARTS/in.coming" ; blocks=5000 ; inodes=1000	;;
++ articles)	arg="$NEWSARTS" ; blocks=5000 ; inodes=1000		;;
++ control)	arg="$NEWSCTL" ; blocks=3000 ; inodes=100		;;
++ outbound)	arg="/usr/spool/uucp" ; blocks=10000 ; inodes=1000	;;
++ archive)	arg="$NEWSARTS" ; blocks=1 ; inodes=1			;;
++ *)		echo "$0: bad type argument \`$2'!!" >&2
++ 		exit 2 ;;
++ esac
++ 
++ dostatfs $1 $arg $blocks $inodes
+
+new conf/sf.ultrix (patch can't create, so diff against null):
+Index: conf/sf.ultrix
+*** cnpatch/old/conf/sf.ultrix	Sat Aug 17 22:57:18 1991
+--- conf/sf.ultrix	Tue Aug  6 21:07:36 1991
+***************
+*** 0 ****
+--- 1,28 ----
++ #! /bin/sh
++ # spacefor - determine available disk space
++ # About how many things of $1 bytes will fit in the available space for
++ # stuff of type $2 ("incoming", "articles", "control", "outbound $3",
++ # or "archive") without cramping things too badly?
++ #
++ # You'll have to change this -- your blocksize and minimum-free-desired 
++ # amounts will probably differ, and you may need to name filesystems
++ # explicitly.
++ 
++ # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
++ . ${NEWSCONFIG-/usr/lib/news/bin/config}
++ 
++ PATH=$NEWSCTL/bin:$NEWSBIN:$NEWSPATH ; export PATH
++ umask $NEWSUMASK
++ 
++ # file to look at, free blocks desired, and free inodes desired
++ case "$2" in
++ incoming)	arg="$NEWSARTS/in.coming" ; blocks=5000 ; inodes=1000	;;
++ articles)	arg="$NEWSARTS" ; blocks=5000 ; inodes=1000		;;
++ control)	arg="$NEWSCTL" ; blocks=3000 ; inodes=100		;;
++ outbound)	arg="/usr/spool/uucp" ; blocks=10000 ; inodes=1000	;;
++ archive)	arg="$NEWSARTS" ; blocks=1 ; inodes=1			;;
++ *)		echo "$0: bad type argument \`$2'!!" >&2
++ 		exit 2 ;;
++ esac
++ 
++ doultrix $1 $arg $blocks $inodes
+
+new conf/sf.ustat (patch can't create, so diff against null):
+Index: conf/sf.ustat
+*** cnpatch/old/conf/sf.ustat	Sat Aug 17 22:57:19 1991
+--- conf/sf.ustat	Tue Aug  6 20:36:30 1991
+***************
+*** 0 ****
+--- 1,28 ----
++ #! /bin/sh
++ # spacefor - determine available disk space
++ # About how many things of $1 bytes will fit in the available space for
++ # stuff of type $2 ("incoming", "articles", "control", "outbound $3",
++ # or "archive") without cramping things too badly?
++ #
++ # You'll have to change this -- your blocksize and minimum-free-desired 
++ # amounts will probably differ, and you may need to name filesystems
++ # explicitly.
++ 
++ # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
++ . ${NEWSCONFIG-/usr/lib/news/bin/config}
++ 
++ PATH=$NEWSCTL/bin:$NEWSBIN:$NEWSPATH ; export PATH
++ umask $NEWSUMASK
++ 
++ # file to look at, free blocks desired, and free inodes desired
++ case "$2" in
++ incoming)	arg="$NEWSARTS/in.coming" ; blocks=5000 ; inodes=1000	;;
++ articles)	arg="$NEWSARTS" ; blocks=5000 ; inodes=1000		;;
++ control)	arg="$NEWSCTL" ; blocks=3000 ; inodes=100		;;
++ outbound)	arg="/usr/spool/uucp" ; blocks=10000 ; inodes=1000	;;
++ archive)	arg="$NEWSARTS" ; blocks=1 ; inodes=1			;;
++ *)		echo "$0: bad type argument \`$2'!!" >&2
++ 		exit 2 ;;
++ esac
++ 
++ doustat $1 $arg $blocks $inodes
+
+new libcnews/mkinperm.c (patch can't create, so diff against null):
+Index: libcnews/mkinperm.c
+*** cnpatch/old/libcnews/mkinperm.c	Sat Aug 17 22:57:22 1991
+--- libcnews/mkinperm.c	Wed Jul 17 18:24:10 1991
+***************
+*** 0 ****
+--- 1,80 ----
++ /*
++  - mkinperm - move in.coming temporary to a unique permanent name
++  *
++  * Names are based on the current time in hopes of keeping input in order.
++  */
++ 
++ #include <stdio.h>
++ #include <sys/types.h>
++ #include <sys/stat.h>
++ #include <string.h>
++ #include <errno.h>
++ #include "fixerrno.h"
++ #ifndef EEXIST
++ #define	EEXIST	0
++ #endif
++ #include "libc.h"
++ #include "news.h"
++ #include "config.h"
++ /* #include "mkinperm.h" */
++ 
++ #ifndef MAXTRIES
++ #define	MAXTRIES	100	/* limit on attempts to make links */
++ #endif
++ 
++ #define JAN1991 (time_t)662706000
++ 
++ int mkinpdebug = 0;
++ char *progname;
++ 
++ extern void exit();
++ extern time_t time();
++ 
++ int						/* true iff succeeded */
++ mkinperm(tmpname, grade, class)
++ char *tmpname;
++ char *grade;		/* 3 chars = digit, period, NUL */
++ char *class;		/* suffix for filename, default is plain text */
++ {
++ 	register char *p;
++ 	register char *name;
++ 	register int ntries;
++ 	register time_t now;
++ 	register int uniq = '0';
++ 
++ 	p = fullartfile("in.coming/");
++ 	name = emalloc(strlen(p) + 20);	/* plenty for a number */
++ 	(void) strcpy(name, p);
++ 	p = name + strlen(name);
++ 
++ 	now = time((time_t *)NULL) - JAN1991;	/* reduce range */
++ 	for (ntries = 0; ; ntries++) {
++ 		(void) sprintf(p, "%s%ld%c%s", grade, now, uniq, class);
++ 		if (mkinpdebug)
++ 			(void) fprintf(stderr, "trying renaming to %s\n", name);
++ 		if (link(tmpname, name) >= 0)
++ 			break;		/* NOTE BREAK OUT */
++ 		if (errno != EEXIST)	/* something strange is wrong */
++ 			return NO;
++ 		errno = 0;
++ 		if (ntries > MAXTRIES)	/* sanity check */
++ 			return NO;
++ 
++ 		if (++uniq == '9'+1)
++ 			uniq = 'a';
++ 		else if (uniq == 'z'+1)
++ 			uniq = 'A';
++ 		else if (uniq == 'Z'+1) {
++ 			(void) sleep(2);
++ 			now = time((time_t *)NULL) - JAN1991; /* reduce range */
++ 			uniq = '0';
++ 		}
++ 		if (mkinpdebug)
++ 			(void) fprintf(stderr, "link to %s failed\n", name);
++ 	}
++ 
++ 	if (mkinpdebug)
++ 		(void) fprintf(stderr, "succeeded\n");
++ 	(void) unlink(tmpname);
++ 	return YES;
++ }
+
+
+end of patch 17-Aug-1991

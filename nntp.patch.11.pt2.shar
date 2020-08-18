@@ -1,0 +1,1651 @@
+#! /bin/sh
+# This is a shell archive, meaning:
+# 1. Remove everything above the #! /bin/sh line.
+# 2. Save the resulting text in a file.
+# 3. Execute the file with /bin/sh (not csh) to create the files:
+#	common
+# This archive created: Sun Feb 10 14:35:59 1991
+export PATH; PATH=/bin:$PATH
+if test ! -d 'common'
+then
+	echo shar: creating directory "'common'"
+	mkdir 'common'
+fi
+echo shar: entering directory "'common'"
+cd 'common'
+echo shar: extracting "'README'" '(20055 characters)'
+sed 's/^	X//' << \SHAR_EOF > 'README'
+	X     You will need to customize common/conf.h to get the server,
+	Xsupport, and client programs running on your system.  Unfortunately,
+	X"rrn" has its own ideas of where to look for configuration information,
+	Xso there is some duplication here.
+	X
+	X    >>> Also, you should see README.SYSV if you are compiling this on
+	X    >>> a System V machine, as there is some extra stuff you need to do.
+	X
+	X    >>> Also, you should see README.MTXNIU if you are compiling this
+	X    >>> on a system running MTXNIU BSD + NFS. 
+	X
+	X    >>> Also, you should see README.IRIX, if you are compiling this on the
+	X    >>> SGI IRIS.
+	X
+	X    >>> Also, you should see README.XENIX, if you are compiling this on
+	X    >>> a machine running SCO XENIX with TCP.
+	X
+	X    >>> Also, you should see README.HPUX, if you are compiling this under
+	X    >>> HP-UX.
+	X
+	X     FIRST, copy conf.h.dist to conf.h and alter ONLY conf.h.
+	X
+	X     This is sort of a walk through conf.h so you can get some idea of
+	Xwhat parameters need to be changed.  You should probably print this
+	Xfile out (or keep it in a separate window if you're on a workstation)
+	Xand edit conf.h as you read through it.  For each #define in conf.h,
+	Xthe default value is listed in parenthesis after its name in this
+	Xdocument.  Manual entries mentioned here are in the "doc" directory of
+	Xthe NNTP distribution.
+	X
+	X     First are some compile-time type options, for compiling in
+	Xcertain code.  The options should be "#undef"ed if you don't want
+	Xthem, and "#defined" if you do.
+	X
+	XALONE		(undefined)
+	X
+	X     Defines whether we're a stand alone version of the server, or
+	Xwhether we're running under inetd.  Define this if you do NOT have inetd.
+	XIf you do have inetd, keep it undef'ed.
+	X
+	XFASTFORK	(undefined)
+	X
+	X     If ALONE is defined, then this option tells us not to read the
+	Xactive file when we fork, but rather for the parent daemon to re-read
+	Xit every READINTVL (below) seconds.  This should make forking off children
+	Xa little bit faster.
+	X
+	XLOAD	(defined as 5)
+	X	You can have nntp findout the load average on a BSD-type machine
+	X(sun or ultrix) and if the load average is higher than LOAD, the connection
+	Xwill be rejected.
+	X
+	XDYNAMIC_ART_ARRAY	(undefined)
+	X	Originally, nntpd assumes a specific maximum number of articles on
+	Xline per group. (See MAX_ARTICLES definition below.) This has proven to be
+	Xa problem at some sites. Define this to dynamically allocate a larger article
+	Xarray as needed. WARNING: This code did not go through beta. Use at your own
+	Xrisk.
+	X	
+	XBSD_42		(undefined)
+	X
+	X     If you have a 4.2 BSD system (as opposed to a 4.3 BSD system),
+	Xthis needs to be defined.  Really it does only two things: changes
+	Xthe log level to be compatible with 4.2, and automatically defines
+	XDBM (below).  If, somehow, you already have ndbm, then you should
+	Xkill the lines which auto-define it.
+	X
+	XCMU_MACH	(undefined)
+	X     Define if you are running CMU's MACH. NeXT is handled as a BSD_43
+	Xmachine.
+	X
+	XUSG		(undefined)
+	X
+	X     Compiles in code to support System V; some of these appear down
+	Xbelow. 
+	X
+	XTLI		(undefined)
+	X     Compiles in code to support the Transport Layer Interface of System V
+	XRelease 3 and later. [This code does not work yet, but will work in NNTP 1.6.]
+	X
+	X**** The following four definitions have to do with the format of the ****
+	X**** news history file. You must select the same format for NNTP that ****
+	X**** you chose when you built your news software. If you don't, NNTP  ****
+	X**** will NOT WORK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ****
+	X
+	XDBM		(undefined)
+	X
+	X     If you don't have the ndbm routines in your standard library (i.e.,
+	Xif you're not running 4.3 BSD), you'll have to define this; all it
+	Xdoes is replace the ndbm calls with the earlier, unwieldy dbm calls.
+	X
+	X>>> If you define DBM, be sure to edit server/Makefile to have  "-ldbm"
+	X>>> on the LIBS line, i.e.
+	X
+	X	LIBS = -ldbm
+	X[This does not apply if you are compiling on the SGI IRIX platform.]
+	X
+	X
+	XNDBM		(defined)
+	X
+	X     Define if you have the 4.3BSD ndbm routines and used them to build your
+	Xnews software.
+	X
+	XDBZ		(undefined)
+	X     Define this is you are using the DBZ libraries. If you DO define this,
+	Xyou will need to make alterations to makefile to insure that things will work.
+	XIf you built your news software using DBZ, you MUST build NNTP with DBZ. Many
+	Xpeople have success by use the cnews library as a link library.
+	X
+	XUSGHIST		(undefined)
+	X
+	X     Define if you don't use dbm/ndbm for the history file, but instead
+	Xyou use the USG-style history file format.  IF YOU DO NOT DEFINE ANY OF
+	XDBZ, DBM OR NDBM ABOVE, THIS IS THE DEFAULT.
+	X
+	XCNEWS	    (undefined)
+	X        If you're running CNEWS instead of BNEWS define this. NNTP will not
+	Xwork with CNEWS if you don't define this.
+	X
+	XBATCHED_INPUT	(undefined)
+	X	If this is defined, then the CNews-style batched input is used
+	Xto collect incoming articled into a file which periodically is sent to the
+	Xincoming news processor. 
+	X
+	XLAI_TCP		(undefined)
+	X	This should be defined if you are compiling on SCO Xenix with TCP/IP.
+	XIt make work on other systems as well.
+	X
+	XEXCELAN		(undefined)
+	X	This will compile in support for the EXCELAN EXOS TCP/IP routines.
+	XIt is known to work with Unisys 5000-series computer.
+	X
+	XWIN_TCP		(undefined)
+	X	Support for Wollongong TCP/IP for System V/386. [This code does not
+	Xyet work. It will work in NNTP 1.6.]
+	X
+	XU_LONG		(undefined)
+	X	Define this if your system does not know what a u_long is.
+	X
+	XSIGRET		(defined)
+	X     This should be defined to be int or void depending on what
+	Xsignals return on your system. SunOS 4.X, Ultrix 3.X, and IRIX return void.
+	XMost others return int.
+	X
+	XGHNAME		(defined)
+	X
+	X     Defined if you want to use the 4BSD gethostname() call to
+	Xdetermine the name of your system.  This #define is only used
+	Xby the mini-inews when posting news.  Some reasons you might not
+	Xwant to use this are: if your UUCP/news name is different than
+	Xyour internet name; if your gethostname() currently doesn't
+	Xreturn fully-qualified names (e.g., 4.2) but you may "upgrade"
+	Xto 4.3 (and return fq'd names) shortly, and you'd rather not
+	Xhave to recompile news...  See UUNAME below.
+	X
+	XUUNAME		(undefined)
+	X
+	X     If this is defined, mini-inews will get the hostname out
+	Xof /etc/uucpname or /local/uucpname.
+	X
+	X>>>	If GHNAME and UUNAME are undefined, mini-inews will	<<<
+	X>>>	get the host name from /usr/include/whoami.h		<<<
+	X
+	XMMAP		(undefined)
+	X	Define this if you run on a version of Unix that has the mmap() system
+	Xcall. SunOS and Solbourne's OS/MP are two versions of Unix that do.
+	X
+	Xvfork		(undefined)
+	X
+	X     If you DON'T have vfork, replace this line with:
+	X
+	X#define	vfork	fork
+	X
+	XIf you DO have vfork, be sure that this remains undefined.
+	X
+	XMINFREE		(4000)
+	X	This is the minimum number of kbytes or blocks (depending on what the
+	Xsystem) that must be free on the news spool partition before nntp will allow
+	Xan XFER command to function.
+	X
+	XPOSTBUFFER	(1000)
+	X	NNTP will allow posting until there is less than MINFREE-POSTBUFFER
+	Xblocks or kbytes available. This allows posting to continue while XFERs are
+	Xstopped.
+	X
+	XMINFILES	(MINFREE/4)
+	X	This is the minimum number of inodes that must be available on the
+	Xnews spool partition before nntp will allow any function that will create 
+	Xmore files. If you define this, please be careful not to make it a large 
+	Xnumber. I recommend something around MINFREE/4.
+	X
+	XSETPROCTITLE	(undefined)
+	X	This will replace the process name with information about what nntp
+	Xis doing. This is known to work on BSD-flavored Unix, but may not work on
+	XUSG Unix.
+	X
+	XIHAVE_DEBUG	(undefined)
+	X
+	X     Enables logging of each message-id as it is offered via the IHAVE
+	Xcommand.  This produces huge log files, but is useful if you suspect
+	Xa site is repeatedly offering the same article to your site after you
+	Xhave rejected it.
+	X
+	XXHDR		(defined)
+	X
+	X     Enables the XHDR command, which is an extention of the NNTP spec.
+	XXHDR allows client programs to see header lines (e.g., subject) from
+	Xan article or range of articles.  This allows the '=' command in rn
+	Xto be much faster, IF AND ONLY IF your server machine is fast.  Since
+	Xthis command foists off work on the server, it may be better to leave this
+	Xundefined if your server machine is heavily loaded.
+	X
+	XSUBNET		(defined)
+	X
+	X     If you are running 4.3 BSD or have support for subnets on
+	Xyour local net, this will include subnet support for the access
+	Xfile.  Basically, a routine goes out and looks at all your ethernet
+	Xinterfaces, and figures out subnet masks from them.  It then
+	Xuses these to resolve subnets from IP addresses.
+	X
+	XDAMAGED_NETMASK	(undefined)
+	X
+	X     4.3 supports subnet masks of any bit-width, but user programs
+	Xare *very* hard pressed to deal with masks which are not a multiple
+	Xof 8 bits wide.  If you have a weird netmask, define DAMAGED_NETMASK.
+	XThe code which uses it is in server/subnet.c.
+	X
+	XNETMASK		(undefined)
+	X
+	X     The code in server/subnet.c wants to use 4BSD ioctls to determine
+	Xthe subnet masks for each network interface.  However, you may be able
+	Xto support subnets without having such ioctls (HPUX is an example of
+	Xsuch a system; SunOS 3.3 is another).  If you will be satisfied by
+	Xhaving a compiled-in netmask, define NETMASK to be a hex constant
+	Xdescribing your netmask (e.g., 0xffffff00).  You must also define
+	XSUBNET as well.
+	X
+	XDECNET		(undefined)
+	X
+	X     Compile in DECNET support into the server and clientlib.
+	XThis works under Ultrix (and not VMS!).
+	X
+	XUMASK		(undefined)
+	X     This should be defined if you are running CNEWS and are concerned
+	Xthat batch files may be created that can be altered by anyone. Defining
+	Xthis as 022 should work safely for most systems, but experiment to be
+	Xsure.
+	X
+	XDOMAINMATCH	(defined)
+	X     Defined to allow the use of domain specifications in the nntp access
+	Xfile. Specifications for domains are of the form *.domain.name and can be
+	Xused instead of individually naming hosts or networks.
+	X
+	XFAKESYSLOG	(undefined)
+	X
+	X     This is useful if your system doesn't support syslog, but you'd
+	Xlike logging none the less.  By defining FAKESYSLOG to be the name of
+	Xa file, e.g., "/usr/lib/news/nntplog", you can have all nntp messages
+	Xlogged to that file, ala syslog.  If you define FAKESYSLOG, you must
+	Xdefine LOG and SYSLOG, below.  The code for the fake syslog routines
+	Xare in ../server/fakesyslog.c, and are largely joe-code.
+	X
+	XFAKEAPPEND	(undefined)
+	X	If your host supports the BSD fdopen() function and the O_APPEND flag
+	Xto open(), you should define FAKEAPPEND with FAKESYSLOG so that
+	Xmultiple copies of nntpd don't trash the log with buffered fprintf's.
+	XNOTE: FAKEAPPEND does nothing if FAKESYSLOG is not defined.
+	X
+	XSYSLOG		(LOG_NEWS)
+	X
+	X     nntpd uses the syslog system to report errors, and optionally, to
+	Xlog usage statistics.  If SYSLOG is defined, errors will be
+	Xreported via the syslog() library routine; if it is not defined, no errors
+	Xwill be reported.
+	X
+	X     If you just define SYSLOG, only errors will be reported.  If you
+	Xwant more information, such as statistics, you should define LOG, below.
+	XDefining LOG will cause additional information besides errors to be
+	Xlogged via SYSLOG.
+	X
+	X     If you have syslog(), define SYSLOG to be the name of the facility
+	Xunder which nntpd should log things.  If you are using FAKESYSLOG
+	Xabove, it really doesn't matter what facility name you choose; LOG_NEWS
+	Xis fine.
+	X
+	XLOG		(undefined)
+	X
+	X     When LOG is defined, we log copious amounts of information via
+	Xsyslog to a special file.  One a busy system like ucbvax, this produces
+	Xabout 100K of log information per day.  Look in ../server/SYSLOG to
+	Xget an idea of what will be logged.  You can use the scripts
+	Xprovided in ../support to produce statistics on your NNTP server if
+	Xyou run with LOG.
+	X
+	XTIMEOUT		(2 hours)
+	X
+	X     If a server is idle in command mode for TIMEOUT amount of time,
+	Xit will close the connection with an error message.  This prevents
+	Xold servers from clogging the system.  Timeout should be at least two
+	Xhours so people can go eat lunch and leave an rn on their terminal.
+	X
+	XXFER_TIMEOUT	(30 minutes)
+	X
+	X     This is like TIMEOUT, above, but takes effect when the server is
+	Xreceiving news via IHAVE or POST.  If at least one line is not received
+	Xin XFER_TIMEOUT amount of time, the server aborts with an error.
+	X
+	XDOMAIN		("uucp")
+	X
+	X     If domain is defined, it specifies that whatever it is defined
+	Xas will be appended to host names; this is for posting news when
+	Xyour hostname() doesn't return your fully-qualified domain name.
+	XIf your hostname system call does return a fully-qualified name,
+	Xsimply undef DOMAIN.
+	X
+	XHIDDENNET	(undefined)
+	X
+	X     If HIDDENNET is defined, it forces inews to interpret DOMAIN as
+	Xa complete host name, i.e. the local host is not prepended in the From:
+	Xheader. The Path: header is generated with only the login name, allowing
+	Xinews on the nntp server to fill in the UUCP path. This has the effect of
+	Xmaking all machines on a local network look, to the outside world, as a
+	Xsingle host.
+	X
+	XREALDOMAIN	(undefined)
+	X     Define this if you want to use gethostbyname() to get your host's
+	Xfully qualified domain name. Useful if hostname() does not return the
+	Xfully qualified domain name. If you define this, it will override the
+	Xuse of HIDDENNET.
+	X
+	XDO_DOTDIR	(defined)
+	X     If defined, mini-inews will look in the environment of the user for
+	XDOTDIR and use $DOTDIR/.signature as the signature if it exists. If undefined
+	Xor $DOTDIR/.signature does not exist, $HOME/.signature will be used instead.
+	XThis is similiar to the behavior of rn.
+	X
+	XAUTH		(defined)
+	X
+	X     Defines whether we want to use the experimental NNTP Version 2
+	XAuthorization process. Read the file AUTHORIZATION in the root directory of
+	Xthe NNTP distribution for more information.
+	X
+	XSERVER_FILE	("/usr/local/lib/rn/server")
+	X
+	X     This file contains the name of the machine which runs the
+	Xnews server.  Mini-inews, rrn, and getactive all use the contents
+	Xof this file.  The idea behind this is that you don't have to have the server
+	Xcompiled into anything, and can have the same binaries across
+	Xmachines which have different news servers.
+	X
+	X     You must edit this file, and add a single line which contains
+	Xthe name of the news server for each machine which runs rrn.
+	X
+	X     If you have multiple news servers on your network, users can
+	Xselect which one they want to use via the NNTPSERVER environment
+	Xvariable, which will override the contents of SERVER_FILE.  Simply
+	Xset NNTPSERVER to be the name of the machine whose news server you
+	Xwant to use.
+	X
+	X     If you are afraid of people abusing a particular news server
+	Xvia NNTPSERVER, you should edit the access file for that news server
+	Xaccordingly.  Security begins at home.
+	X
+	X>>> rrn, mini-inews, and getactive NO LONGER have compiled in server names <<<
+	X>>> Be sure to create the SERVER_FILE as mentioned above, or you'll lose!  <<<
+	X
+	XPOSTER		("usenet")
+	X
+	X     If your nntpd is run as root, nntpd will attempt to setuid()
+	Xand setgid() to the uid and gid of whoever POSTER is defined as.
+	XIf your nntpd isn't running as root (i.e., it might run as "usenet"),
+	Xeither undefine this, or define it to be a user which exists but
+	Xis not used -- the setuid will fail in any event.
+	X
+	XPASSFILE	(/etc/nntp.sys)
+	X	This file contains the password authentication information that the
+	Xclient uses if AUTH is defined and in use.
+	X
+	XACCESS_FILE	("/usr/lib/news/nntp_access")
+	X
+	X     Specifies the location of the remote access file. See the manual entry,
+	Xnntpd.8c, for a better explanation. A sample access file is in
+	X../support/access_file.
+	X
+	XSTAT_FILE	("/usr/lib/news/mgdstats")
+	X
+	X     NOTE: THIS IS NOT USED, BUT REMAINS FOR COMPATABILITY.
+	X     When the support program "mkgrdates" is run, it keep stats
+	X     in a file to tell whether or not to rebuild its database
+	X     the next time it is run; this is the file the stats are kept
+	X     in.  Needless to say, it must be writable by whatever user-id
+	X     runs "mkgrdates".  See the manual entry "mkgrdates.8c" for
+	X     more info.
+	X
+	XNGDATE_FILE	("/usr/lib/news/groupdates")
+	X
+	X     NOTE: THIS IS NOT USED, BUT REMAINS FOR COMPATABILITY.
+	X     Specifies the location of the newsgroup creation date file.
+	X     See the manual entry for both nntpd.8c and mkgrdates.8c for
+	X     more info.
+	X
+	XACTIVE_TIMES_FILE ("/usr/lib/news/active.times")
+	X     This needs to be defined if you defined CNEWS. It is a CNEWS-maintained
+	Xversion of the NGDATE_FILE. Since it is supported by CNEWS itself, it means
+	Xthe NEWGROUPS will actually work. Hurrah!
+	X
+	XNext, we have some common files:
+	X
+	XACTIVE_FILE	("/usr/lib/news/active")
+	X
+	X     Specifies the location of the "active" file.
+	X
+	XDISTRIBUTIONS_FILE  ("/usr/lib/news/distributions")
+	X     Specifies the location of the file that defines valid distributions for
+	Xthis site. The format of the file is usually the name of the distribution
+	X(e.g. "tx" for the state of Texas), some spaces or a tab, and a short descrip-
+	Xtion of the area that the distribution covers (e.g. "The State of Texas"). This
+	Xis used by the "LIST DISTRIBUTIONS" command.
+	X
+	XNEWSGROUPS_FILE  ("/usr/lib/news/newsgroups")
+	X     Specifies the location of the file that contains newsgroup descriptions.
+	XThe format of the file is usually the name of the newsgroup, a tab, and a short
+	Xdescription of the newsgroup (usually from the checkgroups control message).
+	XThis file is used by the "LIST NEWSGROUPS" command.
+	X
+	XHISTORY_FILE	("/usr/lib/news/history")
+	X
+	X     Specifies the location of the "history" file. This is used with NEWNEWS
+	Xand ARTICLE/HEAD/BODY/STAT when given an message-id argument.
+	X
+	XINEWS		("/usr/lib/news/inews")
+	X
+	X     Specifies the location of inews, for posting.  Note that this is NOT the
+	Xsame as the mini-inews in the inews directory supplied with the NNTP
+	Xdistribution, which should only be installed on client machines.  INEWS should
+	Xbe the pathname of real, live, honest-to-God inews.  Your inews may be
+	Xin a different place, such as /usr/bin/inews.
+	X
+	XSPOOLDIR	("/usr/spool/news")
+	X
+	X     This is the directory where news is stored on the server.
+	X
+	XRNEWS		("/usr/bin/rnews")
+	X
+	X     Specifies the location of the rnews program which is used for dealing with
+	Xnews received from other systems via the IHAVE command; it is often a link to
+	Xinews.
+	X
+	X---- The following variables apply only if you are using C News batching. ----
+	XNONEWSRUN	(undefined)
+	X	Define this only if you plan to use the daemon version of relaynews.
+	X
+	XTOOBIG		(300000, unless NONEWSRUN is defined)
+	X	Under CNews-style batching, a file that is larger than this gets
+	Xsent to be unbatched. (Size is in bytes.)
+	X
+	XTOOMANY		(1024, unless NONEWSRUN is defined)
+	X	Under CNews-style batching, if the number of batched articles is
+	Xbigger than this, the batch file gets unbatched.
+	X
+	XTOOOLD		(5 minutes)
+	X	Under CNews-style batching, a file that is older than this gets
+	Xsent to be unbatched.
+	X
+	XCOPYSIZE	(8192)
+	X	Under CNews-style batching, the number of bytes to copy at one time.
+	X
+	XMAXDIGITS	(25)
+	X	
+	X
+	XMAXSTR		(1024)
+	X
+	XINDIR		("/usr/spool/news/in.coming")
+	X	Under CNews-style batching, the directory in which the batching takes
+	Xplace.
+	X
+	XBATCH_FILE	("/usr/spool/news/in.coming/nntp.XXXXXX")
+	X	The filename template for batch files under CNews-style batching.
+	X
+	XNEWSRUN		("/usr/lib/newsbin/input/newsrun")
+	X	The name of the program to which batch files are fed once they are
+	Xcreated under CNews-style unbatching.
+	X_________________________________________________________________________
+	XLook carefully before modifying any of these!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	X-------------------------------------------------------------------------
+	X
+	XFCNTL		(defined if SYSV is defined)
+	X
+	X	Some systems define things like O_RDONLY, etc. in <fcntl.h>.
+	XIf FCNTL is defined, <fcntl.h> will be included.
+	X
+	XFTRUNCATE	(defined if dgux)
+	X	Use ftruncate() even if this is a  System V like machine.
+	X
+	XNDIR		(defined if USG is defined)
+	X     Uses the ndir compatability library, and includes <ndir.h>.
+	X
+	XREADINTVL	(600 seconds)
+	X
+	X     If the server is compiled with FASTFORK and ALONE, then this number
+	Xtells how often to check if the active file has changed (and to read it in if
+	Xit has changed since the last time).  See README in the "server" directory of
+	Xthe NNTP distribution.  If you are not compiled with FASTFORK and ALONE
+	X(hint: you're not going to), don't worry about this.
+	X
+	XMAX_ARTICLES	(4096)
+	X	This is the maximum articles per newsgroup that nntp can handle
+	Xif DYNAMIC_ART_ARRAY is not defined.
+SHAR_EOF
+if test 20055 -ne "`wc -c < 'README'`"
+then
+	echo shar: error transmitting "'README'" '(should have been 20055 characters)'
+fi
+echo shar: extracting "'conf.h.dist'" '(11155 characters)'
+sed 's/^	X//' << \SHAR_EOF > 'conf.h.dist'
+	X/* $Header: conf.h.dist,v 1.9 91/02/08 18:31:01 sob Exp $
+	X * Configuration information for use by NNTP server and support
+	X * programs.  Change these as appropriate for your system.
+	X */
+	X
+	X/*
+	X * Compile time options.
+	X */
+	X  
+	X
+	X#undef	ALONE		/* True if we're running without inetd */
+	X
+	X#ifdef ALONE
+	X#undef	FASTFORK        /* True if we don't want to read active file on start*/
+	X#endif
+	X
+	X#define LOAD 5	        /* Loadav above which server refuses connections */
+	X/*
+	X * If you want to experiment with the dynamic allocation of the article
+	X * array, define DYNAMIC_ART_ARRAY.
+	X * This code came to beta too late for through testing, but it is a problem
+	X * at some sites, so it is an option. Please report problems to "nntp@tmc.edu"
+	X */
+	X#undef DYNAMIC_ART_ARRAY
+	X
+	X#undef	BSD_42		/* 4.2 compatability code -- if this is defined, */
+	X			/* DBM probably wants to be defined as well. */
+	X
+	X#define BSD_43		/* Define if you are running on BSD 4.3 */
+	X
+	X#undef CMU_MACH		/* Use CMU's MACH ioctl(FIOCFSPARAM) for dfree(). */
+	X
+	X#undef	USG		/* System V support */
+	X
+	X#undef TLI		/* Define this if you want to use TLI instead of */
+	X			/* sockets */
+	X
+	X#define NDBM		/* Use new-style (4.3) ndbm(3x) libraries */
+	X
+	X#undef	DBM		/* True if we want to use the old dbm(3x) libraries */
+	X			/* IF YOU DEFINE THIS, change CFLAGS in makefile to */
+	X			/* be -ldbm */
+	X
+	X#undef	DBZ		/* True if we want to use dbz libraries */
+	X			/* IF YOU DEFINE THIS, change CFLAGS in makefile to */
+	X			/* be /usr/lib/dbz.o and install dbz.h */
+	X
+	X#undef	USGHIST		/* Use USG style history file (no DBM) */
+	X			/* IF YOU DO NOT DEFINE NDBM or DBM, this is DEFAULT!*/
+	X
+	X#undef CNEWS		/* define this if you are running C-NEWS */
+	X#undef BATCHED_INPUT	/* define if you want to support C-NEWS style 
+	X				batched input (not supported by B-NEWS,yet)  */
+	X
+	X/* Vendor specific implementations */
+	X#undef LAI_TCP		/* Lachman Streams TCP/IP support (Xenix) */
+	X#undef EXCELAN		/* Excelan EXOS 205 support */
+	X#undef WIN_TCP		/* WIN/TCP support [does not work yet] */
+	X
+	X/* Things that vary in Unix variations */
+	X#undef U_LONG		/* Define this if your <sys/types.h> is missing */
+	X			/* typedefs for u_long */
+	X#define SIGRET void	/* Newfangled signal() returns void, old returns int */
+	X
+	X#define	GHNAME		/* Define if you have gethostname() */
+	X#undef	UUNAME		/* Define to use /etc/uucpname */
+	X			/* If neither of these are defined, */
+	X			/* inews will use the contents of */
+	X			/* /usr/include/whoami.h */
+	X
+	X#undef MMAP		/* if your OS supports mmap() */
+	X
+	X/*
+	X * If you DON'T have vfork, make this "#define vfork fork"
+	X * vfork will speed up article transfer nntpds by about 2.5 times.
+	X */
+	X
+	X/* #define	vfork fork */
+	X
+	X/* Controlling disk and inode consumption */
+	X#define MINFREE 4000	/* NNTP will not allow an XFER if there is less */
+	X			/* than this much diskspace (in blocks or kbytes) */
+	X#define POSTBUFFER 1000 /* NNTP will allow local posting until */
+	X			/* MINFREE-POSTBUFFER blocks or kbytes are left */
+	X#undef MINFILES  MINFREE/4
+	X			/* NNTP will not allow an XFER if there is less */
+	X			/* than this many inodes on the SPOOLDIR filesystem */
+	X#undef SETPROCTITLE	/* if you want status visable via ps */
+	X
+	X#undef	IHAVE_DEBUG	/* Copious debugging output from ihave */
+	X
+	X#define	XHDR		/* Optional XHDR command.  Defining this will */
+	X			/* speed up '=' command in rn, but will load */
+	X			/* the server more.  If your server is heavily */
+	X			/* loaded already, defining this may be a bad idea */
+	X
+	X/* Things that vary in network implementations */
+	X#define	SUBNET		/* If you have 4.3 subnetting */
+	X#undef	DAMAGED_NETMASK	/* If your subnet mask is not a multiple of */
+	X			/* four bits (e.g., UCSD) */
+	X
+	X#undef	NETMASK		/* If you don't have subnet ioctls, define */
+	X			/* this to be a hex constant of your subnet */
+	X			/* mask, e.g., #define NETMASK 0xffffff00 */
+	X			/* Of course, you must define SUBNET above, too. */
+	X#undef	DECNET		/* If you want decnet support */
+	X
+	X/*
+	X * If you want CNEWS batch files created that are not world writable,
+	X * remove the comments from the UMASK line below. This does not apply
+	X * if you are running BNEWS. At least, not yet. :-)
+	X */
+	X
+	X/* #define UMASK 022 */
+	X
+	X/*
+	X * If you have the syslog library routine, define SYSLOG to
+	X * be the syslog facility name under which stats should be
+	X * logged.  Newer 4.3 systems might choose LOG_NEWS;
+	X * LOG_LOCAL7 is an acceptable substitute.
+	X *
+	X * If you don't have support for syslog, but want a facsimile,
+	X * define FAKESYSLOG to be the name of a file to which to log stuff,
+	X * then define SYSLOG and LOG, too.  e.g.,
+	X *
+	X *	#define	FAKESYSLOG	"/usr/lib/news/nntplog"
+	X *
+	X * If your host supports the BSD fdopen() function and the O_APPEND flag
+	X * to open(), you should define FAKEAPPEND with FAKESYSLOG so that
+	X * multiple copies of nntpd don't trash the log with buffered fprintf's.
+	X *
+	X * If you don't want any syslog-type activity, #undef SYSLOG.
+	X * Obviously, this means that you can't define LOG, either.
+	X */
+	X
+	X#undef	FAKESYSLOG	"/usr/lib/news/nntplog"
+	X#undef	FAKEAPPEND
+	X
+	X#define	SYSLOG	LOG_NEWS
+	X
+	X#ifdef SYSLOG		/* Define LOG if you want copious logging info */
+	X#undef	 LOG		/* undef it if you don't */
+	X#endif			/* but you can only have LOG if you have SYSLOG */
+	X
+	X/*
+	X * How long you want nntp servers to hang out without receiving
+	X * commands before they close the connection with an error message.
+	X *
+	X * If you don't want any timeout, #undef it, i.e.,
+	X *
+	X *	#undef	TIMEOUT
+	X *
+	X * TIMEOUT should be at least two hours, which allows users some time
+	X * away from their terminal (e.g., at lunch) while reading news.
+	X */
+	X
+	X#define	TIMEOUT	(2 * 3600)
+	X
+	X
+	X/*
+	X * How long you want nntp servers to wait without receiving data
+	X * during article transfers.  You CANNOT have XFER_TIMEOUT while
+	X * running in standalone (ALONE) mode.
+	X *
+	X * If you don't want any transfer timeouts, #undef it, as above.
+	X */
+	X
+	X#ifndef ALONE
+	X#   define	XFER_TIMEOUT	(30 * 60)
+	X#endif ALONE
+	X
+	X/*
+	X * Your domain.  This is for the inews generated From: line,
+	X * assuming that it doesn't find one in the article's head.
+	X * Suggestions are .UUCP if you don't belong to the Internet.
+	X * If your hostname returns the fully-qualified domain name
+	X * as some 4.3 BSD systems do, simply undefine DOMAIN.
+	X * If you want your network to appear to be one host, define
+	X * HIDDENNET.
+	X *
+	X * e.g.  #define	DOMAIN		"berkeley.edu"
+	X */
+	X
+	X#define	DOMAIN	"uucp"
+	X#undef HIDDENNET
+	X
+	X/*
+	X * Means do a gethostbyname() to get the canonical host name. 
+	X * Define this and HIDDENNET will have no effect.
+	X */
+	X
+	X#undef REALDOMAIN
+	X
+	X/*
+	X * Define DO_DOTDIR if you want the mini-inews to look for 
+	X * this directory if defined in the environment.  This is like rn.
+	X * Undefine it and it will only look in the user's home directory. 
+	X */
+	X#define DO_DOTDIR
+	X
+	X/* Things that relate to authentication and access */
+	X/* Define AUTH to use the proposed NNTP Version 2 authentication protocol. */
+	X#define	AUTH	
+	X/*
+	X * A file containing the name of the host which is running
+	X * the news server.  This will have to match what rrn thinks,
+	X * too.
+	X */
+	X
+	X#define	SERVER_FILE	"/usr/local/lib/rn/server"
+	X
+	X/*
+	X * Person (user name) to post news as.
+	X */
+	X
+	X#define	POSTER		"usenet"
+	X
+	X/*
+	X * Define DOMAINMATCH if you want to use domain specifications in the 
+	X * access list instead of just hostnames. See README for more information 
+	X */
+	X#define DOMAINMATCH
+	X
+	X#ifdef AUTH
+	X/* 
+	X * the file where the nntpxmit site/userid/passwords are kept
+	X * think (and PROTECT!) this file like L.sys, i.e., mode 600
+	X */
+	X# define	PASSFILE	"/etc/nntp.sys"
+	X#endif
+	X/*
+	X * This file is where access information is stored
+	X */
+	X#define ACCESS_FILE	"/usr/lib/news/nntp_access"
+	X/*
+	X * These files are generated by the support programs, and are needed
+	X * by the NNTP server.  Make sure that whatever directory you
+	X * decide these files should go is writable by whatever uid you
+	X * have the sypport programs run under.
+	X */
+	X# define STAT_FILE	"/usr/lib/news/mgdstats"
+	X# define NGDATE_FILE	"/usr/lib/news/groupdates"
+	X/*
+	X * But if you have C News, you can define ACTIVE_TIMES_FILE instead of
+	X * STAT_FILE and NGDATE_FILE, and you won't have to run "mkgrdates".
+	X */
+	X
+	X# define ACTIVE_TIMES_FILE	"/usr/lib/news/active.times"
+	X
+	X/*
+	X * Some commonly used programs and files.
+	X */
+	X
+	X#define	ACTIVE_FILE	"/usr/lib/news/active"
+	X#define DISTRIBUTIONS_FILE	"/usr/lib/news/distributions"
+	X#define NEWSGROUPS_FILE	"/usr/lib/news/newsgroups"
+	X#define HISTORY_FILE	"/usr/lib/news/history"
+	X#define	SPOOLDIR	"/usr/spool/news"
+	X#define INEWS		"/usr/lib/news/inews"
+	X#define RNEWS		"/usr/bin/rnews"		/* Link to inews? */
+	X
+	X/*
+	X * Support for C-News style batching 
+	X */
+	X#undef  NONEWSRUN		/* define this if you are using the daemon */
+	X				/* version of relaynews */
+	X#ifdef NONEWSRUN
+	X#define TOOBIG 1L		
+	X#define TOOMANY 1
+	X#else
+	X#define TOOBIG 300000L		/* batch > TOOBIG bytes, kick rnews */
+	X#define TOOMANY 1024		/* batch > TOOMANY articles, kick rnews */
+	X#define NEWSRUN			"/usr/lib/newsbin/input/newsrun"
+	X#endif
+	X#define TOOOLD (5*60)		/* batch > TOOOLD seconds old, kick rnews */
+	X#define COPYSIZE 8192		/* bytes to copy at one time */
+	X#define MAXDIGITS 25		/* lg(maxlongint) + epsilon */
+	X#define MAXSTR 1024
+	X#define INDIR			"/usr/spool/news/in.coming"
+	X/* You may wish to delete the pathname from the front of BATCH_FILE */
+	X#define BATCH_FILE		"/usr/spool/news/in.coming/nntp.XXXXXX"
+	X
+	X/************************************************************************/
+	X/* We don't recommend that you make changes in anything after this line */
+	X/************************************************************************/
+	X
+	X#ifdef DBZ		/* If you use DBZ, then you need DBM as well. */
+	X#ifndef DBM
+	X#define DBM
+	X#endif /* DBM */
+	X#endif /* DBZ */
+	X
+	X#ifdef BSD_42		/* This is a logical, warranted assumption */
+	X#   ifndef DBM		/* which will probably get me in trouble. */
+	X#	define DBM	/* Kill it if you have 4.2 *and* ndbm.  */
+	X#   endif not DBM
+	X#   ifndef sun		/* not a sun */
+	X#       ifndef ultrix   /* not ultrix */
+	X#           ifndef CMU_MACH /* not CMU's Mach */
+	X#		ifndef NeXT /* not a NeXT */
+	X#                  ifndef READ_SUPER
+	X#	                define READ_SUPER /* read super block for space() */
+	X#		    endif
+	X#               endif
+	X#           endif
+	X#       endif
+	X#   endif
+	X#endif BSD_42
+	X
+	X#ifndef USG
+	X#    ifndef BSD_42
+	X#        ifndef CMU_MACH
+	X#            ifndef BSD_43
+	X#                define BSD_43
+	X#            endif
+	X#        endif
+	X#    endif
+	X#endif
+	X
+	X#ifdef BSD_43		/* And now more assumptions! */
+	X#   ifndef sun
+	X#	ifndef ultrix	/* Ultrix 4.0 or greater */
+	X#		ifndef READ_SUPER
+	X#			define READ_SUPER
+	X#		endif
+	X#	endif
+	X#   endif
+	X#	ifndef DBZ
+	X#		ifndef DBM
+	X#			ifndef NDBM
+	X#				define NDBM
+	X#			endif
+	X#		endif
+	X#	endif
+	X#endif
+	X
+	X/*
+	X * System V compatability
+	X */
+	X
+	X#ifdef USG
+	X# define	FCNTL			/* If O_etc is defined in <fcntl.h> */
+	X#ifdef dgux
+	X#define		FTRUNCATE
+	X#else
+	X# define	NDIR			/* If you  need ndir library support */
+	X#ifdef hpux
+	X#define		DIRSIZ_MACRO
+	X#endif
+	X#endif
+	X# define	index	strchr
+	X# define	rindex	strrchr
+	X# ifdef U_LONG
+	X   typedef	unsigned long	u_long;
+	X   typedef	unsigned short	u_short;
+	X# endif U_LONG
+	X# define	IPPORT_NNTP	119
+	X#endif USG
+	X
+	X
+	X/*
+	X * Some miscellaneous stuff you probably don't want to change.
+	X */
+	X
+	X#define	MAX_ARTICLES	4096		/* Maximum number of articles/group */
+	X#define READINTVL	60 * 10		/* 10 minutes b/n chking active file */
+	X
+	X
+SHAR_EOF
+if test 11155 -ne "`wc -c < 'conf.h.dist'`"
+then
+	echo shar: error transmitting "'conf.h.dist'" '(should have been 11155 characters)'
+fi
+echo shar: extracting "'common.diff'" '(16679 characters)'
+if test -f 'common.diff'
+then
+	echo shar: will not over-write existing file "'common.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'common.diff'
+	X*** README.SYSV	Wed Jul  4 18:42:16 1990
+	X--- ../../nntp/common/README.SYSV	Mon Feb  4 02:33:48 1991
+	X***************
+	X*** 26,32
+	X  If you have problems, send mail to sob@tmc.edu and he will help if he
+	X  can.
+	X  
+	X! Stan Barber (update 3/11/90)
+	X  
+	X  P.S. For those of you with SVR3, we are still working on that.
+	X  
+	X
+	X--- 26,32 -----
+	X  If you have problems, send mail to sob@tmc.edu and he will help if he
+	X  can.
+	X  
+	X! Stan Barber (update 1/21/91)
+	X  
+	X  P.S. For those of you with SVR3, we are still working on that. We expect to
+	X  have it working fully in NNTP 1.6. If you have sockets, this version will
+	X***************
+	X*** 28,32
+	X  
+	X  Stan Barber (update 3/11/90)
+	X  
+	X! P.S. For those of you with SVR3, we are still working on that.
+	X  
+	X
+	X--- 28,38 -----
+	X  
+	X  Stan Barber (update 1/21/91)
+	X  
+	X! P.S. For those of you with SVR3, we are still working on that. We expect to
+	X! have it working fully in NNTP 1.6. If you have sockets, this version will
+	X! most likely work, but may require some effort. A first attempt at supporting
+	X! TLI for clients is in the clientlib.c file. It does not work as yet. People
+	X! are encouraged to work with it and send me their fixes.
+	X! 
+	X! 
+	X
+	XIndex: clientlib.c
+	XPrereq: 1.11  
+	X*** clientlib.c	Wed Jul  4 18:41:07 1990
+	X--- ../../nntp/common/clientlib.c	Sat Jan 12 15:12:59 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)clientlib.c	1.11	(Berkeley) 10/27/89";
+	X  #endif
+	X  
+	X  /*
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*rcsid = "@(#)$Header: clientlib.c,v 1.16 91/01/12 15:12:37 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 3,8
+	X  #endif
+	X  
+	X  /*
+	X   * NNTP client routines.
+	X   */
+	X  
+	X
+	X--- 3,22 -----
+	X  #endif
+	X  
+	X  /*
+	X+  * This software is Copyright 1991 by Stan Barber. 
+	X+  *
+	X+  * Permission is hereby granted to copy, reproduce, redistribute or otherwise
+	X+  * use this software as long as: there is no monetary profit gained
+	X+  * specifically from the use or reproduction or this software, it is not
+	X+  * sold, rented, traded or otherwise marketed, and this copyright notice is
+	X+  * included prominently in any copy made. 
+	X+  *
+	X+  * The author make no claims as to the fitness or correctness of this software
+	X+  * for any use whatsoever, and it is provided as is. Any use of this software
+	X+  * is at the user's own risk. 
+	X+  *
+	X+  */
+	X+ /*
+	X   * NNTP client routines.
+	X   */
+	X  
+	X***************
+	X*** 12,18
+	X  
+	X  #ifdef NNTPSRC
+	X  #include "../common/conf.h"
+	X! #endif NNTPSRC
+	X  
+	X  #include <stdio.h>
+	X  #include <sys/types.h>
+	X
+	X--- 26,32 -----
+	X  
+	X  #ifdef NNTPSRC
+	X  #include "../common/conf.h"
+	X! #endif /* NNTPSRC */
+	X  
+	X  #include <stdio.h>
+	X  #include <sys/types.h>
+	X***************
+	X*** 16,21
+	X  
+	X  #include <stdio.h>
+	X  #include <sys/types.h>
+	X  #include <sys/socket.h>
+	X  #include <netinet/in.h>
+	X  #ifndef EXCELAN
+	X
+	X--- 30,49 -----
+	X  
+	X  #include <stdio.h>
+	X  #include <sys/types.h>
+	X+ #include <ctype.h>
+	X+ #ifdef TLI
+	X+ #include	<fcntl.h>
+	X+ #include	<tiuser.h>
+	X+ #include	<stropts.h>
+	X+ #include	<sys/socket.h>
+	X+ #ifdef WIN_TCP
+	X+ #include	<sys/in.h>
+	X+ #else
+	X+ #include	<netinet/in.h>
+	X+ #endif
+	X+ # define	IPPORT_NNTP	((unsigned short) 119)
+	X+ # include 	<netdb.h>	/* All TLI implementations may not have this */
+	X+ #else /* !TLI */
+	X  #include <sys/socket.h>
+	X  #include <netinet/in.h>
+	X  #ifndef EXCELAN
+	X***************
+	X*** 20,26
+	X  #include <netinet/in.h>
+	X  #ifndef EXCELAN
+	X  # include <netdb.h>
+	X! #endif not EXCELAN
+	X  
+	X  #ifdef USG
+	X  # define	index	strchr
+	X
+	X--- 48,55 -----
+	X  #include <netinet/in.h>
+	X  #ifndef EXCELAN
+	X  # include <netdb.h>
+	X! #endif /* !EXCELAN */
+	X! #endif /* !TLI */
+	X  
+	X  #ifdef USG
+	X  # define	index	strchr
+	X***************
+	X*** 26,32
+	X  # define	index	strchr
+	X  # define        bcopy(a,b,c)   memcpy(b,a,c)
+	X  # define        bzero(a,b)     memset(a,'\0',b)
+	X! #endif USG
+	X  
+	X  #ifdef EXCELAN
+	X  # define	IPPORT_NNTP	119
+	X
+	X--- 55,61 -----
+	X  # define	index	strchr
+	X  # define        bcopy(a,b,c)   memcpy(b,a,c)
+	X  # define        bzero(a,b)     memset(a,'\0',b)
+	X! #endif /* USG */
+	X  
+	X  #ifdef EXCELAN
+	X  # define	IPPORT_NNTP	((unsigned short) 119)
+	X***************
+	X*** 29,35
+	X  #endif USG
+	X  
+	X  #ifdef EXCELAN
+	X! # define	IPPORT_NNTP	119
+	X  #endif
+	X  
+	X  #ifdef DECNET
+	X
+	X--- 58,70 -----
+	X  #endif /* USG */
+	X  
+	X  #ifdef EXCELAN
+	X! # define	IPPORT_NNTP	((unsigned short) 119)
+	X! #if __STDC__
+	X! int connect(int, struct sockaddr *);
+	X! unsigned short htons(unsigned short);
+	X! unsigned long rhost(char **);
+	X! int rresvport( int );
+	X! int socket( int, struct sockproto *, struct sockaddr_in *, int );
+	X  #endif
+	X  #endif
+	X  
+	X***************
+	X*** 31,36
+	X  #ifdef EXCELAN
+	X  # define	IPPORT_NNTP	119
+	X  #endif
+	X  
+	X  #ifdef DECNET
+	X  #include <netdnet/dn.h>
+	X
+	X--- 66,72 -----
+	X  int rresvport( int );
+	X  int socket( int, struct sockproto *, struct sockaddr_in *, int );
+	X  #endif
+	X+ #endif
+	X  
+	X  #ifdef DECNET
+	X  #include <netdnet/dn.h>
+	X***************
+	X*** 35,41
+	X  #ifdef DECNET
+	X  #include <netdnet/dn.h>
+	X  #include <netdnet/dnetdb.h>
+	X! #endif DECNET
+	X  
+	X  #include "nntp.h"
+	X  
+	X
+	X--- 71,77 -----
+	X  #ifdef DECNET
+	X  #include <netdnet/dn.h>
+	X  #include <netdnet/dnetdb.h>
+	X! #endif /* DECNET */
+	X  
+	X  #include "nntp.h"
+	X  
+	X***************
+	X*** 143,148
+	X  	}
+	X  
+	X  	sockt_wr = dup(sockt_rd);
+	X  	if ((ser_wr_fp = fdopen(sockt_wr, "w")) == NULL) {
+	X  		perror("server_init: fdopen #2");
+	X  		ser_rd_fp = NULL;		/* from above */
+	X
+	X--- 179,191 -----
+	X  	}
+	X  
+	X  	sockt_wr = dup(sockt_rd);
+	X+ #ifdef TLI
+	X+ 	if (t_sync(sockt_rd) < 0){	/* Sync up new fd with TLI */
+	X+     		t_error("server_init: t_sync");
+	X+ 		ser_rd_fp = NULL;		/* from above */
+	X+ 		return (-1);
+	X+ 	}
+	X+ #endif
+	X  	if ((ser_wr_fp = fdopen(sockt_wr, "w")) == NULL) {
+	X  		perror("server_init: fdopen #2");
+	X  		ser_rd_fp = NULL;		/* from above */
+	X***************
+	X*** 170,176
+	X   */
+	X  
+	X  get_tcp_socket(machine)
+	X! char	*machine;
+	X  {
+	X  	int	s;
+	X  	struct	sockaddr_in sin;
+	X
+	X--- 213,219 -----
+	X   */
+	X  
+	X  get_tcp_socket(machine)
+	X! char	*machine;	/* remote host */
+	X  {
+	X  	int	s;
+	X  	struct	sockaddr_in sin;
+	X***************
+	X*** 174,179
+	X  {
+	X  	int	s;
+	X  	struct	sockaddr_in sin;
+	X  #ifndef EXCELAN
+	X  	struct	servent *getservbyname(), *sp;
+	X  	struct	hostent *gethostbyname(), *hp;
+	X
+	X--- 217,295 -----
+	X  {
+	X  	int	s;
+	X  	struct	sockaddr_in sin;
+	X+ #ifdef TLI 
+	X+ 	char 	*t_alloc();
+	X+ 	struct	t_call	*callptr;
+	X+ 	/*
+	X+ 	 * Create a TCP transport endpoint.
+	X+ 	 */
+	X+ 	if ((s = t_open("/dev/tcp", O_RDWR, (struct t_info*) 0)) < 0){
+	X+ 		t_error("t_open: can't t_open /dev/tcp");
+	X+ 		return(-1);
+	X+ 	}
+	X+ 	if(t_bind(s, (struct t_bind *)0, (struct t_bind *)0) < 0){
+	X+ 	    	t_error("t_bind");
+	X+ 		t_close(s);
+	X+ 		return(-1);
+	X+ 	}
+	X+ 	bzero((char *) &sin, sizeof(sin));	
+	X+ 	sin.sin_family = AF_INET;
+	X+ 	sin.sin_port = htons(IPPORT_NNTP);
+	X+ 	if (!isdigit(*machine) ||
+	X+ 	    (long)(sin.sin_addr.s_addr = inet_addr(machine)) == -1){
+	X+ 		struct	hostent *gethostbyname(), *hp;
+	X+ 		if((hp = gethostbyname(machine)) == NULL){
+	X+ 		    	fprintf(stderr,"gethostbyname: %s: host unknown\n",
+	X+ 				machine);
+	X+ 			t_close(s);
+	X+ 			return(-1);
+	X+ 		}
+	X+ 		bcopy(hp->h_addr, (char *) &sin.sin_addr, hp->h_length);
+	X+ 	}
+	X+ 	/*
+	X+ 	 * Allocate a t_call structure and initialize it.
+	X+ 	 * Let t_alloc() initialize the addr structure of the t_call structure.
+	X+ 	 */
+	X+ 	if ((callptr = (struct t_call *) t_alloc(s,T_CALL,T_ADDR)) == NULL){
+	X+ 		t_error("t_alloc");
+	X+ 		t_close(s);
+	X+ 		return(-1);
+	X+ 	}
+	X+ 
+	X+ 	callptr->addr.maxlen = sizeof(sin);
+	X+ 	callptr->addr.len = sizeof(sin);
+	X+ 	callptr->addr.buf = (char *) &sin;
+	X+ 	callptr->opt.len = 0;			/* no options */
+	X+ 	callptr->udata.len = 0;			/* no user data with connect */
+	X+ 
+	X+ 	/*
+	X+ 	 * Connect to the server.
+	X+ 	 */
+	X+ 	if (t_connect(s, callptr, (struct t_call *) 0) < 0) {
+	X+ 		t_error("t_connect");
+	X+ 		t_close(s);
+	X+ 		return(-1);
+	X+ 	}
+	X+ 
+	X+ 	/*
+	X+ 	 * Now replace the timod module with the tirdwr module so that
+	X+ 	 * standard read() and write() system calls can be used on the
+	X+ 	 * descriptor.
+	X+ 	 */
+	X+ 
+	X+ 	if (ioctl(s,  I_POP,  (char *) 0) < 0){
+	X+ 		perror("I_POP(timod)");
+	X+ 		t_close(s);
+	X+ 		return(-1);
+	X+ 	}
+	X+ 
+	X+ 	if (ioctl(s,  I_PUSH, "tirdwr") < 0){
+	X+ 		perror("I_PUSH(tirdwr)");
+	X+ 		t_close(s);
+	X+ 		return(-1);
+	X+ 	}
+	X+ 	
+	X+ #else /* !TLI */
+	X  #ifndef EXCELAN
+	X  	struct	servent *getservbyname(), *sp;
+	X  	struct	hostent *gethostbyname(), *hp;
+	X***************
+	X*** 180,186
+	X  #ifdef h_addr
+	X  	int	x = 0;
+	X  	register char **cp;
+	X! #endif h_addr
+	X  
+	X  	if ((sp = getservbyname("nntp", "tcp")) ==  NULL) {
+	X  		fprintf(stderr, "nntp/tcp: Unknown service.\n");
+	X
+	X--- 296,307 -----
+	X  #ifdef h_addr
+	X  	int	x = 0;
+	X  	register char **cp;
+	X! 	static char *alist[1];
+	X! #endif /* h_addr */
+	X! 	unsigned long inet_addr();
+	X! 	static struct hostent def;
+	X! 	static struct in_addr defaddr;
+	X! 	static char namebuf[ 256 ];
+	X  
+	X  	if ((sp = getservbyname("nntp", "tcp")) ==  NULL) {
+	X  		fprintf(stderr, "nntp/tcp: Unknown service.\n");
+	X***************
+	X*** 186,207
+	X  		fprintf(stderr, "nntp/tcp: Unknown service.\n");
+	X  		return (-1);
+	X  	}
+	X! 
+	X!        /*
+	X!         * Name resolution doesn't quite go as far as it should.  Take things
+	X!         * one stage further to allow nnn.nnn.nnn.nnn addresses if all else
+	X!         * fails.
+	X!         */
+	X!        if( (hp = gethostbyname( machine ) ) == NULL ) {
+	X!                unsigned long inet_addr();
+	X!                static struct hostent def;
+	X!                static struct in_addr defaddr;
+	X!                static char *alist[1];
+	X!                static char namebuf[ 256 ];
+	X!                defaddr.s_addr = inet_addr( machine );
+	X!                if( defaddr.s_addr != -1 ) {
+	X!                        strcpy( namebuf, machine );
+	X!                        def.h_name = namebuf;
+	X  #ifdef h_addr
+	X                         def.h_addr_list = alist;
+	X  #endif
+	X
+	X--- 307,320 -----
+	X  		fprintf(stderr, "nntp/tcp: Unknown service.\n");
+	X  		return (-1);
+	X  	}
+	X! 	/* If not a raw ip address, try nameserver */
+	X! 	if (!isdigit(*machine) ||
+	X! 	    (long)(defaddr.s_addr = inet_addr(machine)) == -1)
+	X! 		hp = gethostbyname(machine);
+	X! 	else {
+	X! 		/* Raw ip address, fake  */
+	X! 		(void) strcpy(namebuf, machine);
+	X! 		def.h_name = namebuf;
+	X  #ifdef h_addr
+	X  		def.h_addr_list = alist;
+	X  #endif
+	X***************
+	X*** 203,209
+	X                         strcpy( namebuf, machine );
+	X                         def.h_name = namebuf;
+	X  #ifdef h_addr
+	X!                        def.h_addr_list = alist;
+	X  #endif
+	X                         def.h_addr = (char *)&defaddr;
+	X                         def.h_length = sizeof( struct in_addr );
+	X
+	X--- 316,322 -----
+	X  		(void) strcpy(namebuf, machine);
+	X  		def.h_name = namebuf;
+	X  #ifdef h_addr
+	X! 		def.h_addr_list = alist;
+	X  #endif
+	X  		def.h_addr = (char *)&defaddr;
+	X  		def.h_length = sizeof(struct in_addr);
+	X***************
+	X*** 205,218
+	X  #ifdef h_addr
+	X                         def.h_addr_list = alist;
+	X  #endif
+	X!                        def.h_addr = (char *)&defaddr;
+	X!                        def.h_length = sizeof( struct in_addr );
+	X!                        def.h_addrtype = AF_INET;
+	X!                        def.h_aliases = 0;
+	X!                        hp = &def;
+	X!                }
+	X!        }
+	X!        if (hp == NULL) {
+	X  		fprintf(stderr, "%s: Unknown host.\n", machine);
+	X  		return (-1);
+	X  	}
+	X
+	X--- 318,330 -----
+	X  #ifdef h_addr
+	X  		def.h_addr_list = alist;
+	X  #endif
+	X! 		def.h_addr = (char *)&defaddr;
+	X! 		def.h_length = sizeof(struct in_addr);
+	X! 		def.h_addrtype = AF_INET;
+	X! 		def.h_aliases = 0;
+	X! 		hp = &def;
+	X! 	}
+	X! 	if (hp == NULL) {
+	X  		fprintf(stderr, "%s: Unknown host.\n", machine);
+	X  		return (-1);
+	X  	}
+	X***************
+	X*** 220,226
+	X  	bzero((char *) &sin, sizeof(sin));
+	X  	sin.sin_family = hp->h_addrtype;
+	X  	sin.sin_port = sp->s_port;
+	X! #else EXCELAN
+	X  	bzero((char *) &sin, sizeof(sin));
+	X  	sin.sin_family = AF_INET;
+	X  	sin.sin_port = htons(IPPORT_NNTP);
+	X
+	X--- 332,338 -----
+	X  	bzero((char *) &sin, sizeof(sin));
+	X  	sin.sin_family = hp->h_addrtype;
+	X  	sin.sin_port = sp->s_port;
+	X! #else /* EXCELAN */
+	X  	bzero((char *) &sin, sizeof(sin));
+	X  	sin.sin_family = AF_INET;
+	X  #endif /* EXCELAN */
+	X***************
+	X*** 223,230
+	X  #else EXCELAN
+	X  	bzero((char *) &sin, sizeof(sin));
+	X  	sin.sin_family = AF_INET;
+	X! 	sin.sin_port = htons(IPPORT_NNTP);
+	X! #endif EXCELAN
+	X  
+	X  	/*
+	X  	 * The following is kinda gross.  The name server under 4.3
+	X
+	X--- 335,341 -----
+	X  #else /* EXCELAN */
+	X  	bzero((char *) &sin, sizeof(sin));
+	X  	sin.sin_family = AF_INET;
+	X! #endif /* EXCELAN */
+	X  
+	X  	/*
+	X  	 * The following is kinda gross.  The name server under 4.3
+	X***************
+	X*** 263,269
+	X  	}
+	X  #else	/* no name server */
+	X  #ifdef EXCELAN
+	X! 	if ((s = rresvport(SO_KEEPALIVE)) < 0)
+	X  	{
+	X  		/* Get the socket */
+	X  		perror("socket");
+	X
+	X--- 374,380 -----
+	X  	}
+	X  #else	/* no name server */
+	X  #ifdef EXCELAN
+	X! 	if ((s = socket(SOCK_STREAM,(struct sockproto *)NULL,&sin,SO_KEEPALIVE)) < 0)
+	X  	{
+	X  		/* Get the socket */
+	X  		perror("socket");
+	X***************
+	X*** 269,274
+	X  		perror("socket");
+	X  		return (-1);
+	X  	}
+	X  	/* set up addr for the connect */
+	X  	sin.sin_addr.s_addr = rhost(machine);
+	X  	if (sin.sin_addr.s_addr < 0){
+	X
+	X--- 380,388 -----
+	X  		perror("socket");
+	X  		return (-1);
+	X  	}
+	X+ 	bzero((char *) &sin, sizeof(sin));
+	X+ 	sin.sin_family = AF_INET;
+	X+ 	sin.sin_port = htons(IPPORT_NNTP);
+	X  	/* set up addr for the connect */
+	X  
+	X  	if ((sin.sin_addr.s_addr = rhost(&machine)) == -1) {
+	X***************
+	X*** 270,277
+	X  		return (-1);
+	X  	}
+	X  	/* set up addr for the connect */
+	X! 	sin.sin_addr.s_addr = rhost(machine);
+	X! 	if (sin.sin_addr.s_addr < 0){
+	X  		fprintf(stderr, "%s: Unknown host.\n", machine);
+	X  		return (-1);
+	X  	}
+	X
+	X--- 384,391 -----
+	X  	sin.sin_family = AF_INET;
+	X  	sin.sin_port = htons(IPPORT_NNTP);
+	X  	/* set up addr for the connect */
+	X! 
+	X! 	if ((sin.sin_addr.s_addr = rhost(&machine)) == -1) {
+	X  		fprintf(stderr, "%s: Unknown host.\n", machine);
+	X  		return (-1);
+	X  	}
+	X***************
+	X*** 277,283
+	X  	}
+	X  	/* And then connect */
+	X  
+	X! 	if (connect(s, &sin) < 0) {
+	X  		perror("connect");
+	X  		(void) close(s);
+	X  		return (-1);
+	X
+	X--- 391,397 -----
+	X  	}
+	X  	/* And then connect */
+	X  
+	X! 	if (connect(s, (struct sockaddr *)&sin) < 0) {
+	X  		perror("connect");
+	X  		(void) close(s);
+	X  		return (-1);
+	X***************
+	X*** 282,288
+	X  		(void) close(s);
+	X  		return (-1);
+	X  	}
+	X! #else not EXCELAN
+	X  	if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	X  		perror("socket");
+	X  		return (-1);
+	X
+	X--- 396,402 -----
+	X  		(void) close(s);
+	X  		return (-1);
+	X  	}
+	X! #else /* not EXCELAN */
+	X  	if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	X  		perror("socket");
+	X  		return (-1);
+	X***************
+	X*** 297,305
+	X  		return (-1);
+	X  	}
+	X  
+	X! #endif not EXCELAN
+	X! #endif
+	X! 
+	X  	return (s);
+	X  }
+	X  
+	X
+	X--- 411,419 -----
+	X  		return (-1);
+	X  	}
+	X  
+	X! #endif /* !EXCELAN */
+	X! #endif /* !h_addr */
+	X! #endif /* !TLI */
+	X  	return (s);
+	X  }
+	X  
+	X***************
+	X*** 385,391
+	X   *	Parameters:	"response" is the response code which the
+	X   *			server sent us, presumably from "server_init",
+	X   *			above.
+	X!  *			"server" is the news server we got the
+	X   *			response code from.
+	X   *
+	X   *	Returns:	-1 if the error is fatal (and we should exit).
+	X
+	X--- 499,505 -----
+	X   *	Parameters:	"response" is the response code which the
+	X   *			server sent us, presumably from "server_init",
+	X   *			above.
+	X!  *			"nntpserver" is the news server we got the
+	X   *			response code from.
+	X   *
+	X   *	Returns:	-1 if the error is fatal (and we should exit).
+	X***************
+	X*** 394,400
+	X   *	Side effects:	None.
+	X   */
+	X  
+	X! handle_server_response(response, server)
+	X  int	response;
+	X  char	*server;
+	X  {
+	X
+	X--- 508,514 -----
+	X   *	Side effects:	None.
+	X   */
+	X  
+	X! handle_server_response(response, nntpserver)
+	X  int	response;
+	X  char	*nntpserver;
+	X  {
+	X***************
+	X*** 396,402
+	X  
+	X  handle_server_response(response, server)
+	X  int	response;
+	X! char	*server;
+	X  {
+	X      switch (response) {
+	X  	case OK_NOPOST:		/* fall through */
+	X
+	X--- 510,516 -----
+	X  
+	X  handle_server_response(response, nntpserver)
+	X  int	response;
+	X! char	*nntpserver;
+	X  {
+	X      switch (response) {
+	X  	case OK_NOPOST:		/* fall through */
+	X***************
+	X*** 412,418
+	X  	case ERR_ACCESS:
+	X  		printf(
+	X     "This machine does not have permission to use the %s news server.\n",
+	X! 		server);
+	X  		return (-1);
+	X  		break;
+	X  
+	X
+	X--- 526,532 -----
+	X  	case ERR_ACCESS:
+	X  		printf(
+	X     "This machine does not have permission to use the %s news server.\n",
+	X! 		nntpserver);
+	X  		return (-1);
+	X  		break;
+	X  
+	X***************
+	X*** 418,424
+	X  
+	X  	default:
+	X  		printf("Unexpected response code from %s news server: %d\n",
+	X! 			server, response);
+	X  		return (-1);
+	X  		break;
+	X      }
+	X
+	X--- 532,538 -----
+	X  
+	X  	default:
+	X  		printf("Unexpected response code from %s news server: %d\n",
+	X! 			nntpserver, response);
+	X  		return (-1);
+	X  		break;
+	X      }
+	X*** version.c	Sat Sep  1 22:12:39 1990
+	X--- ../../nntp/common/version.c	Sun Feb 10 14:19:43 1991
+	X***************
+	X*** 2,5
+	X   * Provide the version number of this release.
+	X   */
+	X  
+	X! char	nntp_version[] = "1.5.10 (2 September 1990)";
+	X
+	X--- 2,5 -----
+	X   * Provide the version number of this release.
+	X   */
+	X  
+	X! char	nntp_version[] = "1.5.11 (10 February 1991)";
+SHAR_EOF
+if test 16679 -ne "`wc -c < 'common.diff'`"
+then
+	echo shar: error transmitting "'common.diff'" '(should have been 16679 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'common'"
+cd ..
+#	End of shell archive
+exit 0

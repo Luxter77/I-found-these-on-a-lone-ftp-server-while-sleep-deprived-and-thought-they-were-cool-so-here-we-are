@@ -1,0 +1,533 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 27-Aug-1991
+
+Okay, sixth and last of the three August patches. :-)
+
+This one contains four fixes.  First, the last of Bill Kucharski's bugs,
+compile options not being passed into Makefiles, has been fixed with an
+overhaul of the option-passing stuff to also avoid future problems of
+the same kind.  Second, the C spacefor variants have been modified slightly
+to accept scientific notation in their first argument -- it turns out that
+some old awks switch to e-format output fairly early, and this sometimes
+affects the output of sizeof, which typically gets fed into spacefor.
+Third, a problem in error reporting was introduced by some inews changes,
+and this is hereby corrected.  Fourth, moderators will doubtless cheer
+this one:  relaynews now rejects articles with imbedded white space in
+their newsgroup lists, which is the main remaining cause of the "700
+identical mail messages to the moderator" problem.  (It would be nicer
+to just ignore the white space and carry on, but in Geoff's words,
+"someday maybe, but not tonight"; this problem has been in need of
+*some* action for too long already, and the nicer solution is harder.)
+Oh yes, and some small touchups to documentation.
+
+start of patch 27-Aug-1991
+(suggested archive name: `pch27Aug91.Z')
+this should be run with   patch -p0 <thisfile
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+Prereq: 13-Dec-1990
+Prereq: 14-Dec-1990
+Prereq: 15-Dec-1990
+Prereq: 16-Mar-1991
+Prereq: 17-Mar-1991
+Prereq: 23-Mar-1991
+Prereq: 24-Mar-1991
+Prereq: 6-Jul-1991
+Prereq: 9-Aug-1991
+Prereq: 17-Aug-1991
+Prereq: 21-Aug-1991
+Prereq: 22-Aug-1991
+Prereq: 23-Aug-1991
+*** PATCHDATES.old	Tue Aug 27 12:29:03 1991
+--- PATCHDATES	Tue Aug 27 12:29:03 1991
+***************
+*** 1,33 ****
+--- 1,34 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
+  13-Dec-1990
+  14-Dec-1990
+  15-Dec-1990
+  16-Mar-1991
+  17-Mar-1991
+  23-Mar-1991
+  24-Mar-1991
+  6-Jul-1991
+  9-Aug-1991
+  17-Aug-1991
+  21-Aug-1991
+  22-Aug-1991
+  23-Aug-1991
++ 27-Aug-1991
+
+Changed files, if any:
+
+*** cnpatch/old/conf/Makefile	Tue Aug 27 12:29:40 1991
+--- conf/Makefile	Mon Aug 26 00:16:06 1991
+***************
+*** 17,20 ****
+--- 17,21 ----
+  CMPDIRS = batch conf expire input man misc relay rna
+  RDIRS = batch dbz expire input relay
++ FRDIRS = batch expire input relay
+  SHS = doit.root doit.bin doit.news again.root
+  
+***************
+*** 146,149 ****
+--- 147,153 ----
+  rs:
+  	for d in $(RDIRS) ; do cd ../$$d ; make r ; done
++ 
++ frs:
++ 	for d in $(FRDIRS) ; do cd ../$$d ; make r ; done
+  
+  save:	$(SHS)
+
+*** cnpatch/old/conf/build	Tue Aug 27 12:29:46 1991
+--- conf/build	Thu Aug 22 13:38:42 1991
+***************
+*** 729,732 ****
+--- 729,745 ----
+  	echo '# options are seen in first argument only, i.e. use -ti not -t -i'
+  	echo "umask $newsumask"
++ 	case "$cc" in
++ 	cc)	ccc="COPTS='$copts'"	;;
++ 	*)	ccc="CC=$cc COPTS='$copts'"	;;
++ 	esac
++ 	case "$ldopts" in
++ 	'')					;;
++ 	*)	ccc="$ccc LDFLAGS='$ldopts'"	;;
++ 	esac
++ 	case "$postlibs" in
++ 	'')					;;
++ 	*)	ccc="$ccc POST='$postlibs'"	;;
++ 	esac
++ 	ccc="$ccc DBM=$dbmopt"
+  	echo "set -x"
+  	echo ': setting up for substitutions'
+***************
+*** 779,791 ****
+  	echo '	mv nnewshsed newshsed'
+  	echo 'fi'
+! 	echo 'make all || exit 1'
+  	echo 'cd ../hfake'
+   	echo "sed -e '/NEEDED =/s~.*~NEEDED = $fakehdrs~' Makefile" '>M.$$'
+   	echo 'mv -f M.$$ Makefile'
+! 	echo "make all || exit 1"
+  	echo ": done"
+  	echo ": making substitutions..."
+  	echo "cd ../conf"
+! 	echo 'make substs || exit 1'
+  	echo ": done"
+  	echo ': making library...'
+--- 792,804 ----
+  	echo '	mv nnewshsed newshsed'
+  	echo 'fi'
+! 	echo 'make all $ccc || exit 1'
+  	echo 'cd ../hfake'
+   	echo "sed -e '/NEEDED =/s~.*~NEEDED = $fakehdrs~' Makefile" '>M.$$'
+   	echo 'mv -f M.$$ Makefile'
+! 	echo "make all $ccc || exit 1"
+  	echo ": done"
+  	echo ": making substitutions..."
+  	echo "cd ../conf"
+! 	echo 'make substs $ccc || exit 1'
+  	echo ": done"
+  	echo ': making library...'
+***************
+*** 797,812 ****
+  	no)	libstdio=		;;
+  	esac
+- 	case "$cc" in
+- 	cc)	ccc="COPTS='$copts'"	;;
+- 	*)	ccc="CC=$cc COPTS='$copts'"	;;
+- 	esac
+- 	case "$ldopts" in
+- 	'')					;;
+- 	*)	ccc="$ccc LDFLAGS='$ldopts'"	;;
+- 	esac
+- 	case "$postlibs" in
+- 	'')					;;
+- 	*)	ccc="$ccc POST='$postlibs'"	;;
+- 	esac
+  	echo "for dir in lib$unixkind lib$addrsize libc libcnews $libstdio $dbzlib"
+  	echo "do"
+--- 810,813 ----
+***************
+*** 820,824 ****
+  	echo "cd ../conf"
+  	case "$ranlib" in
+! 	yes)	echo "make ../ranlibed || exit 1"	;;
+  	esac
+  	echo ': library done'
+--- 821,825 ----
+  	echo "cd ../conf"
+  	case "$ranlib" in
+! 	yes)	echo "make ../ranlibed $ccc || exit 1"	;;
+  	esac
+  	echo ': library done'
+***************
+*** 840,846 ****
+  	echo 'cd ../conf'
+  	echo "rm -f spacefor queuelen hostname setnewsids"
+! 	echo "make sf.$dftype || exit 1"
+  	echo "cp sf.$dftype spacefor"
+! 	echo "make queuelen.$uucptype || exit 1"
+  	echo "cp queuelen.$uucptype queuelen"
+  	case "$hostname" in
+--- 841,847 ----
+  	echo 'cd ../conf'
+  	echo "rm -f spacefor queuelen hostname setnewsids"
+! 	echo "make sf.$dftype $ccc || exit 1"
+  	echo "cp sf.$dftype spacefor"
+! 	echo "make queuelen.$uucptype $ccc || exit 1"
+  	echo "cp queuelen.$uucptype queuelen"
+  	case "$hostname" in
+***************
+*** 856,864 ****
+  		;;
+  	esac
+- 	dbm="DBM=$dbmopt"
+  	echo "for dir in $pgmdirs"
+  	echo "do"
+  	echo "	cd ../\$dir"
+! 	echo "	make all $dbm $ccc || exit 1"
+  	echo "done"
+  	echo ": done"
+--- 857,864 ----
+  		;;
+  	esac
+  	echo "for dir in $pgmdirs"
+  	echo "do"
+  	echo "	cd ../\$dir"
+! 	echo "	make all $ccc || exit 1"
+  	echo "done"
+  	echo ": done"
+***************
+*** 913,917 ****
+  	echo "cp sys.proto sys"
+  	echo "cd ../expire"
+! 	echo "make explists && cp explist.$archive explist"
+  	echo "cd ../conf"
+  	case "$archive" in
+--- 913,917 ----
+  	echo "cp sys.proto sys"
+  	echo "cd ../expire"
+! 	echo "make explists $ccc && cp explist.$archive explist"
+  	echo "cd ../conf"
+  	case "$archive" in
+***************
+*** 939,943 ****
+  	echo "do"
+  	echo "	cd ../\$dir"
+! 	echo "	make bininstall BIN=$bin RBIN=$rbin $dbm || exit 1"
+  	echo "done"
+  	echo ": done"
+--- 939,943 ----
+  	echo "do"
+  	echo "	cd ../\$dir"
+! 	echo "	make bininstall BIN=$bin RBIN=$rbin $ccc || exit 1"
+  	echo "done"
+  	echo ": done"
+***************
+*** 975,979 ****
+  	echo "do"
+  	echo "	cd ../\$dir"
+! 	echo "	make newsinstall BIN=$bin RBIN=$rbin || exit 1"
+  	echo "done"
+  	echo ": done"
+--- 975,979 ----
+  	echo "do"
+  	echo "	cd ../\$dir"
+! 	echo "	make newsinstall BIN=$bin RBIN=$rbin $ccc || exit 1"
+  	echo "done"
+  	echo ": done"
+
+*** cnpatch/old/conf/dostatfs.c	Tue Aug 27 12:29:50 1991
+--- conf/dostatfs.c	Thu Aug 22 15:07:13 1991
+***************
+*** 31,34 ****
+--- 31,35 ----
+  	void process();
+  	extern long atol();
++ 	extern double atof();
+  
+  	progname = argv[0];
+***************
+*** 52,57 ****
+  	}
+  
+! 	process(atol(argv[optind]), argv[optind+1], atol(argv[optind+2]),
+! 							atol(argv[optind+3]));
+  	exit(0);
+  }
+--- 53,58 ----
+  	}
+  
+! 	process((long)atof(argv[optind]), argv[optind+1],
+! 				atol(argv[optind+2]), atol(argv[optind+3]));
+  	exit(0);
+  }
+***************
+*** 64,68 ****
+  char *s;
+  {
+! 	return(strspn(s, "0123456789") == strlen(s));
+  }
+  
+--- 65,69 ----
+  char *s;
+  {
+! 	return(strspn(s, "0123456789.eE+-") == strlen(s));
+  }
+  
+
+*** cnpatch/old/conf/doultrix.c	Tue Aug 27 12:29:52 1991
+--- conf/doultrix.c	Thu Aug 22 15:08:40 1991
+***************
+*** 27,30 ****
+--- 27,31 ----
+  	void process();
+  	extern long atol();
++ 	extern double atof();
+  
+  	progname = argv[0];
+***************
+*** 48,53 ****
+  	}
+  
+! 	process(atol(argv[optind]), argv[optind+1], atol(argv[optind+2]),
+! 							atol(argv[optind+3]));
+  	exit(0);
+  }
+--- 49,54 ----
+  	}
+  
+! 	process((long)atof(argv[optind]), argv[optind+1],
+! 				atol(argv[optind+2]), atol(argv[optind+3]));
+  	exit(0);
+  }
+***************
+*** 60,64 ****
+  char *s;
+  {
+! 	return(strspn(s, "0123456789") == strlen(s));
+  }
+  
+--- 61,65 ----
+  char *s;
+  {
+! 	return(strspn(s, "0123456789.eE+-") == strlen(s));
+  }
+  
+
+*** cnpatch/old/conf/doustat.c	Tue Aug 27 12:29:53 1991
+--- conf/doustat.c	Thu Aug 22 15:08:09 1991
+***************
+*** 27,30 ****
+--- 27,31 ----
+  	void process();
+  	extern long atol();
++ 	extern double atof();
+  
+  	progname = argv[0];
+***************
+*** 48,53 ****
+  	}
+  
+! 	process(atol(argv[optind]), argv[optind+1], atol(argv[optind+2]),
+! 							atol(argv[optind+3]));
+  	exit(0);
+  }
+--- 49,54 ----
+  	}
+  
+! 	process((long)atof(argv[optind]), argv[optind+1],
+! 				atol(argv[optind+2]), atol(argv[optind+3]));
+  	exit(0);
+  }
+***************
+*** 60,64 ****
+  char *s;
+  {
+! 	return(strspn(s, "0123456789") == strlen(s));
+  }
+  
+--- 61,65 ----
+  char *s;
+  {
+! 	return(strspn(s, "0123456789.eE+-") == strlen(s));
+  }
+  
+
+*** cnpatch/old/man/news.5	Tue Aug 27 12:33:05 1991
+--- man/news.5	Tue Aug 27 00:38:14 1991
+***************
+*** 29,33 ****
+  .LP
+  ..
+! .TH NEWS 5 "14 Aug 1991"
+  .BY "C News"
+  .SH NAME
+--- 29,33 ----
+  .LP
+  ..
+! .TH NEWS 5 "26 Aug 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 411,414 ****
+--- 411,421 ----
+  is executed by the shell with the article
+  to be transmitted as the standard input.
++ The substring
++ `\c
++ .BR %s '
++ will be replaced at most once per command
++ with the name of a file containing the article,
++ relative to
++ .BR \*a .
+  The default is
+  `\c
+
+*** cnpatch/old/misc/newsdaily	Tue Aug 27 12:33:29 1991
+--- misc/newsdaily	Mon Aug 26 00:33:19 1991
+***************
+*** 102,105 ****
+--- 102,106 ----
+  unparsable
+  header
++ space in
+  Message-ID' log.o >$sus
+  
+***************
+*** 147,151 ****
+  	) >>$gripes
+  fi
+! egrep ' (no|empty) .* header|contains non-|Message-ID' $sus |
+  	egrep ' - ' | awk '{print $4}' | sort | uniq -c | sort -nr |
+  	sed 5q >$tmp
+--- 148,152 ----
+  	) >>$gripes
+  fi
+! egrep ' (no|empty) .* header|contains non-|Message-ID|space in' $sus |
+  	egrep ' - ' | awk '{print $4}' | sort | uniq -c | sort -nr |
+  	sed 5q >$tmp
+
+*** cnpatch/old/notebook/problems	Tue Aug 27 12:33:44 1991
+--- notebook/problems	Thu Aug 22 15:17:24 1991
+***************
+*** 1,3 ****
+! .DA "6 Aug 1991"
+  .TL
+  Known Porting Problems With C News
+--- 1,3 ----
+! .DA "22 Aug 1991"
+  .TL
+  Known Porting Problems With C News
+***************
+*** 238,247 ****
+  Floating Point
+  .PP
+! The only place in C News where floating point is used, as far as we know,
+! is in the calculation of expiry dates in \fIexpire\fR.
+! This is not a performance bottleneck, so slow floating-point arithmetic
+  is not a problem.
+! Complete absence of floating point would require minor modifications to
+! \fIexpire\fR.
+  .SH
+  386 Optimizer vs. dbz
+--- 238,247 ----
+  Floating Point
+  .PP
+! The only places in C News where floating point is used, as far as we know,
+! are in the calculation of expiry dates in \fIexpire\fR
+! and the calculation of space in some of the variants of \fIspacefor\fR.
+! These are not performance bottlenecks, so slow floating-point arithmetic
+  is not a problem.
+! Complete absence of floating point would require minor modifications.
+  .SH
+  386 Optimizer vs. dbz
+
+*** cnpatch/old/relay/procart.c	Tue Aug 27 12:34:33 1991
+--- relay/procart.c	Sun Aug 25 23:49:38 1991
+***************
+*** 4,7 ****
+--- 4,8 ----
+  
+  #include <stdio.h>
++ #include <string.h>
+  #include <sys/types.h>
+  #include <sys/timeb.h>		/* solely for getindate call */
+***************
+*** 375,378 ****
+--- 376,382 ----
+  		prefuse(art);
+  		(void) printf("ancient date `%s'\n", hdrs->h_date);
++ 	} else if (strchr(ngs, ' ') != NULL) {
++ 		prefuse(art);
++ 		(void) printf("space in groups `%s'\n", ngs);
+  	} else if (hopcount(hdrs->h_path) > 0 &&
+  	    !ngmatch(oursys()->sy_ngs, ngs)) {
+
+*** cnpatch/old/relay/sh/inews	Tue Aug 27 12:35:08 1991
+--- relay/sh/inews	Sun Aug 25 23:48:47 1991
+***************
+*** 159,165 ****
+  # post with new headers and .signature
+  (anne.jones <$inhdrs >/tmp/in$$realtmp	# bash headers
+   mv /tmp/in$$realtmp $inhdrs
+   cat $inhdrs		# | grep -v "^Lines:"	# uncomment if generating Lines:
+-  status=$?
+   case $status in
+   0)	;;
+--- 159,165 ----
+  # post with new headers and .signature
+  (anne.jones <$inhdrs >/tmp/in$$realtmp	# bash headers
++  status=$?
+   mv /tmp/in$$realtmp $inhdrs
+   cat $inhdrs		# | grep -v "^Lines:"	# uncomment if generating Lines:
+   case $status in
+   0)	;;
+
+
+end of patch 27-Aug-1991

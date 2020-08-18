@@ -1,0 +1,1510 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 6-Jul-1991
+
+Despite previous announcements, this is not (quite) the last patch before
+work on the cleanup release starts and patches are discontinued except for
+urgent fixes.  This one has a couple of important fixes and is generally
+large enough to justify release, but there are some odds and ends on the
+pre-cleanup-release to-do list that aren't quite ready yet.
+
+This one's another grab bag of minor updates.  Ihave/sendme batch-size
+estimation corrected for newlines, and sample batchparms file adjusted
+now that the size estimation actually works well.  Uses of the S_IFREG
+(etc) macros removed, as inessential and somewhat unportable (to POSIX).
+Inconsistency between code and documentation over name of immediate-newsrun
+file (rnews.immed vs rnews.newsrun) resolved in favor of the docs.  Minor
+build bug that made it difficult to give multiple loader options or library
+names fixed.  Copy of config file made mandatory, rather than deferring to
+an existing one, since updating it is essential to a software update.
+New -m option to dbz, preparing for delayed-ihave/sendme support.  The
+mkdbm component of mkhistory vanishes, since the dbz program has subsumed
+its functionality (yes, even on systems that still use dbm).  Expire
+now warns of articles which claim to have arrived in the future, as this
+often signifies problems with system date settings, and complains if its
+control-file input is empty.  Mkhistory and addmissing now traverse only
+readable directories, and ignore "lost+found" regardless.  Newsspool
+discards compressed batches that are too small to have any contents.
+Addgroup no longer sends mail to the administrator, since he's the one
+running it.  Plus the usual assortment of small bug fixes (including one
+obscure security hole that made it possible for a local user to become
+"news"!), portability improvements, and documentation updates.
+
+start of patch 6-Jul-1991
+(suggested archive name: `pch6Jul91.Z')
+this should be run with   patch -p0 <thisfile
+
+Please do the following (there is no easy way we can convince
+patch to do this automatically):
+rm expire/mkdbm.c
+rm libc/standard.3
+rm libc/standard.c
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+Prereq: 13-Dec-1990
+Prereq: 14-Dec-1990
+Prereq: 15-Dec-1990
+Prereq: 16-Mar-1991
+Prereq: 17-Mar-1991
+Prereq: 23-Mar-1991
+Prereq: 24-Mar-1991
+*** PATCHDATES.old	Sat Jul  6 22:08:38 1991
+--- PATCHDATES	Sat Jul  6 22:08:38 1991
+***************
+*** 1,27 ****
+--- 1,28 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
+  13-Dec-1990
+  14-Dec-1990
+  15-Dec-1990
+  16-Mar-1991
+  17-Mar-1991
+  23-Mar-1991
+  24-Mar-1991
++ 6-Jul-1991
+
+Changed files, if any:
+
+*** cnpatch/old/README	Sat Jul  6 22:08:57 1991
+--- README	Wed Mar 27 14:17:44 1991
+***************
+*** 1,3 ****
+! This is C News, superseding assorted preliminary releases.  16 Jan 1991
+  
+  C News is a reimplementation of the transport and storage subsystems of the
+--- 1,3 ----
+! This is C News.
+  
+  C News is a reimplementation of the transport and storage subsystems of the
+
+*** cnpatch/old/batch/Makefile	Sat Jul  6 22:09:01 1991
+--- batch/Makefile	Wed Mar 27 17:39:18 1991
+***************
+*** 58,63 ****
+  	echo '#' >>$@
+  	echo '# sample ihave/sendme setup' >>$@
+! 	echo 'louie.ihave	100000	20	batchih	nocomp	viainews' >>$@
+! 	echo 'louie.sendme	100000	20	batchsm	nocomp	viainews' >>$@
+  
+  batchsm:	batchih
+--- 58,63 ----
+  	echo '#' >>$@
+  	echo '# sample ihave/sendme setup' >>$@
+! 	echo 'louie.ihave	40000	20	batchih	nocomp	viainews' >>$@
+! 	echo 'louie.sendme	40000	20	batchsm	nocomp	viainews' >>$@
+  
+  batchsm:	batchih
+
+*** cnpatch/old/batch/batcher.c	Sat Jul  6 22:09:04 1991
+--- batch/batcher.c	Fri Jul  5 13:41:31 1991
+***************
+*** 105,112 ****
+  	if (fstat(artfile, &sbuf) < 0)
+  		error("internal disaster, can't fstat", "");
+- 	if ((sbuf.st_mode&S_IFMT) != S_IFREG) {
+- 		(void) close(artfile);
+- 		return;		/* Don't try to batch directories etc. */
+- 	}
+  
+  	printf("#! rnews %ld\n", sbuf.st_size);
+--- 105,108 ----
+
+*** cnpatch/old/batch/batchsplit	Sat Jul  6 22:09:07 1991
+--- batch/batchsplit	Wed Mar 27 17:46:54 1991
+***************
+*** 70,74 ****
+  		if (NF == 1) {
+  			if ($1 ~ /^<.*>$/)	# probably ihave/sendme m-id
+! 				size = length
+  			else
+  				size = 3000	# Arbitrary guess.
+--- 70,74 ----
+  		if (NF == 1) {
+  			if ($1 ~ /^<.*>$/)	# probably ihave/sendme m-id
+! 				size = length + 1
+  			else
+  				size = 3000	# Arbitrary guess.
+
+*** cnpatch/old/batch/sendbatches	Sat Jul  6 22:09:17 1991
+--- batch/sendbatches	Fri Apr  5 18:57:38 1991
+***************
+*** 170,174 ****
+  					echo "$0: aborting"
+  				) | mail $NEWSMASTER
+! 				rm /tmp/nb$$
+  				exit 1
+  			fi
+--- 170,174 ----
+  					echo "$0: aborting"
+  				) | mail $NEWSMASTER
+! 				rm -f /tmp/nb$$
+  				exit 1
+  			fi
+
+*** cnpatch/old/conf/Makefile	Sat Jul  6 22:09:25 1991
+--- conf/Makefile	Fri Jul  5 15:47:49 1991
+***************
+*** 119,123 ****
+  
+  cmps:
+! 	for d in $(CMPDIRS) ; do cd ../$$d ; make cmp RBIN=/usr/lib/uucp/bin ; done
+  
+  rs:
+--- 119,123 ----
+  
+  cmps:
+! 	for d in $(CMPDIRS) ; do cd ../$$d ; make cmp RBIN=$(NEWSBIN)/input ; done
+  
+  rs:
+
+*** cnpatch/old/conf/build	Sat Jul  6 22:09:30 1991
+--- conf/build	Fri Jul  5 13:53:37 1991
+***************
+*** 26,30 ****
+  ctlf="active errlog history history.pag history.dir localgroups"
+  ctlf="$ctlf log mailname mailpaths organization postdefltdist postdefltgroup"
+! ctlf="$ctlf replyusepath server sys whoami rnews.stall rnews.newsrun"
+  ctlf="$ctlf readnews.ctl"
+  
+--- 26,30 ----
+  ctlf="active errlog history history.pag history.dir localgroups"
+  ctlf="$ctlf log mailname mailpaths organization postdefltdist postdefltgroup"
+! ctlf="$ctlf replyusepath server sys whoami rnews.stall rnews.immed"
+  ctlf="$ctlf readnews.ctl"
+  
+***************
+*** 442,446 ****
+  echo 'such as -n or -i, to produce the preferred form of executable file.'
+  echo 'On most modern systems the default is right.  What options, if any,'
+! ldopts=`ask 'should be given for linking' ${ldopts-}`
+  
+  echo
+--- 442,446 ----
+  echo 'such as -n or -i, to produce the preferred form of executable file.'
+  echo 'On most modern systems the default is right.  What options, if any,'
+! ldopts="`ask 'should be given for linking' \"${ldopts-}\"`"
+  
+  echo
+***************
+*** 449,453 ****
+  echo 'either full pathnames or -l... options.  What libraries, in addition'
+  echo 'to the one(s) picked up automatically by the compiler, should be used'
+! postlibs=`ask 'when linking C News' ${postlibs-}`
+  
+  echo
+--- 449,453 ----
+  echo 'either full pathnames or -l... options.  What libraries, in addition'
+  echo 'to the one(s) picked up automatically by the compiler, should be used'
+! postlibs="`ask 'when linking C News' \"${postlibs-}\"`"
+  
+  echo
+***************
+*** 868,872 ****
+  	esac
+  	case "$immediate" in
+! 	yes)	echo echo yes ">rnews.newsrun"	;;
+  	esac
+  	case "$inputstall" in
+--- 868,872 ----
+  	esac
+  	case "$immediate" in
+! 	yes)	echo echo yes ">rnews.immed"	;;
+  	esac
+  	case "$inputstall" in
+***************
+*** 984,992 ****
+  	echo "if test -r $newsconfig"
+  	echo "then"
+! 	echo "	echo '$newsconfig already exists; left unchanged'"
+! 	echo "else"
+! 	echo "	cp config $newsconfig"
+! 	echo "	chmod +x $newsconfig"
+  	echo "fi"
+  	echo "$newsbin/maint/adddirs"
+  	echo ": It is virtually certain that some of those control files"
+--- 984,991 ----
+  	echo "if test -r $newsconfig"
+  	echo "then"
+! 	echo "	cp $newsconfig $newsconfig.old"
+  	echo "fi"
++ 	echo "cp config $newsconfig"
++ 	echo "chmod +x $newsconfig"
+  	echo "$newsbin/maint/adddirs"
+  	echo ": It is virtually certain that some of those control files"
+
+*** cnpatch/old/dbz/dbz.1	Sat Jul  6 22:09:49 1991
+--- dbz/dbz.1	Fri Jul  5 15:39:48 1991
+***************
+*** 1,3 ****
+! .TH DBZ 1 "2 Feb 1991"
+  .BY "C News"
+  .SH NAME
+--- 1,3 ----
+! .TH DBZ 1 "5 July 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 6,10 ****
+  .B dbz
+  [
+! .BR \- { axc }
+  ] [
+  .B \-t
+--- 6,10 ----
+  .B dbz
+  [
+! .BR \- { axmc }
+  ] [
+  .B \-t
+***************
+*** 61,64 ****
+--- 61,65 ----
+  .BR \-a ,
+  .BR \-x ,
++ .BR \-m ,
+  and
+  .B \-c
+***************
+*** 84,87 ****
+--- 85,94 ----
+  The input is in the form of database lines, although only the keys are
+  significant.
++ .PP
++ With
++ .BR \-m ,
++ operation is the same as for
++ .B \-x
++ except that the keys which are \fInot\fR present in the database are printed.
+  .PP
+  With
+
+*** cnpatch/old/dbz/dbz.c	Sat Jul  6 22:09:57 1991
+--- dbz/dbz.c	Wed Jul  3 11:34:17 1991
+***************
+*** 238,242 ****
+  #define	NPAGBUF	16
+  #endif
+! static of_t pagbuf[NPAGBUF];
+  
+  /*
+--- 238,246 ----
+  #define	NPAGBUF	16
+  #endif
+! #ifndef NOBUFFER
+! #ifdef _IOFBF
+! static of_t pagbuf[NPAGBUF];	/* only needed if !NOBUFFER && _IOFBF */
+! #endif
+! #endif
+  
+  /*
+***************
+*** 248,252 ****
+  #define	SHISTBUF	64
+  #endif
+! static char basebuf[SHISTBUF];
+  
+  /*
+--- 252,258 ----
+  #define	SHISTBUF	64
+  #endif
+! #ifdef _IOFBF
+! static char basebuf[SHISTBUF];		/* only needed if _IOFBF exists */
+! #endif
+  
+  /*
+***************
+*** 675,678 ****
+--- 681,685 ----
+  			(void) fclose(dirf);
+  			free(pagfname);
++ 			pagf = NULL;
+  			return(-1);
+  		}
+***************
+*** 691,694 ****
+--- 698,702 ----
+  		(void) fclose(dirf);
+  		free(pagfname);
++ 		pagf = NULL;
+  		errno = EDOM;	/* kind of a kludge, but very portable */
+  		return(-1);
+***************
+*** 760,763 ****
+--- 768,772 ----
+  		ret = -1;
+  	}
++ 	pagf = basef;		/* ensure valid pointer; dbzsync checks it */
+  	if (dbzsync() < 0)
+  		ret = -1;
+
+*** cnpatch/old/dbz/dbzmain.c	Sat Jul  6 22:10:08 1991
+--- dbz/dbzmain.c	Thu Jul  4 16:34:58 1991
+***************
+*** 96,104 ****
+  	progname = argv[0];
+  
+! 	while ((c = getopt(argc, argv, "axct:l:R0E:SqOiX:Yuf:p:eMUC:d")) != EOF)
+  		switch (c) {
+  		case 'a':	/* append to existing table */
+  			if (op != 'b')
+! 				fail("only one of -a -x -c can be given", "");
+  			op = 'a';
+  			baseinput = 0;
+--- 96,104 ----
+  	progname = argv[0];
+  
+! 	while ((c = getopt(argc, argv, "axcmt:l:R0E:SqOiX:Yuf:p:eMUC:d")) != EOF)
+  		switch (c) {
+  		case 'a':	/* append to existing table */
+  			if (op != 'b')
+! 				fail("only one of -a -x -c -m can be given", "");
+  			op = 'a';
+  			baseinput = 0;
+***************
+*** 106,110 ****
+  		case 'x':	/* extract from existing table */
+  			if (op != 'b')
+! 				fail("only one of -a -x -c can be given", "");
+  			op = 'x';
+  			baseinput = 0;
+--- 106,110 ----
+  		case 'x':	/* extract from existing table */
+  			if (op != 'b')
+! 				fail("only one of -a -x -c -m can be given", "");
+  			op = 'x';
+  			baseinput = 0;
+***************
+*** 112,118 ****
+  		case 'c':	/* check existing table */
+  			if (op != 'b')
+! 				fail("only one of -a -x -c can be given", "");
+  			op = 'c';
+  			break;
+  		case 't':	/* set field separator */
+  			if (strlen(optarg) > 1)
+--- 112,124 ----
+  		case 'c':	/* check existing table */
+  			if (op != 'b')
+! 				fail("only one of -a -x -c -m can be given", "");
+  			op = 'c';
+  			break;
++ 		case 'm':	/* extract missing (complement of -x) */
++ 			if (op != 'b')
++ 				fail("only one of -a -x -c -m can be given", "");
++ 			op = 'm';
++ 			baseinput = 0;
++ 			break;
+  		case 't':	/* set field separator */
+  			if (strlen(optarg) > 1)
+***************
+*** 400,403 ****
+--- 406,416 ----
+  				fail("can't read line for `%.40s...'", lp);
+  			fputs(cmp, stdout);
++ 		}
++ 		break;
++ 	case 'm':
++ 		value = (dbzint) ? dbzfetch(key) : fetch(key);
++ 		if (value.dptr == NULL) {
++ 			fputs(keytext, stdout);
++ 			putchar('\n');
+  		}
+  		break;
+
+*** cnpatch/old/doc/README	Sat Jul  6 22:10:28 1991
+--- doc/README	Tue Jun 25 17:00:10 1991
+***************
+*** 4,7 ****
+--- 4,18 ----
+  is attempted, and only the three standard fonts (R, I, B) are used.
+  
++ If you do not have nroff/troff, there are various ways of reading this
++ stuff.  Note, in particular, that the Formatter Police are not going to
++ come and drag you away for reading the raw sources, which are not very
++ complicated or hard to read.  If you absolutely can't read anything
++ that isn't filled and justified, the awf text formatter (comp.sources.unix:
++     Submitted-by: henry@zoo.toronto.edu
++     Posting-number: Volume 23, Issue 27
++     Archive-name: awf
++ on any comp.sources.unix archive site or ftp.cs.toronto.edu:pub/awf.shar.Z)
++ does a good job on most of our documentation.
++ 
+  install		somewhat sketchy how-to-install document
+  install.out	nroffed version of install
+
+*** cnpatch/old/doc/biblio	Sat Jul  6 22:10:31 1991
+--- doc/biblio	Tue May 21 13:04:15 1991
+***************
+*** 1,3 ****
+! .DA "22 Oct 1990"
+  .TL
+  Annotated Bibliography on C News
+--- 1,3 ----
+! .DA "21 May 1991"
+  .TL
+  Annotated Bibliography on C News
+***************
+*** 62,65 ****
+--- 62,73 ----
+  Not for the faint of heart or weak of stomach.
+  .PP
++ \fIRequirements for Internet Hosts\(emApplication and Support\fR,
++ ed. by R. Braden,
++ Internet RFC\|1123, 1989, inquiries to `nic@nic.ddn.mil' or
++ anonymous FTP from
++ nic.ddn.mil (pathname RFC:RFC1123.TXT).
++ This document updates and amends many older RFCs, notably including
++ RFC\|822 (and therefore RFC\|1036).
++ .PP
+  \fInews.software.b\fR, various authors, Usenet newsgroup with ongoing
+  discussion, inquiries to your local Usenet site(s).
+***************
+*** 69,70 ****
+--- 77,86 ----
+  and general chitchat on news systems in general and C News in particular.
+  Read, and contributed to, by most authors of news software.
++ .PP
++ \fInews.admin\fR, various authors, Usenet newsgroup with ongoing
++ discussion, inquiries to your local Usenet site(s).
++ The forum for news administration in general, including that of both
++ B and C News.
++ Somewhat noisy at times, but a valuable source of information.
++ Noteworthy for Gene Spafford's regular postings on topics such as
++ ``How To Construct The Mailpaths File''.
+
+*** cnpatch/old/expire/Makefile	Sat Jul  6 22:10:44 1991
+--- expire/Makefile	Fri Jul  5 15:35:09 1991
+***************
+*** 6,13 ****
+  DBM =
+  LIBS= ../libcnews.a
+! THEM = expire histdups histinfo histslash mkdbm mkhistory \
+  	upact doexpire mkadir recovact
+  DTR = README Makefile dircheck doexpire expire.c histdups histinfo.c \
+! 	histslash.c mkdbm.c mkhistory pgood tgood upact \
+  	mkadir updatemin.c recovact
+  UPACT=upact
+--- 6,13 ----
+  DBM =
+  LIBS= ../libcnews.a
+! THEM = expire histdups histinfo histslash mkhistory \
+  	upact doexpire mkadir recovact
+  DTR = README Makefile dircheck doexpire expire.c histdups histinfo.c \
+! 	histslash.c mkhistory pgood tgood upact \
+  	mkadir updatemin.c recovact
+  UPACT=upact
+***************
+*** 51,57 ****
+  	$(CC) $(CFLAGS) $(LDFLAGS) histslash.o $(PRE) $(LIBS) $(POST) -o $@
+  
+- mkdbm:	mkdbm.o $(LIBS)
+- 	$(CC) $(CFLAGS) $(LDFLAGS) mkdbm.o $(PRE) $(LIBS) $(DBM) $(POST) -o $@
+- 
+  lint:	expire.c
+  	lint -ha $(LINTFLAGS) expire.c 2>&1 | egrep -v $(JUNKLINT) | tee $@
+--- 51,54 ----
+***************
+*** 58,62 ****
+  
+  explist.yes:
+! 	echo "# hold onto history lines 14 days, nobody gets >90 days" >$@
+  	echo "/expired/			x	14	-" >>$@
+  	echo "/bounds/			x	0-1-90	-" >>$@
+--- 55,61 ----
+  
+  explist.yes:
+! 	echo "# note that the order of lines in this file is significant" >$@
+! 	echo >>$@
+! 	echo "# hold onto history lines 14 days, nobody gets >90 days" >>$@
+  	echo "/expired/			x	14	-" >>$@
+  	echo "/bounds/			x	0-1-90	-" >>$@
+***************
+*** 87,91 ****
+  
+  # setup for regression test
+! setup:
+  	rm -f explist history active active.after history.proto
+  	rm -rf arts arch arch2 arch3 nbin
+--- 86,90 ----
+  
+  # setup for regression test
+! setup:	$(THEM) ../dbz/dbz
+  	rm -f explist history active active.after history.proto
+  	rm -rf arts arch arch2 arch3 nbin
+***************
+*** 104,111 ****
+  	echo 'ln $$* >/dev/null 2>/dev/null' >nbin/newslock
+  	echo 'echo 10' >nbin/spacefor
+  	chmod +x nbin/* nbin/expire/*
+  	mkdir arts arts/foo arts/bar arts/bar/ugh arts/urp arch arch2
+  	mkdir arts/mod arts/mod/mod arts/mod/unmod arch3 arch3/bletch
+! 	mkdir arts/bletch
+  	echo 'foo 00099 00000 y' >>active
+  	echo 'foo 00099 00001 y' >>active.after
+--- 103,111 ----
+  	echo 'ln $$* >/dev/null 2>/dev/null' >nbin/newslock
+  	echo 'echo 10' >nbin/spacefor
++ 	ln ../dbz/dbz nbin/dbz
+  	chmod +x nbin/* nbin/expire/*
+  	mkdir arts arts/foo arts/bar arts/bar/ugh arts/urp arch arch2
+  	mkdir arts/mod arts/mod/mod arts/mod/unmod arch3 arch3/bletch
+! 	mkdir arts/bletch arts/lost+found
+  	echo 'foo 00099 00000 y' >>active
+  	echo 'foo 00099 00001 y' >>active.after
+***************
+*** 122,125 ****
+--- 122,126 ----
+  	echo 'bletch 00099 00000 y' >>active
+  	echo 'bletch 00099 00100 y' >>active.after
++ 	echo nevermore >arts/lost+found/1
+  	echo '<wont1>	9999~-	foo/1' >>history.proto
+  	echo :foo/1: >arts/foo/1
+***************
+*** 264,268 ****
+  	test ! -f arts/urp/99 ;
+  
+! tidy:
+  	rm -f junk history history.pag history.dir history.o active active.tmp
+  	rm -f history.n* *mon.out history.proto history.after test.out doit
+--- 265,269 ----
+  	test ! -f arts/urp/99 ;
+  
+! rclean:
+  	rm -f junk history history.pag history.dir history.o active active.tmp
+  	rm -f history.n* *mon.out history.proto history.after test.out doit
+***************
+*** 270,275 ****
+  	rm -rf arts arch arch2 arch3 nbin
+  
+! clean:	tidy
+! 	rm -f *.o expire histslash mkdbm histinfo explist explist.*
+  	rm -f dtr updatemin
+  
+--- 271,276 ----
+  	rm -rf arts arch arch2 arch3 nbin
+  
+! clean:	rclean
+! 	rm -f *.o expire histslash histinfo explist explist.*
+  	rm -f dtr updatemin
+  
+
+*** cnpatch/old/expire/expire.c	Sat Jul  6 22:10:57 1991
+--- expire/expire.c	Sat Jul  6 22:07:34 1991
+***************
+*** 87,93 ****
+  char dont[] = "don't";		/* magic cookie for whereexpire() return */
+  
+! time_t now;
+  struct timeb ftnow;		/* ftime() result for getdate() */
+  #define	NODATE	((time_t)(-1))	/* time_t value indicating date not given */
+  
+  char subject[200] = "";		/* Subject line for -p, minus header */
+--- 87,94 ----
+  char dont[] = "don't";		/* magic cookie for whereexpire() return */
+  
+! time_t now;			/* set once in startup, as reference */
+  struct timeb ftnow;		/* ftime() result for getdate() */
+  #define	NODATE	((time_t)(-1))	/* time_t value indicating date not given */
++ time_t latest =	0;		/* most recent arrival date */
+  
+  char subject[200] = "";		/* Subject line for -p, minus header */
+***************
+*** 242,245 ****
+--- 243,251 ----
+  	newsunlock();
+  
++ 	if (latest > time((time_t *)NULL)) {
++ 		complain("some article arrival dates are in the future!", "");
++ 		complain("\tis your system clock set wrong?", "");
++ 	}
++ 
+  	if (verbose) {
+  		fprintf(stderr, "%ld kept, %ld expired\n", nkept, ngone);
+***************
+*** 261,264 ****
+--- 267,271 ----
+  	register char *p;
+  	void ctlline();
++ 	register int gotone = 0;
+  
+  	while (fgets(line, sizeof(line), f) != NULL) {
+***************
+*** 269,273 ****
+--- 276,284 ----
+  		if (line[0] != '#' && line[0] != '\0')
+  			ctlline(line);
++ 		gotone = 1;
+  	}
++ 
++ 	if (!gotone)
++ 		die("control file empty!", "");
+  }
+  
+***************
+*** 512,518 ****
+  		if (unlink("history.n") < 0)
+  			fail("disaster -- can't unlink history.n!", "");
+! 		if (unlink("history.dir") < 0)
+  			fail("disaster -- can't unlink history.dir!", "");
+! 		if (unlink("history.pag") < 0)
+  			fail("disaster -- can't unlink history.pag!", "");
+  		if (link("history.n.dir", "history.dir") < 0)
+--- 523,529 ----
+  		if (unlink("history.n") < 0)
+  			fail("disaster -- can't unlink history.n!", "");
+! 		if (unlink("history.dir") < 0 && errno != ENOENT)
+  			fail("disaster -- can't unlink history.dir!", "");
+! 		if (unlink("history.pag") < 0 && errno != ENOENT)
+  			fail("disaster -- can't unlink history.pag!", "");
+  		if (link("history.n.dir", "history.dir") < 0)
+***************
+*** 589,592 ****
+--- 600,605 ----
+  		return(line);
+  	}
++ 	if (recdate > latest)
++ 		latest = recdate;
+  	free(line);
+  	if (expdebug)
+***************
+*** 1071,1076 ****
+  		dir++;
+  	errno = 0;
+! 	if (stat(dir, &stbuf) < 0 || (stbuf.st_mode&S_IFMT) != S_IFDIR)
+! 		GRUMP("archiving directory `%s' is not a directory", dir);
+  	if (access(dir, 02) < 0)
+  		GRUMP("archiving directory `%s' not writable", dir);
+--- 1084,1089 ----
+  		dir++;
+  	errno = 0;
+! 	if (stat(dir, &stbuf) < 0)
+! 		GRUMP("archiving directory `%s' does not exist", dir);
+  	if (access(dir, 02) < 0)
+  		GRUMP("archiving directory `%s' not writable", dir);
+
+*** cnpatch/old/expire/mkhistory	Sat Jul  6 22:11:08 1991
+--- expire/mkhistory	Fri Jul  5 15:21:42 1991
+***************
+*** 31,37 ****
+  cd $NEWSARTS
+  them=
+! for f in `ls | egrep -v '\.'`
+  do
+! 	if test -d $f
+  	then
+  		them="$them $f"
+--- 31,37 ----
+  cd $NEWSARTS
+  them=
+! for f in `ls | egrep -v '\.|(^lost\+found$)'`
+  do
+! 	if test -d $f -a -r $f
+  	then
+  		them="$them $f"
+***************
+*** 48,52 ****
+  	echo "$0:     (grep history file for '@trash' to see them)" >&2
+  fi
+! mkdbm history.n
+  
+  if test -f history
+--- 48,52 ----
+  	echo "$0:     (grep history file for '@trash' to see them)" >&2
+  fi
+! dbz history.n
+  
+  if test -f history
+
+*** cnpatch/old/input/Makefile	Sat Jul  6 22:11:24 1991
+--- input/Makefile	Thu Jun 27 17:09:38 1991
+***************
+*** 84,87 ****
+--- 84,94 ----
+  	echo 'here is a phony third batch' >>$@
+  
++ test.n1:
++ 	: compress tends to return silly exit status for tiny inputs
++ 	-true | compress -b12 >$@
++ 
++ test.n2:	test.n1
++ 	( echo '#! cunbatch' ; cat test.n1 ) >$@
++ 
+  test.out:
+  	echo '#! rnews' >$@
+***************
+*** 110,117 ****
+  	echo 'ln $$*' >bin/newslock
+  	echo 'echo 10' >bin/sizeof
+  	chmod +x bin/* bin/input/*
+  	mkdir in.coming
+  
+! r:	all test.1 test.2 test.3 test.3c test.out test.out2 setup
+  	chmod +x $(THEM)
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.1
+--- 117,125 ----
+  	echo 'ln $$*' >bin/newslock
+  	echo 'echo 10' >bin/sizeof
++ 	echo ':' >bin/staleness
+  	chmod +x bin/* bin/input/*
+  	mkdir in.coming
+  
+! r:	all test.1 test.2 test.3 test.3c test.n1 test.n2 test.out test.out2 setup
+  	chmod +x $(THEM)
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.1
+***************
+*** 120,123 ****
+--- 128,134 ----
+  	sleep 2			# must delay for sake of "ls -t"!
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.2
++ 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.n1
++ 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.n2
++ 	test `ls in.coming | wc -l` -eq 2 ;
+  	cmp `ls -t in.coming | sed -n '1s;^;in.coming/;p'` test.2
+  	expr `ls -t in.coming | sed -n '1s;^;in.coming/;p'` : '.*\.Z' >/dev/null
+***************
+*** 137,141 ****
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.1
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./newsspool -g 4 <test.2 2>/dev/null
+! 	echo >rnews.newsrun
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` NEWSBIN=`pwd`/bin ./rnews <test.3
+  	cmp tmp.1 test.out2
+--- 148,152 ----
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.1
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./newsspool -g 4 <test.2 2>/dev/null
+! 	echo >rnews.immed
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` NEWSBIN=`pwd`/bin ./rnews <test.3
+  	cmp tmp.1 test.out2
+***************
+*** 143,147 ****
+  
+  rtidy:
+! 	rm -f tmp.? LOCK* rnews.newsrun
+  	rm -rf bin in.coming
+  
+--- 154,158 ----
+  
+  rtidy:
+! 	rm -f tmp.? LOCK* rnews.immed
+  	rm -rf bin in.coming
+  
+
+*** cnpatch/old/input/newsrun	Sat Jul  6 22:11:28 1991
+--- input/newsrun	Tue Mar 26 12:21:45 1991
+***************
+*** 23,27 ****
+  hold=
+  case "$1" in
+! -h)	hold=y	;;
+  esac
+  
+--- 23,27 ----
+  hold=
+  case "$1" in
+! -h)	hold=y ; shift	;;
+  esac
+  
+
+*** cnpatch/old/input/newsrunning	Sat Jul  6 22:11:29 1991
+--- input/newsrunning	Sat Jun  1 19:06:01 1991
+***************
+*** 12,20 ****
+  case "$1"
+  in
+! 	on)
+  	rm -f $stop
+  	;;
+  
+! 	off)
+  	if test ! -r $stop	# don't update already-existing file
+  	then
+--- 12,20 ----
+  case "$1"
+  in
+! 	'on')
+  	rm -f $stop
+  	;;
+  
+! 	'off')
+  	if test ! -r $stop	# don't update already-existing file
+  	then
+
+*** cnpatch/old/input/newsspool.c	Sat Jul  6 22:11:31 1991
+--- input/newsspool.c	Fri Jul  5 13:39:00 1991
+***************
+*** 110,115 ****
+  				if (fstat(fileno(in), &statbuf) < 0)
+  					error("can't fstat `%s'", argv[optind]);
+- 				if ((statbuf.st_mode & S_IFMT) == S_IFDIR)
+- 					error("`%s' is directory!", argv[optind]);
+  				process(in, argv[optind]);
+  				(void) fclose(in);
+--- 110,113 ----
+***************
+*** 139,142 ****
+--- 137,141 ----
+  	register int n;
+  	char *name;
++ 	register int wrotesome = 0;
+  
+  	name = outname();
+***************
+*** 153,162 ****
+  		} else
+  			p = buf;
+! 		n = fwrite(p, sizeof(char), count, out);
+! 		if (n != count)
+! 			error("write error in output to `%s'", name);
+  	}
+  
+! 	outclose(out, name);
+  }
+  
+--- 152,164 ----
+  		} else
+  			p = buf;
+! 		if (count > 0) {
+! 			n = fwrite(p, sizeof(char), count, out);
+! 			if (n != count)
+! 				error("write error in output to `%s'", name);
+! 			wrotesome = 1;
+! 		}
+  	}
+  
+! 	outclose(out, name, wrotesome);
+  }
+  
+***************
+*** 198,204 ****
+   */
+  void
+! outclose(f, tmpname)
+  FILE *f;
+  char *tmpname;
+  {
+  	register char *p;
+--- 200,207 ----
+   */
+  void
+! outclose(f, tmpname, wrotesome)
+  FILE *f;
+  char *tmpname;
++ int wrotesome;			/* did anything actually get written to it? */
+  {
+  	register char *p;
+***************
+*** 209,212 ****
+--- 212,219 ----
+  	if (nfclose(f) == EOF)
+  		error("close error on file `%s'", tmpname);
++ 	if (!wrotesome) {
++ 		(void) unlink(tmpname);
++ 		return;
++ 	}
+  
+  	p = fullartfile("in.coming/");
+***************
+*** 256,259 ****
+--- 263,267 ----
+  	register char *p;
+  	register int nleft;
++ #	define	MINCBATCH	5		/* one character, compressed */
+  
+  	nleft = count;
+***************
+*** 264,267 ****
+--- 272,277 ----
+  
+  	if (p[0] == comp[0] && p[1] == comp[1]) {	/* compressed */
++ 		if (nleft < MINCBATCH)
++ 			return(count);
+  		suffix = suf;
+  		return(0);
+***************
+*** 299,302 ****
+--- 309,314 ----
+  		return(0);
+  
++ 	if (nleft < MINCBATCH)			/* null batch */
++ 		return(count);
+  	return(p - bufp);
+  }
+
+*** cnpatch/old/input/rnews	Sat Jul  6 22:11:34 1991
+--- input/rnews	Fri May 31 13:08:28 1991
+***************
+*** 31,35 ****
+  
+  # spool it
+! if test -f $NEWSCTL/rnews.newsrun
+  then
+  	opt=-i
+--- 31,35 ----
+  
+  # spool it
+! if test -f $NEWSCTL/rnews.immed
+  then
+  	opt=-i
+
+*** cnpatch/old/libc/Makefile	Sat Jul  6 22:11:44 1991
+--- libc/Makefile	Wed Jul  3 14:51:22 1991
+***************
+*** 7,11 ****
+  
+  OBJS = closeall.o efopen.o error.o fgetmfs.o getdate.o nfclose.o \
+! 	standard.o stdfdopen.o warning.o emalloc.o split.o \
+  	getabsdate.o getindate.o datetok.o dateconv.o qmktime.o
+  
+--- 7,11 ----
+  
+  OBJS = closeall.o efopen.o error.o fgetmfs.o getdate.o nfclose.o \
+! 	stdfdopen.o warning.o emalloc.o split.o \
+  	getabsdate.o getindate.o datetok.o dateconv.o qmktime.o
+  
+
+*** cnpatch/old/libcnews/config.c	Sat Jul  6 22:12:06 1991
+--- libcnews/config.c	Mon May 27 17:36:20 1991
+***************
+*** 37,40 ****
+--- 37,44 ----
+  #define	NEWSMASTER	"usenet"
+  #endif
++ #ifndef NEWSCONFIG
++ /* =()<#define	NEWSCONFIG	"@<NEWSCONFIG>@">()= */
++ #define	NEWSCONFIG	"/usr/lib/news/bin/config"
++ #endif
+  
+  static char *pwd = NULL;	/* Current directory, NULL means unknown. */
+***************
+*** 46,49 ****
+--- 50,54 ----
+  static int numask = NEWSUMASK;
+  static char *nmaster = NEWSMASTER;
++ static char *nconfig = NEWSCONFIG;
+  #define	DIRS()	if (!dirsset) setdirs()
+  
+***************
+*** 111,114 ****
+--- 116,125 ----
+  		nmaster = p;
+  		NONSTD("NEWSMASTER");
++ 	}
++ 
++ 	p = getenv("NEWSCONFIG");
++ 	if (p != NULL && !STREQ(p, nconfig)) {
++ 		nconfig = p;
++ 		NONSTD("NEWSCONFIG");
+  	}
+  
+
+*** cnpatch/old/libstdio/Makefile	Sat Jul  6 22:12:36 1991
+--- libstdio/Makefile	Thu Jun 27 17:15:24 1991
+***************
+*** 2,6 ****
+  OBJ=fgets.o fputs.o rdwr.o
+  # PTR_TYPE is the type of _ptr in stdio.h, if not "char *"
+! DEFINES = '-DPTR_TYPE=unsigned char *'
+  COPTS = -O
+  CFLAGS = $(DEFINES) $(COPTS)
+--- 2,6 ----
+  OBJ=fgets.o fputs.o rdwr.o
+  # PTR_TYPE is the type of _ptr in stdio.h, if not "char *"
+! DEFINES = '-DPTR_TYPE=unsigned char *' -I../include
+  COPTS = -O
+  CFLAGS = $(DEFINES) $(COPTS)
+***************
+*** 32,36 ****
+  stdiock.stock: stdiock.o $(LIBS)
+  	: search -lc before libcnews.a to get stock stdio
+! 	$(CC) $(CFLAGS) $(LDFLAGS) stdiock.o $(PRE) -lc $(LIBS) $(POST) -o $@
+  stdiock.fast: stdiock.o $(OBJ) $(LIBS)
+  	: load *.o by hand to get tuned stdio
+--- 32,37 ----
+  stdiock.stock: stdiock.o $(LIBS)
+  	: search -lc before libcnews.a to get stock stdio
+! 	: -n is an attempt to force static loading on shared-library systems
+! 	$(CC) $(CFLAGS) $(LDFLAGS) -n stdiock.o $(PRE) -lc $(LIBS) $(POST) -o $@
+  stdiock.fast: stdiock.o $(OBJ) $(LIBS)
+  	: load *.o by hand to get tuned stdio
+
+*** cnpatch/old/man/README	Sat Jul  6 22:12:59 1991
+--- man/README	Tue Jun 25 17:00:25 1991
+***************
+*** 12,13 ****
+--- 12,24 ----
+  
+  The only fonts used are the standard R, I, and B.
++ 
++ If you do not have nroff/troff, there are various ways of reading this
++ stuff.  Note, in particular, that the Formatter Police are not going to
++ come and drag you away for reading the raw sources, which are not very
++ complicated or hard to read.  If you absolutely can't read anything
++ that isn't filled and justified, the awf text formatter (comp.sources.unix:
++     Submitted-by: henry@zoo.toronto.edu
++     Posting-number: Volume 23, Issue 27
++     Archive-name: awf
++ on any comp.sources.unix archive site or ftp.cs.toronto.edu:pub/awf.shar.Z)
++ does a good job on most of our documentation.
+
+*** cnpatch/old/man/inews.1	Sat Jul  6 22:13:06 1991
+--- man/inews.1	Mon May 27 13:36:29 1991
+***************
+*** 111,117 ****
+  .IR relaynews (8),
+  provided the newsgroup(s) are unmoderated.
+! If the groups are moderated,
+  the article will instead be mailed
+! to the moderators of the moderated newsgroups in the
+  .B Newsgroups:
+  header.
+--- 111,117 ----
+  .IR relaynews (8),
+  provided the newsgroup(s) are unmoderated.
+! If any of the groups are moderated,
+  the article will instead be mailed
+! to the moderator of one of the moderated newsgroups in the
+  .B Newsgroups:
+  header.
+
+*** cnpatch/old/man/news.5	Sat Jul  6 22:13:10 1991
+--- man/news.5	Thu Jul  4 13:51:12 1991
+***************
+*** 29,33 ****
+  .LP
+  ..
+! .TH NEWS 5 "12 Sept 1990"
+  .BY "C News"
+  .SH NAME
+--- 29,33 ----
+  .LP
+  ..
+! .TH NEWS 5 "4 July 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 71,74 ****
+--- 71,77 ----
+  see ``Standard for the Interchange of USENET Messages''
+  (RFC 1036 nee 850)
++ and
++ ``Standard for the Format of ARPA Internet Text Messages''
++ (RFC 822, but note amendments in RFC 1123)
+  for a full description.
+  The following headers are among those recognized:
+***************
+*** 320,324 ****
+  header
+  are similarly matched against the
+! .IR distributions .
+  If no
+  .I distributions
+--- 323,328 ----
+  header
+  are similarly matched against the
+! .IR distributions
+! subfield, if any.
+  If no
+  .I distributions
+***************
+*** 529,533 ****
+  .IR newsinvaders (9.1)
+  .br
+! ARPA Internet RFCs 1036 and 850
+  .SH BUGS
+  B format articles must not start with
+--- 533,537 ----
+  .IR newsinvaders (9.1)
+  .br
+! ARPA Internet RFCs 1036, 850, 822, 1123
+  .SH BUGS
+  B format articles must not start with
+
+*** cnpatch/old/man/newsaux.8	Sat Jul  6 22:13:15 1991
+--- man/newsaux.8	Mon Jun 17 14:58:09 1991
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH NEWSAUX 8 "13 Jan 1990"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH NEWSAUX 8 "17 June 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 16,20 ****
+  sizeof \- get size of file(s) for news
+  .br
+! ctime, getdate \- convert dates to and from internal representation for news
+  .br
+  newshostname \- get host name for news
+--- 16,20 ----
+  sizeof \- get size of file(s) for news
+  .br
+! ctime, getdate, getabsdate \- convert dates to and from internal representation for news
+  .br
+  newshostname \- get host name for news
+
+*** cnpatch/old/misc/addgroup	Sat Jul  6 22:13:28 1991
+--- misc/addgroup	Sun Jun 30 19:36:31 1991
+***************
+*** 54,58 ****
+  esac
+  
+! SENDER=${USER-unknown}@`hostname`
+  echo "$1 `getdate now` $SENDER" >>$NEWSCTL/active.times  # rn hook
+- echo "newsgroup $1 was created locally by $SENDER." | mail $NEWSMASTER
+--- 54,57 ----
+  esac
+  
+! SENDER=${LOGNAME-${USER-unknown}}@`hostname`
+  echo "$1 `getdate now` $SENDER" >>$NEWSCTL/active.times  # rn hook
+
+*** cnpatch/old/misc/addmissing	Sat Jul  6 22:13:30 1991
+--- misc/addmissing	Mon Jun 10 11:23:05 1991
+***************
+*** 41,47 ****
+  cd $NEWSARTS
+  them=
+! for f in `ls | egrep -v '\.'`
+  do
+! 	if test -d $f
+  	then
+  		them="$them $f"
+--- 41,47 ----
+  cd $NEWSARTS
+  them=
+! for f in `ls | egrep -v '\.|(^lost\+found$)'`
+  do
+! 	if test -d $f -a -r $f
+  	then
+  		them="$them $f"
+
+*** cnpatch/old/misc/newswatch	Sat Jul  6 22:13:47 1991
+--- misc/newswatch	Sun Jun 30 21:57:09 1991
+***************
+*** 15,18 ****
+--- 15,20 ----
+  fi
+  
++ tmp=/tmp/newsw$$
++ 
+  cd $NEWSCTL
+  
+***************
+*** 23,28 ****
+  	if test " $trouble" != " "
+  	then
+! 		ls -ldtr $trouble | mail $gurus
+  	fi
+  fi
+  touch watchtime
+--- 25,40 ----
+  	if test " $trouble" != " "
+  	then
+! 		ls -ldtr $trouble >$tmp
+  	fi
+  fi
++ 
++ if test -s $tmp
++ then
++ 	(
++ 		echo 'Subject: newswatch has detected news-system anomalies'
++ 		echo
++ 		cat $tmp
++ 	) | mail $gurus
++ fi
++ rm -f $tmp
+  touch watchtime
+
+*** cnpatch/old/notebook/README	Sat Jul  6 22:13:50 1991
+--- notebook/README	Tue Jun 25 17:01:02 1991
+***************
+*** 14,15 ****
+--- 14,26 ----
+  
+  Config, newslock, log need tbl.  Nothing here uses eqn.
++ 
++ If you do not have nroff/troff, there are various ways of reading this
++ stuff.  Note, in particular, that the Formatter Police are not going to
++ come and drag you away for reading the raw sources, which are not very
++ complicated or hard to read.  If you absolutely can't read anything
++ that isn't filled and justified, the awf text formatter (comp.sources.unix:
++     Submitted-by: henry@zoo.toronto.edu
++     Posting-number: Volume 23, Issue 27
++     Archive-name: awf
++ on any comp.sources.unix archive site or ftp.cs.toronto.edu:pub/awf.shar.Z)
++ does a good job on most of our documentation (although it doesn't do tbl).
+
+*** cnpatch/old/notebook/ctlmsg	Sat Jul  6 22:13:54 1991
+--- notebook/ctlmsg	Thu Jun 27 18:18:07 1991
+***************
+*** 61,65 ****
+  Most control messages are implemented by
+  .I relaynews
+! by executing the command following
+  .B Control:
+  with a search path of
+--- 61,65 ----
+  Most control messages are implemented by
+  .I relaynews
+! by executing the command line following
+  .B Control:
+  with a search path of
+
+*** cnpatch/old/notebook/problems	Sat Jul  6 22:14:04 1991
+--- notebook/problems	Fri Jul  5 12:38:44 1991
+***************
+*** 1,3 ****
+! .DA "14 March 1991"
+  .TL
+  Known Porting Problems With C News
+--- 1,3 ----
+! .DA "4 July 1991"
+  .TL
+  Known Porting Problems With C News
+***************
+*** 89,116 ****
+  of a zillion shell files) is reported to banish the problems.
+  .PP
+! In some environments, when processing batches which are not compressed,
+! extremely mysterious malfunctions occur and messages reporting a
+! \fIrelaynews\fR exit status of 1005 (and the like) are seen.
+! This is believed to be a subtle shell bug that shows up
+! when a pipeline is used as the condition in a shell \fIif\fR.
+! Unless you use \fIc7encode\fRd transmission\(emwhich is very rare\(ema
+! workaround is to comment out
+! the following lines in \fIinput/newsrun\fR:
+! .DS
+! elif c7decode <$f 2>/dev/null | compress \-d >$text 2>/dev/null
+! then
+! 	: okay
+! .DE
+! A minor bonus is that this will improve processing speed (!).
+! We plan improvements to input processing, and this problem should be
+! eliminated as a side effect of that.
+! .PP
+! (Note, this is \fInot\fR the well-known bug of many old shells,
+! in which the choice of process whose exit status is picked up is
+! semi-random in such situations.
+! Exercise for the reader:  show that
+! \fIthat\fR is not a problem in \fInewsrun\fR.)
+  .SH
+! Make vs. Test
+  .PP
+  There is a persistent problem on 3B2s with implementations of \fImake\fR
+--- 89,101 ----
+  of a zillion shell files) is reported to banish the problems.
+  .PP
+! It is reliably reported that recent SunOS shells give the wrong exit status
+! from the \fIwait\fR command:
+! they give a 0 for a successful wait, rather than giving the exit status of
+! the process waited for.
+! This makes \fIinews \-W\fR appear to always succeed even if backgrounded
+! parts of it failed, which can be troublesome in NNTP environments where
+! correct exit status is important.
+  .SH
+! Make Problems
+  .PP
+  There is a persistent problem on 3B2s with implementations of \fImake\fR
+***************
+*** 128,131 ****
+--- 113,125 ----
+  is good at finding ways to break such workarounds.
+  This problem is also known to occur in A/UX.
++ .PP
++ Another obscure problem, a bug in either \fImake\fR or the shell, appears
++ in at least some releases of Ultrix:
++ a construct like
++ .DS
++ 	ln ... || cp ...
++ .DE
++ in a shell file is seen as an error\(emand \fImake\fR aborts\(emwhen
++ the \fIln\fR fails, even though the \fIcp\fR would work.
+  .SH
+  Offsetof
+***************
+*** 175,178 ****
+--- 169,173 ----
+  telling \fIbuild\fR that you don't want to use the fast-stdio stuff is
+  always safe.
++ This is also the best response if you have trouble compiling those routines.
+  .SH
+  void
+***************
+*** 482,495 ****
+  Compress Behavior
+  .PP
+- Some imbecilic vendors have altered \fIcompress\fR so that it must be
+- given a \fB\-u\fR option (instead of the standard \fB\-d\fR) to uncompress
+- a file.
+- The symptoms of this are strange:
+- local postings and occasional outside articles come through all right
+- (because they weren't compressed), but most outside traffic gets rejected
+- by \fIrelaynews\fR, which complains that it lacks `Path:' lines.
+- (In general, a complaint about a lack of `Path:' tends to mean that
+- \fIrelaynews\fR got fed total gibberish.)
+- .PP
+  Extremely old (pre-1985) versions of \fIcompress\fR run off at the mouth
+  with a status message
+--- 477,480 ----
+***************
+*** 636,645 ****
+  Berkeley-emulation library, or the code links but will not run.
+  .SH
+! AIX/370 vs. fsync()
+  .PP
+  The
+  .I relaynews
+! regression test fails under AIX/370, because the system refuses to do
+! an
+  .I fsync
+  on a file descriptor open to
+--- 621,630 ----
+  Berkeley-emulation library, or the code links but will not run.
+  .SH
+! AIX and Mach vs. fsync()
+  .PP
+  The
+  .I relaynews
+! regression test fails under some (all?) AIXes,
+! because the system refuses to do an
+  .I fsync
+  on a file descriptor open to
+***************
+*** 646,649 ****
+--- 631,635 ----
+  .I /dev/null .
+  It is possible that this does not affect production use, however.
++ Mach (at least on the NeXT) is reported to have similar problems.
+  .SH
+  AIX/370 vs. Shell Files
+***************
+*** 673,674 ****
+--- 659,689 ----
+  	value = fetch(key);
+  .DE
++ .SH
++ staleness vs. Ultrix
++ .PP
++ Several Ultrix users have reported a problem with the ``staleness''
++ command.
++ It seems Ultrix's \fIsed\fR is an antique and blows up on the complex
++ regular expression in \fIstaleness\fR.
++ A fix, at some small cost in performance, is to change the last four lines
++ of \fIstaleness\fR to something like
++ .DS
++ exec awk '$1 == "/expired/" { print "-o", $3 }' $NEWSCTL/explist
++ .DE
++ .SH
++ SCO Xenix string functions
++ .\" Sydney S. Weinstein discovered this horror
++ .PP
++ Under SCO Xenix 2.3,
++ and perhaps other recently-released SCO systems,
++ the string functions like \fIstrchr\fR exist but can be
++ inordinately slow when dealing with long strings.
++ This is not an academic issue:  one symptom is that \fIrelaynews\fR
++ takes a long time to start up, eating 10-15 seconds of CPU time
++ before it starts processing articles.
++ This apparently is a combination of badly-written code and
++ strange internationalization support.
++ Just using our string functions, by
++ telling \fIbuild\fR that your system does not have them, works much better.
++ Telling the compiler \fB\-nointl\fR may be helpful if you don't want
++ to go that far.
+
+*** cnpatch/old/notebook/rfcerrata	Sat Jul  6 22:14:10 1991
+--- notebook/rfcerrata	Wed May 15 14:18:17 1991
+***************
+*** 17,21 ****
+  References are made to
+  RFC 850,
+! the previous netnews message format standard.
+  .SH
+  Header order insignificant
+--- 17,23 ----
+  References are made to
+  RFC 850,
+! the previous netnews message format standard,
+! and also to RFC 822, the mail message format standard
+! (which, note, has been slightly amended by RFC 1123).
+  .SH
+  Header order insignificant
+***************
+*** 204,205 ****
+--- 206,219 ----
+  such bizarre header names are dubious and unwise practice.
+  RFC 1036 probably should be tightened up to exclude them.
++ .SH
++ RFC 822 Comments
++ .PP
++ RFC 1036 section 2 implies, both in its general discussion and in its
++ discussion of the ``From:'' header, that RFC 822 comments are not,
++ in general, accepted in RFC 1036 article format.
++ However, the point is not made loudly and explicitly, and some nit-pickers
++ argue that RFC 1036 permits dubious practices like timezone name comments
++ in ``Date:'' headers.
++ This needs to be nailed down in black and white.
++ C News takes a strict position on this in cases where it cares about
++ the contents of headers.
+
+*** cnpatch/old/rna/defs.h	Sat Jul  6 22:15:43 1991
+--- rna/defs.h	Thu May  9 17:23:10 1991
+***************
+*** 119,123 ****
+  char	*getunique(), *getretaddr(), *getsubject();
+  FILE	*fopenl(), *fopenf();
+! char	*memset(), *myalloc(), *myrealloc();
+  long	time(), atol(), atot();
+  int	strpcmp();
+--- 119,123 ----
+  char	*getunique(), *getretaddr(), *getsubject();
+  FILE	*fopenl(), *fopenf();
+! char	*myalloc(), *myrealloc();
+  long	time(), atol(), atot();
+  int	strpcmp();
+
+
+end of patch 6-Jul-1991

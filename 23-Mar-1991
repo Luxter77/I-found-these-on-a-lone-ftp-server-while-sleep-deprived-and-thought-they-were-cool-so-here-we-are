@@ -1,0 +1,1756 @@
+Xref: news-server.csri.toronto.edu news.software.b:7151 comp.sources.bugs:2867
+Newsgroups: news.software.b,comp.sources.bugs
+Path: news-server.csri.toronto.edu!utzoo!henry
+From: henry@zoo.toronto.edu (Henry Spencer)
+Subject: C News patch of 23-Mar-1991
+Message-ID: <1991Mar24.045934.22543@zoo.toronto.edu>
+Date: Sun, 24 Mar 1991 04:59:34 GMT
+Organization: U of Toronto Zoology
+
+Third of the four patches in the March set.  Installing any of these without
+installing all of them voids your warranty. :-)
+
+This one is the changes to relaynews and friends.  Fix bug in white-space
+handling in canonsys.awk (used by some control messages).  Disallow creation
+of newsgroups with names containing white space.  BE MUCH FUSSIER ABOUT THE
+HEADER SYNTAX AND ABOUT THE HEADERS THAT RFC1036 REQUIRES; time to fix your
+gateway software, guys, these changes reject a lot of sloppy practices that
+we used to tolerate!  (Note two odd items in particular:  a message ID must
+contain an `@', and even an empty header must have white space after the `:'!)
+Fix makefile bug that tried to install /usr/lib/news/inews at the wrong time
+(with the wrong permissions).  CHECK POSTING DATES AND REJECT ANYTHING TOO
+FAR IN THE FUTURE (currently defined as one day), TOO FAR IN THE PAST (set
+by -o option), OR WITH AN ILLEGAL DATE (gateway operators again take note!).
+Regression test revised substantially.  Have inews canonicalize dates if
+necessary, and warn of various evil practices in headers and elsewhere.
+New auxiliary program, relayrun, intended as a wrapper for relaynews for
+use by NNTP (so nntpd etc. don't need a hardwired definition of the right
+options).  New auxiliary program, staleness, for synthesizing a suitable
+-o option based on NEWSCTL/explist.
+
+start of patch 23-Mar-1991
+(suggested archive name: `pch23Mar91.Z')
+this should be run with   patch -p0 <thisfile
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+Prereq: 13-Dec-1990
+Prereq: 14-Dec-1990
+Prereq: 15-Dec-1990
+Prereq: 16-Mar-1991
+Prereq: 17-Mar-1991
+*** PATCHDATES.old	Sat Mar 23 22:26:56 1991
+--- PATCHDATES	Sat Mar 23 22:26:56 1991
+***************
+*** 1,25 ****
+--- 1,26 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
+  13-Dec-1990
+  14-Dec-1990
+  15-Dec-1990
+  16-Mar-1991
+  17-Mar-1991
++ 23-Mar-1991
+
+Changed files, if any:
+
+*** cnpatch/old/relay/article.c	Sat Mar 23 22:27:21 1991
+--- relay/article.c	Wed Feb 20 06:18:18 1991
+***************
+*** 33,36 ****
+--- 33,37 ----
+  	art->a_unread = 0;
+  	art->a_id = uniqno++;
++ 	art->a_badhdr = NO;
+  }
+  
+
+*** cnpatch/old/relay/article.h	Sat Mar 23 22:27:24 1991
+--- relay/article.h	Wed Feb 20 06:25:23 1991
+***************
+*** 24,27 ****
+--- 24,28 ----
+  	long a_unread;		/* bytes of article input yet unread */
+  	long a_id;		/* article id #, unique within this batch */
++ 	boolean a_badhdr;	/* true iff non-header is before blank line */
+  };
+  
+
+*** cnpatch/old/relay/aux/canonsys.awk	Sat Mar 23 22:27:28 1991
+--- relay/aux/canonsys.awk	Fri Jan  4 01:44:08 1991
+***************
+*** 5,8 ****
+--- 5,9 ----
+  /^#/	{ partline = ""; next }		# delete comments
+  /^[\t ]/	{
++ 	n = 0
+  	for (s = substr(thisln, n); s ~ /^[\t ]/; s = substr(thisln, ++n))
+  		;			# skip leading whitespace
+
+*** cnpatch/old/relay/control.c	Sat Mar 23 22:27:40 1991
+--- relay/control.c	Wed Feb 20 07:24:23 1991
+***************
+*** 257,260 ****
+--- 257,265 ----
+  }
+  
++ /*
++  * we must be excessively paranoid in oldctl and hackoldctl since when we
++  * are called, required headers have not been checked for presence, so any
++  * header pointers could be NULL.
++  */
+  STATIC boolean
+  oldctl(hdrs)				/* true iff ngs match OLDCNTRL */
+***************
+*** 262,270 ****
+  {
+  #ifdef SLOWCTLMATCH
+! 	return ngmatch(OLDCNTRL, hdrs->h_ngs);
+  #else
+! 	register int ngslen = strlen(hdrs->h_ngs);
+  
+! 	if (ngslen < STRLEN(SFXOLDCNTRL))	/* ngs too short */
+  		return NO;
+  	else					/* check for .ctl suffix */
+--- 267,275 ----
+  {
+  #ifdef SLOWCTLMATCH
+! 	return ngmatch(OLDCNTRL, nullify(hdrs->h_ngs));
+  #else
+! 	register int ngslen = strlen(nullify(hdrs->h_ngs));
+  
+! 	if (ngslen < STRLEN(SFXOLDCNTRL))	/* ngs too short or missing */
+  		return NO;
+  	else					/* check for .ctl suffix */
+***************
+*** 284,288 ****
+  {
+  	if (hdrs->h_ctlcmd == NULL && oldctl(hdrs))
+! 		hdrs->h_ctlcmd = strsave(hdrs->h_subj);
+  }
+  
+--- 289,293 ----
+  {
+  	if (hdrs->h_ctlcmd == NULL && oldctl(hdrs))
+! 		hdrs->h_ctlcmd = strsave(nullify(hdrs->h_subj));
+  }
+  
+
+*** cnpatch/old/relay/ctl/newgroup	Sat Mar 23 22:27:52 1991
+--- relay/ctl/newgroup	Mon Mar 11 01:14:19 1991
+***************
+*** 22,25 ****
+--- 22,36 ----
+  esac
+  
++ case "$1" in
++ *[\	\ ]*)
++ 	cat <<! |
++ $0: $SENDER tried to create newsgroup \`$1' but it contains whitespace,
++ $0: and so was refused.
++ !
++ 		mail $NEWSMASTER
++ 	exit 0
++ 	;;
++ esac
++ 
+  greppat="^`echo $1 | sed 's/\./\\\\./g' ` "
+  if grep -s "$greppat" $NEWSCTL/active >/dev/null; then	# group exists?
+
+*** cnpatch/old/relay/hdrdefs.c	Sat Mar 23 22:27:59 1991
+--- relay/hdrdefs.c	Fri Feb 15 00:02:32 1991
+***************
+*** 22,38 ****
+  #endif
+  
+! /* "mandatory" headers (also From:, Date:) */
+! static const char msgnm[] =	"Message-ID:";	/* for rejection */
+  static const char ngsnm[] =	"Newsgroups:";	/* filing, clone for Xref */
+  static const char pathnm[] =	"Path:";	/* rejection, extend (damn) */
+  static const char subjnm[] =	"Subject:";	/* for ctl. msgs. */
+  
+  /* optional headers */
+! static const char appnm[] =	"Approved:";	/* for mod. groups */
+  static const char ctlnm[] =	"Control:";	/* ctl. msg.; NCMP */
+! static const char etctlnm[] =	"Also-Control:";	/* hybrid ctl. msg.; NCMP */
+! static const char expnm[] =	"Expires:";	/* for history */
+! static const char distrnm[] =	"Distribution:";	/* for transmission */
+! static const char sendnm[] =	"Sender:";	/* for mod. groups */
+  static const char xrefnm[] =	"Xref:";	/* to *replace* (damn!)*/
+  
+--- 22,40 ----
+  #endif
+  
+! /* required headers */
+! static const char msgnm[] =	"Message-ID:";	/* rejection of dup.s */
+  static const char ngsnm[] =	"Newsgroups:";	/* filing, clone for Xref */
+  static const char pathnm[] =	"Path:";	/* rejection, extend (damn) */
+  static const char subjnm[] =	"Subject:";	/* for ctl. msgs. */
++ static const char datenm[] =	"Date:";	/* rejection of stale art.s */
++ static const char fromnm[] =	"From:";	/* only required; no use */
+  
+  /* optional headers */
+! static const char appnm[] =	"Approved:";	/* mod. groups */
+  static const char ctlnm[] =	"Control:";	/* ctl. msg.; NCMP */
+! static const char etctlnm[] =	"Also-Control:"; /* hybrid ctl. msg.; NCMP */
+! static const char expnm[] =	"Expires:";	/* history */
+! static const char distrnm[] =	"Distribution:";	/* transmission */
+! static const char sendnm[] =	"Sender:";	/* mod. groups */
+  static const char xrefnm[] =	"Xref:";	/* to *replace* (damn!)*/
+  
+***************
+*** 56,65 ****
+  static const struct hdrdef subjhdr = {
+  	subjnm, STRLEN(subjnm), offsetof(struct headers, h_subj) };
+  
+  static const struct hdrdef apphdr = {
+  	appnm, STRLEN(appnm), offsetof(struct headers, h_approved) };
+! static const struct hdrdef ctlhdr = {					/* NCMP */
+! 	ctlnm, STRLEN(ctlnm), offsetof(struct headers, h_ctlcmd) };	/* NCMP */
+! static const struct hdrdef etctlhdr = {					/* NCMP */
+  	etctlnm, STRLEN(etctlnm), offsetof(struct headers, h_etctlcmd) }; /* NCMP */
+  static const struct hdrdef exphdr = {
+--- 58,71 ----
+  static const struct hdrdef subjhdr = {
+  	subjnm, STRLEN(subjnm), offsetof(struct headers, h_subj) };
++ static const struct hdrdef datehdr = {
++ 	datenm, STRLEN(datenm), offsetof(struct headers, h_date) };
++ static const struct hdrdef fromhdr = {
++ 	fromnm, STRLEN(fromnm), offsetof(struct headers, h_from) };
+  
+  static const struct hdrdef apphdr = {
+  	appnm, STRLEN(appnm), offsetof(struct headers, h_approved) };
+! static const struct hdrdef ctlhdr = {				/* NCMP */
+! 	ctlnm, STRLEN(ctlnm), offsetof(struct headers, h_ctlcmd) }; /* NCMP */
+! static const struct hdrdef etctlhdr = {				/* NCMP */
+  	etctlnm, STRLEN(etctlnm), offsetof(struct headers, h_etctlcmd) }; /* NCMP */
+  static const struct hdrdef exphdr = {
+***************
+*** 81,91 ****
+  static const struct hdrdef illobjhdr = { illobjnm, STRLEN(illobjnm), -1 };
+  
+! const hdrlist parsehdrs = {	/* these are parsed into a struct headers */
+  	&msghdr,
+- 	&arthdr,		/* obsolete */
+  	&ngshdr,
+  	&pathhdr,		/* modified by hdrmunge.c (emithdr()) */
+  	&subjhdr,
+! 	/* start optional headers */
+  	&apphdr,
+  	&ctlhdr,		/* NCMP */
+--- 87,103 ----
+  static const struct hdrdef illobjhdr = { illobjnm, STRLEN(illobjnm), -1 };
+  
+! /* these are parsed into a struct headers */
+! 
+! const hdrlist reqdhdrs = {
+  	&msghdr,
+  	&ngshdr,
+  	&pathhdr,		/* modified by hdrmunge.c (emithdr()) */
+  	&subjhdr,
+! 	&datehdr,
+! 	&fromhdr,
+! 	NULL
+! };
+! const hdrlist opthdrs = {
+! 	&arthdr,		/* obsolete */
+  	&apphdr,
+  	&ctlhdr,		/* NCMP */
+***************
+*** 96,99 ****
+--- 108,112 ----
+  	NULL
+  };
++ 
+  /*
+   * the following noxious headers are deleted on contact because neighbours
+***************
+*** 137,140 ****
+--- 150,155 ----
+  	hdrs->h_path = NULL;
+  	hdrs->h_sender = NULL;
++ 	hdrs->h_from = NULL;
++ 	hdrs->h_date = NULL;
+  }
+  
+***************
+*** 154,156 ****
+--- 169,173 ----
+  	nnfree(&hdrs->h_path);
+  	nnfree(&hdrs->h_sender);
++ 	nnfree(&hdrs->h_from);
++ 	nnfree(&hdrs->h_date);
+  }
+
+*** cnpatch/old/relay/hdrint.h	Sat Mar 23 22:28:00 1991
+--- relay/hdrint.h	Fri Feb 15 00:11:38 1991
+***************
+*** 20,24 ****
+  #define DEFDIST "world"		/* default Distribution: */
+  #endif
+- #define DEFMSGID ""		/* must be empty string or contain whitespace */
+  
+  struct hdrdef {
+--- 20,23 ----
+***************
+*** 30,34 ****
+  
+  extern const struct hdrdef pathhdr, xrefhdr;
+! extern const hdrlist parsehdrs, hdrvilest;
+  
+  extern boolean headdebug;
+--- 29,33 ----
+  
+  extern const struct hdrdef pathhdr, xrefhdr;
+! extern const hdrlist reqdhdrs, opthdrs, hdrvilest;
+  
+  extern boolean headdebug;
+
+*** cnpatch/old/relay/hdrmunge.c	Sat Mar 23 22:28:02 1991
+--- relay/hdrmunge.c	Thu Feb 14 23:53:31 1991
+***************
+*** 277,281 ****
+  int hdrlen;
+  {
+!     	hdrparse(&art->h, line, parsehdrs);
+  	hdrmunge(art, line, hdrlen, hdrvilest);
+  }
+--- 277,282 ----
+  int hdrlen;
+  {
+!     	if (!hdrparse(&art->h, line, reqdhdrs))
+! 		(void) hdrparse(&art->h, line, opthdrs);
+  	hdrmunge(art, line, hdrlen, hdrvilest);
+  }
+
+*** cnpatch/old/relay/hdrparse.c	Sat Mar 23 22:28:03 1991
+--- relay/hdrparse.c	Sun Feb 17 23:44:26 1991
+***************
+*** 13,18 ****
+  #include "hdrint.h"
+  
+  /*
+!  * Parse (assumed) RFC822/850/1036 header in "line" (ishdr(line) can
+   * verify this) into "hdrs" using hdrlst set of keywords by retaining the
+   * value of any matching keyword.  Keyword matching is case-insensitive.
+--- 13,20 ----
+  #include "hdrint.h"
+  
++ #define RFC1036				/* alters hdrparse behaviour */
++ 
+  /*
+!  * Parse (assumed) RFC822 or 850/1036 header in "line" (ishdr(line) can
+   * verify this) into "hdrs" using hdrlst set of keywords by retaining the
+   * value of any matching keyword.  Keyword matching is case-insensitive.
+***************
+*** 21,25 ****
+   * freeheader() will free this memory.
+   */
+! void
+  hdrparse(hdrs, line, hdrlst)
+  register struct headers *hdrs;
+--- 23,27 ----
+   * freeheader() will free this memory.
+   */
+! int
+  hdrparse(hdrs, line, hdrlst)
+  register struct headers *hdrs;
+***************
+*** 29,32 ****
+--- 31,35 ----
+  	register struct hdrdef **hpp;
+  	register char *hackline = hackhybrid(line);
++ 	register int match = NO;
+  
+  	for (hpp = hdrlst; *hpp != NULL; hpp++) {
+***************
+*** 34,41 ****
+  
+  		if (CISTREQN(hackline, hdrnm, (int)(*hpp)->hdrlen) &&
+! 		    (*hpp)->hdroff >= 0)	/* paranoia */
+  			break;
+  	}
+! 	if (*hpp != NULL) {
+  		register char **ptrp = (char **)((char *)hdrs+(*hpp)->hdroff);
+  
+--- 37,50 ----
+  
+  		if (CISTREQN(hackline, hdrnm, (int)(*hpp)->hdrlen) &&
+! 		    (*hpp)->hdroff >= 0		/* paranoia */
+! #ifdef RFC1036
+! 		    && hackline[(*hpp)->hdrlen] == ' '
+! #endif
+! 		    ) {
+! 			match = YES;
+  			break;
++ 		}
+  	}
+! 	if (match) {
+  		register char **ptrp = (char **)((char *)hdrs+(*hpp)->hdroff);
+  
+***************
+*** 46,49 ****
+--- 55,59 ----
+  	}
+  	free(hackline);
++ 	return match;
+  }
+  
+***************
+*** 65,80 ****
+  register struct headers *hdrs;
+  {
+- 	if (hdrs->h_ngs == NULL)
+- 		hdrs->h_ngs = strsave(JUNK);
+  	if (hdrs->h_distr == NULL)
+  		hdrs->h_distr = strsave(DEFDIST);
+- 
+  	if (hdrs->h_msgid == NULL && hdrs->h_artid != NULL)
+  		hdrs->h_msgid = str3save("<", hdrs->h_artid, ">");
+- 	if (hdrs->h_msgid == NULL || hdrs->h_msgid[0] == '\0') {
+- 		nnfree(&hdrs->h_msgid);
+- 		hdrs->h_msgid = strsave(DEFMSGID);
+- 	}
+- 
+  	if (hdrs->h_expiry == NULL || hdrs->h_expiry[0] == '\0') {
+  		nnfree(&hdrs->h_expiry);
+--- 75,82 ----
+***************
+*** 81,87 ****
+  		hdrs->h_expiry = strsave(DEFEXP);
+  	}
+- 
+- 	if (hdrs->h_subj == NULL)
+- 		hdrs->h_subj = strsave("");
+  	hackoldctl(hdrs);				/* NCMP */
+  }
+--- 83,109 ----
+  		hdrs->h_expiry = strsave(DEFEXP);
+  	}
+  	hackoldctl(hdrs);				/* NCMP */
++ }
++ 
++ /*
++  * require the headers required by RFC 1036.
++  */
++ char *					/* error string */
++ hdrreq(hdrs)
++ register struct headers *hdrs;
++ {
++ 	register struct hdrdef **hpp;
++ 	static char errbuf[100];
++ 
++ 	/* require all required headers and that they have non-empty contents */
++ 	for (hpp = reqdhdrs; *hpp != NULL; hpp++) {
++ 		register char *hdrp = *(char **)((char *)hdrs + (*hpp)->hdroff);
++ 
++ 		if (hdrp == NULL || hdrp[0] == '\0') {
++ 			(void) sprintf(errbuf, "%s %s header\n",
++ 				(hdrp == NULL? "no": "empty"), (*hpp)->hdrnm);
++ 			return errbuf;
++ 		}
++ 	}
++ 	return NULL;
+  }
+
+*** cnpatch/old/relay/headers.h	Sat Mar 23 22:28:05 1991
+--- relay/headers.h	Fri Feb 15 01:10:13 1991
+***************
+*** 21,30 ****
+  	char *h_ctlcmd;	/* control command (NCMP) */
+  	char *h_etctlcmd;	/* also-control command (NCMP) */
+! 	char *h_approved;	/* needed for acceptance in moderated groups */
+! 	char *h_msgid;	/* needed for history & rejection */
+! 	char *h_artid;	/* needed for history & rejection (obs.) */
+! 	char *h_expiry;	/* needed for history */
+! 	char *h_path;	/* needed for transmit - must munge */
+! 	char *h_sender;	/* needed for transmit in case of moderation */
+  };
+  
+--- 21,32 ----
+  	char *h_ctlcmd;	/* control command (NCMP) */
+  	char *h_etctlcmd;	/* also-control command (NCMP) */
+! 	char *h_approved;	/* acceptance in moderated groups */
+! 	char *h_msgid;	/* history & rejection */
+! 	char *h_artid;	/* history & rejection (obs.) */
+! 	char *h_expiry;	/* history */
+! 	char *h_path;	/* transmit - must munge */
+! 	char *h_sender;	/* transmit in case of moderation */
+! 	char *h_date;	/* reject stale articles */
+! 	char *h_from;	/* merely required */
+  };
+  
+***************
+*** 37,40 ****
+  
+  /* parse */
+! extern void hdrparse(), hdrdeflt();
+  extern boolean ishdr(), contin();
+--- 39,43 ----
+  
+  /* parse */
+! extern void hdrdeflt();
+  extern boolean ishdr(), contin();
++ extern char *hdrreq();
+
+*** cnpatch/old/relay/history.c	Sat Mar 23 22:28:07 1991
+--- relay/history.c	Mon Mar 11 01:02:31 1991
+***************
+*** 231,234 ****
+--- 231,237 ----
+  		prefuse(art);
+  		(void) printf("missing Message-ID\n");
++ 	} else if (strchr(msgid, '@') == NULL) {
++ 		prefuse(art);
++ 		(void) printf("no @ in Message-ID\n");
+  	} else if (strchr(msgid, ' ') != NULL || strchr(msgid, '\t') != NULL) {
+  		prefuse(art);
+
+*** cnpatch/old/relay/makefile	Sat Mar 23 22:28:11 1991
+--- relay/makefile	Sat Mar 23 22:10:30 1991
+***************
+*** 16,21 ****
+  #CC=CC +V
+  #CC=gcc -ansi -pedantic -Wall -S
+! #CC=redcc
+! COPTS= -O # -pg -g
+  CFLAGS=$(DEFINES) $(COPTS)
+  DBM = # -ldbm
+--- 16,20 ----
+  #CC=CC +V
+  #CC=gcc -ansi -pedantic -Wall -S
+! COPTS= -O # -pg -g -O
+  CFLAGS=$(DEFINES) $(COPTS)
+  DBM = # -ldbm
+***************
+*** 23,27 ****
+  LINT=lint
+  LINTFLAGS=-haz $(DEFINES)
+! LLIBS=-llocal -lmalloc
+  # I wish I could make lint shut the fk up about some things.  Grrr!
+  LINTFILT=egrep -v '(possible pointer|long assign|nnfree|getdate|:$$)'
+--- 22,26 ----
+  LINT=lint
+  LINTFLAGS=-haz $(DEFINES)
+! LLIBS= # -lmalloc
+  # I wish I could make lint shut the fk up about some things.  Grrr!
+  LINTFILT=egrep -v '(possible pointer|long assign|nnfree|getdate|:$$)'
+***************
+*** 57,66 ****
+  	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ) $(PRE) $(LIBS) $(LIBOBJS) $(POST) -o $@
+  lint: $(SRC)
+! 	$(LINT) $(LINTFLAGS) $(SRC) $(LLIBS) | $(LINTFILT)
+  lint-p: $(SRC)
+! 	$(LINT) $(LINTFLAGS) -p $(SRC) $(LLIBS) | $(LINTFILT)
+  
+! newsinstall:
+! 	: nothing
+  
+  # bininstall: make directories, install programs
+--- 56,66 ----
+  	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ) $(PRE) $(LIBS) $(LIBOBJS) $(POST) -o $@
+  lint: $(SRC)
+! 	$(LINT) $(LINTFLAGS) $(SRC) $(LLIBS) 2>&1 | $(LINTFILT)
+  lint-p: $(SRC)
+! 	$(LINT) $(LINTFLAGS) -p $(SRC) $(LLIBS) 2>&1 | $(LINTFILT)
+  
+! newsinstall:	$(NEWSBIN)/inject/inews
+! 	rm -f $(NEWSCTL)/inews
+! 	ln $(NEWSBIN)/inject/inews $(NEWSCTL)/inews 2>/dev/null || cp sh/inews $(NEWSCTL)
+  
+  # bininstall: make directories, install programs
+***************
+*** 69,87 ****
+  $(NEWSBIN)/relay/relaynews: relaynews
+  	-mkdir $(NEWSBIN)/relay $(NEWSBIN)/inject $(NEWSBIN)/ctl
+- 	rm -f $(NEWSBIN)/relay/relaynews
+- 	cp relaynews $(NEWSBIN)/relay
+- 	: needs to be news-owned, setuid -- build looks after that
+  	cp sh/[a-z]* $(NEWSBIN)/inject
+  	cp ctl/[a-z]* $(NEWSBIN)/ctl
+  	cp aux/[a-z]* $(NEWSBIN)/relay
+! 	rm -f $(BIN)/inews $(NEWSCTL)/inews
+  	ln $(NEWSBIN)/inject/inews $(BIN)/inews 2>/dev/null || cp sh/inews $(BIN)
+! 	ln $(NEWSBIN)/inject/inews $(NEWSCTL)/inews 2>/dev/null || cp sh/inews $(NEWSCTL)
+  
+  cmp:	relaynews
+  	cmp $(NEWSBIN)/relay/relaynews relaynews
+! 	for f in `ls sh` ; do cmp $(NEWSBIN)/inject/$$f sh/$$f ; done
+! 	for f in `ls ctl` ; do cmp $(NEWSBIN)/ctl/$$f ctl/$$f ; done
+! 	for f in `ls aux` ; do cmp $(NEWSBIN)/relay/$$f aux/$$f ; done
+  	cmp $(BIN)/inews sh/inews
+  	cmp $(NEWSCTL)/inews sh/inews
+--- 69,86 ----
+  $(NEWSBIN)/relay/relaynews: relaynews
+  	-mkdir $(NEWSBIN)/relay $(NEWSBIN)/inject $(NEWSBIN)/ctl
+  	cp sh/[a-z]* $(NEWSBIN)/inject
+  	cp ctl/[a-z]* $(NEWSBIN)/ctl
+  	cp aux/[a-z]* $(NEWSBIN)/relay
+! 	rm -f $(BIN)/inews
+  	ln $(NEWSBIN)/inject/inews $(BIN)/inews 2>/dev/null || cp sh/inews $(BIN)
+! 	rm -f $(NEWSBIN)/relay/relaynews
+! 	cp relaynews $(NEWSBIN)/relay
+! 	: needs to be news-owned, setuid -- build looks after that
+  
+  cmp:	relaynews
+  	cmp $(NEWSBIN)/relay/relaynews relaynews
+! 	for f in `../xls sh` ; do cmp $(NEWSBIN)/inject/$$f sh/$$f ; done
+! 	for f in `../xls ctl` ; do cmp $(NEWSBIN)/ctl/$$f ctl/$$f ; done
+! 	for f in `../xls aux` ; do cmp $(NEWSBIN)/relay/$$f aux/$$f ; done
+  	cmp $(BIN)/inews sh/inews
+  	cmp $(NEWSCTL)/inews sh/inews
+***************
+*** 90,96 ****
+  check:	relaynews
+  	cmp $(NEWSBIN)/relay/relaynews relaynews || true
+! 	for f in `ls sh` ; do cmp $(NEWSBIN)/inject/$$f sh/$$f || true ; done
+! 	for f in `ls ctl` ; do cmp $(NEWSBIN)/ctl/$$f ctl/$$f || true ; done
+! 	for f in `ls aux` ; do cmp $(NEWSBIN)/relay/$$f aux/$$f || true ; done
+  	cmp $(BIN)/inews sh/inews || true
+  	cmp $(NEWSCTL)/inews sh/inews || true
+--- 89,95 ----
+  check:	relaynews
+  	cmp $(NEWSBIN)/relay/relaynews relaynews || true
+! 	for f in `../xls sh` ; do cmp $(NEWSBIN)/inject/$$f sh/$$f || true ; done
+! 	for f in `../xls ctl` ; do cmp $(NEWSBIN)/ctl/$$f ctl/$$f || true ; done
+! 	for f in `../xls aux` ; do cmp $(NEWSBIN)/relay/$$f aux/$$f || true ; done
+  	cmp $(BIN)/inews sh/inews || true
+  	cmp $(NEWSCTL)/inews sh/inews || true
+***************
+*** 110,115 ****
+  	touch $@
+  clean:
+! 	rm -f core a.out relaynews *.o	
+! 	rm -rf regress/tmp
+  
+  r:	relaynews
+--- 109,113 ----
+  	touch $@
+  clean:
+! 	rm -rf core a.out relaynews *.o	regress/tmp
+  
+  r:	relaynews
+
+*** cnpatch/old/relay/procart.c	Sat Mar 23 22:28:16 1991
+--- relay/procart.c	Sat Mar 16 22:31:35 1991
+***************
+*** 5,8 ****
+--- 5,9 ----
+  #include <stdio.h>
+  #include <sys/types.h>
++ #include <sys/timeb.h>		/* solely for getindate call */
+  #include "libc.h"
+  #include "news.h"
+***************
+*** 17,21 ****
+--- 18,33 ----
+  #include "transmit.h"
+  
++ #define DAY (24L*60L*60L)
++ 
+  /*
++  * seconds of slop permitted: article dates may be this many seconds in the
++  * future.  It should be an hour, but for sites (e.g. in Australia) that
++  * emit local time incorrectly labelled as GMT.  They really should fix
++  * their software, but in the mean time, a day's slop will prevent their
++  * articles from being dropped.
++  */
++ #define CLOCKSLOP DAY
++ 
++ /*
+   * COPYSIZE is the length of a bulk-copying buffer: the bigger the better,
+   * though fewer than 3% of articles exceed 8192 bytes (may 1988).
+***************
+*** 31,37 ****
+  #endif				/* COPYSIZE */
+  
+- extern char *exclude;		/* for erik */
+- 
+  /* imports */
+  extern void decline();
+  
+--- 43,49 ----
+  #endif				/* COPYSIZE */
+  
+  /* imports */
++ extern char *exclude;		/* for erik */
++ extern long staledays;		/* from relaynews.c */
+  extern void decline();
+  
+***************
+*** 148,151 ****
+--- 160,172 ----
+  	/* If we read a body line, gethdr has adjusted limit appropriately. */
+  	art->a_unread = limit - SIZENUL;
++ 	/*
++ 	 * RFC 822 defines the message header as ending at a blank line,
++ 	 * *not* at the first line that cannot syntactically be a header nor
++ 	 * a header continuation.  As a result of this stunning bit of
++ 	 * brilliance, we can end up with non-header lines in the message
++ 	 * header, though they are illegal.
++ 	 */
++ 	if (!is_hdr && hdr != NULL && *hdr != '\n')
++ 		art->a_badhdr = YES;
+  	/* if is_hdr, there is no body: header fills limit */
+  	return (is_hdr? NULL: hdr);
+***************
+*** 290,295 ****
+   * Reject articles.  This can be arbitrarily picky.
+   * Only the headers are used to decide, so this can be called before
+!  * the article is filed.
+!  * Be sure to put the fastest tests first, especially if they often result
+   * in rejections.
+   */
+--- 311,316 ----
+   * Reject articles.  This can be arbitrarily picky.
+   * Only the headers are used to decide, so this can be called before
+!  * the article is filed but after all the headers are read.
+!  * Try to put the fastest tests first, especially if they often result
+   * in rejections.
+   */
+***************
+*** 298,314 ****
+  register struct article *art;
+  {
+! 	register char *msgid = art->h.h_msgid;
+! 	register char *path =  art->h.h_path;
+! 	register char *ngs =   art->h.h_ngs;
+  
+! 	if (path == NULL) {
+  		prefuse(art);
+! 		(void) printf("no Path: header\n");
+  	} else if (!msgidok(art))
+  		/* already complained */ ;
+! 	else if (alreadyseen(msgid)) {
+  		prefuse(art);
+! 		(void) printf("duplicate\n");
+! 	} else if (path != NULL && hopcount(path) > 0 &&
+  	    !ngmatch(oursys()->sy_ngs, ngs)) {
+  		extern boolean histreject;
+--- 319,358 ----
+  register struct article *art;
+  {
+! 	register struct headers *hdrs = &art->h;
+! 	register char *ngs = hdrs->h_ngs;
+! 	register char *errstr;
+! 	register time_t date;
+! 	static time_t now, datestale;
+! 	extern time_t getindate();
+  
+! 	if (now == 0) {
+! 		now = time(&now);
+! 		datestale = now - staledays*DAY;
+! 	}
+! 	errstr = hdrreq(hdrs);
+! 	if (errstr != NULL) {
+  		prefuse(art);
+! 		(void) fputs(errstr, stdout);
+! 	} else if (art->a_badhdr) {
+! 		prefuse(art);
+! 		(void) fputs("article \"header\" contains non-header line\n",
+! 			stdout);
+  	} else if (!msgidok(art))
+  		/* already complained */ ;
+! 	else if (hdrs->h_approved == NULL && moderated(ngs)) {
+  		prefuse(art);
+! 		(void) printf("unapproved article in moderated group(s) `%s'\n",
+! 			ngs);
+! 	} else if ((date = getindate(hdrs->h_date, (struct timeb *)NULL)) == -1) {
+! 		prefuse(art);
+! 		(void) printf("unparsable Date: `%s'\n", hdrs->h_date);
+! 	} else if (date > now + CLOCKSLOP) {
+! 		prefuse(art);
+! 		(void) printf("Date: too far in the future: `%s'\n",
+! 			hdrs->h_date);
+! 	} else if (staledays > 0 && date < datestale) {
+! 		prefuse(art);
+! 		(void) printf("older than %d days\n", staledays);
+! 	} else if (hopcount(hdrs->h_path) > 0 &&
+  	    !ngmatch(oursys()->sy_ngs, ngs)) {
+  		extern boolean histreject;
+***************
+*** 323,330 ****
+  		prefuse(art);
+  		(void) printf("no subscribed groups in `%s'\n", ngs);
+! 	} else if (art->h.h_approved == NULL && moderated(ngs)) {
+  		prefuse(art);
+! 		(void) printf("unapproved article in moderated group(s) `%s'\n",
+! 			ngs);
+  	} else
+  		return;			/* art was accepted */
+--- 367,373 ----
+  		prefuse(art);
+  		(void) printf("no subscribed groups in `%s'\n", ngs);
+! 	} else if (alreadyseen(hdrs->h_msgid)) {
+  		prefuse(art);
+! 		(void) fputs("duplicate\n", stdout);
+  	} else
+  		return;			/* art was accepted */
+***************
+*** 341,345 ****
+  	timestamp(stdout, (time_t *)NULL);
+  	(void) printf(" %s - %s ", sendersite(nullify(art->h.h_path)),
+! 		art->h.h_msgid);
+  }
+  
+--- 384,388 ----
+  	timestamp(stdout, (time_t *)NULL);
+  	(void) printf(" %s - %s ", sendersite(nullify(art->h.h_path)),
+! 		nullify(art->h.h_msgid));
+  }
+  
+
+*** cnpatch/old/relay/regress/master/art1	Sat Mar 23 22:28:18 1991
+--- relay/regress/master/art1	Fri Feb 15 01:38:10 1991
+***************
+*** 3,6 ****
+--- 3,8 ----
+  Message-ID: <#1@host>
+  Newsgroups: test.a
++ Subject: test #1
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/a/1 and not be sent to foo
+
+*** cnpatch/old/relay/regress/master/art2	Sat Mar 23 22:28:19 1991
+--- relay/regress/master/art2	Fri Feb 15 01:38:28 1991
+***************
+*** 3,6 ****
+--- 3,8 ----
+  Message-ID: <#2@host>
+  Newsgroups: test.b
++ Subject: test #2
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/b/1
+
+*** cnpatch/old/relay/regress/master/art3	Sat Mar 23 22:28:20 1991
+--- relay/regress/master/art3	Fri Feb 15 01:39:25 1991
+***************
+*** 3,6 ****
+--- 3,8 ----
+  Message-ID: <#3@host>
+  Newsgroups: test.a,test.b
++ Subject: test #3
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/a/2
+
+*** cnpatch/old/relay/regress/master/art4	Sat Mar 23 22:28:22 1991
+--- relay/regress/master/art4	Fri Feb 15 01:39:39 1991
+***************
+*** 3,6 ****
+--- 3,8 ----
+  Message-ID: <#4@host>
+  Newsgroups: test.c
++ Subject: test #4
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  This should get cancelled.
+
+*** cnpatch/old/relay/regress/master/art5	Sat Mar 23 22:28:23 1991
+--- relay/regress/master/art5	Fri Feb 15 01:39:53 1991
+***************
+*** 4,7 ****
+--- 4,9 ----
+  Newsgroups: test.c
+  Control: cancel <#4@host>
++ Subject: test #5
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/c/2
+
+*** cnpatch/old/relay/regress/master/batch	Sat Mar 23 22:28:24 1991
+--- relay/regress/master/batch	Fri Feb 15 01:40:23 1991
+***************
+*** 1,3 ****
+! #! rnews 135
+  Path: host!foo!user
+  From: user@host
+--- 1,3 ----
+! #! rnews 187
+  Path: host!foo!user
+  From: user@host
+***************
+*** 4,10 ****
+  Message-ID: <#1@host>
+  Newsgroups: test.a
+  
+  ## This should appear in test/a/1 and not be sent to foo
+! #! rnews 108
+  Path: host!user
+  From: user@host
+--- 4,12 ----
+  Message-ID: <#1@host>
+  Newsgroups: test.a
++ Subject: test #1
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/a/1 and not be sent to foo
+! #! rnews 160
+  Path: host!user
+  From: user@host
+***************
+*** 11,17 ****
+  Message-ID: <#2@host>
+  Newsgroups: test.b
+  
+  ## This should appear in test/b/1
+! #! rnews 149
+  Path: host!user
+  From: user@host
+--- 13,21 ----
+  Message-ID: <#2@host>
+  Newsgroups: test.b
++ Subject: test #2
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/b/1
+! #! rnews 201
+  Path: host!user
+  From: user@host
+***************
+*** 18,25 ****
+  Message-ID: <#3@host>
+  Newsgroups: test.a,test.b
+  
+  ## This should appear in test/a/2
+  ## This should appear in test/b/2
+! #! rnews 101
+  Path: host!user
+  From: user@host
+--- 22,31 ----
+  Message-ID: <#3@host>
+  Newsgroups: test.a,test.b
++ Subject: test #3
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/a/2
+  ## This should appear in test/b/2
+! #! rnews 153
+  Path: host!user
+  From: user@host
+***************
+*** 26,32 ****
+  Message-ID: <#4@host>
+  Newsgroups: test.c
+  
+  This should get cancelled.
+! #! rnews 134
+  Path: host!user
+  From: user@host
+--- 32,40 ----
+  Message-ID: <#4@host>
+  Newsgroups: test.c
++ Subject: test #4
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  This should get cancelled.
+! #! rnews 186
+  Path: host!user
+  From: user@host
+***************
+*** 34,37 ****
+--- 42,47 ----
+  Newsgroups: test.c
+  Control: cancel <#4@host>
++ Subject: test #5
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/c/2
+
+*** cnpatch/old/relay/regress/out/art1	Sat Mar 23 22:28:31 1991
+--- relay/regress/out/art1	Fri Feb 15 01:40:04 1991
+***************
+*** 3,6 ****
+--- 3,8 ----
+  Message-ID: <#1@host>
+  Newsgroups: test.a
++ Subject: test #1
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/a/1 and not be sent to foo
+
+*** cnpatch/old/relay/regress/out/art2	Sat Mar 23 22:28:32 1991
+--- relay/regress/out/art2	Fri Feb 15 01:40:04 1991
+***************
+*** 3,6 ****
+--- 3,8 ----
+  Message-ID: <#2@host>
+  Newsgroups: test.b
++ Subject: test #2
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/b/1
+
+*** cnpatch/old/relay/regress/out/art3	Sat Mar 23 22:28:33 1991
+--- relay/regress/out/art3	Fri Feb 15 01:40:04 1991
+***************
+*** 3,6 ****
+--- 3,8 ----
+  Message-ID: <#3@host>
+  Newsgroups: test.a,test.b
++ Subject: test #3
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/a/2
+
+*** cnpatch/old/relay/regress/out/art4	Sat Mar 23 22:28:34 1991
+--- relay/regress/out/art4	Fri Feb 15 01:40:05 1991
+***************
+*** 3,6 ****
+--- 3,8 ----
+  Message-ID: <#4@host>
+  Newsgroups: test.c
++ Subject: test #4
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  This should get cancelled.
+
+*** cnpatch/old/relay/regress/out/art5	Sat Mar 23 22:28:35 1991
+--- relay/regress/out/art5	Fri Feb 15 01:40:05 1991
+***************
+*** 4,7 ****
+--- 4,9 ----
+  Newsgroups: test.c
+  Control: cancel <#4@host>
++ Subject: test #5
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/c/2
+
+*** cnpatch/old/relay/regress/out/batch	Sat Mar 23 22:28:37 1991
+--- relay/regress/out/batch	Fri Feb 15 01:40:23 1991
+***************
+*** 1,3 ****
+! #! rnews 135
+  Path: host!foo!user
+  From: user@host
+--- 1,3 ----
+! #! rnews 187
+  Path: host!foo!user
+  From: user@host
+***************
+*** 4,10 ****
+  Message-ID: <#1@host>
+  Newsgroups: test.a
+  
+  ## This should appear in test/a/1 and not be sent to foo
+! #! rnews 108
+  Path: host!user
+  From: user@host
+--- 4,12 ----
+  Message-ID: <#1@host>
+  Newsgroups: test.a
++ Subject: test #1
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/a/1 and not be sent to foo
+! #! rnews 160
+  Path: host!user
+  From: user@host
+***************
+*** 11,17 ****
+  Message-ID: <#2@host>
+  Newsgroups: test.b
+  
+  ## This should appear in test/b/1
+! #! rnews 149
+  Path: host!user
+  From: user@host
+--- 13,21 ----
+  Message-ID: <#2@host>
+  Newsgroups: test.b
++ Subject: test #2
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/b/1
+! #! rnews 201
+  Path: host!user
+  From: user@host
+***************
+*** 18,25 ****
+  Message-ID: <#3@host>
+  Newsgroups: test.a,test.b
+  
+  ## This should appear in test/a/2
+  ## This should appear in test/b/2
+! #! rnews 101
+  Path: host!user
+  From: user@host
+--- 22,31 ----
+  Message-ID: <#3@host>
+  Newsgroups: test.a,test.b
++ Subject: test #3
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/a/2
+  ## This should appear in test/b/2
+! #! rnews 153
+  Path: host!user
+  From: user@host
+***************
+*** 26,32 ****
+  Message-ID: <#4@host>
+  Newsgroups: test.c
+  
+  This should get cancelled.
+! #! rnews 134
+  Path: host!user
+  From: user@host
+--- 32,40 ----
+  Message-ID: <#4@host>
+  Newsgroups: test.c
++ Subject: test #4
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  This should get cancelled.
+! #! rnews 186
+  Path: host!user
+  From: user@host
+***************
+*** 34,37 ****
+--- 42,47 ----
+  Newsgroups: test.c
+  Control: cancel <#4@host>
++ Subject: test #5
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/c/2
+
+*** cnpatch/old/relay/regress/out/control/1	Sat Mar 23 22:28:38 1991
+--- relay/regress/out/control/1	Fri Feb 15 01:46:42 1991
+***************
+*** 4,7 ****
+--- 4,9 ----
+  Newsgroups: test.c
+  Control: cancel <#4@host>
++ Subject: test #5
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/c/2
+
+*** cnpatch/old/relay/regress/out/test/a/1	Sat Mar 23 22:28:44 1991
+--- relay/regress/out/test/a/1	Fri Feb 15 01:43:48 1991
+***************
+*** 3,6 ****
+--- 3,8 ----
+  Message-ID: <#1@host>
+  Newsgroups: test.a
++ Subject: test #1
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/a/1 and not be sent to foo
+
+*** cnpatch/old/relay/regress/out/test/a/2	Sat Mar 23 22:28:45 1991
+--- relay/regress/out/test/a/2	Fri Feb 15 01:44:04 1991
+***************
+*** 4,7 ****
+--- 4,9 ----
+  Message-ID: <#3@host>
+  Newsgroups: test.a,test.b
++ Subject: test #3
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/a/2
+
+*** cnpatch/old/relay/regress/out/test/b/1	Sat Mar 23 22:28:47 1991
+--- relay/regress/out/test/b/1	Fri Feb 15 01:44:18 1991
+***************
+*** 3,6 ****
+--- 3,8 ----
+  Message-ID: <#2@host>
+  Newsgroups: test.b
++ Subject: test #2
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/b/1
+
+*** cnpatch/old/relay/regress/out/test/b/2	Sat Mar 23 22:28:49 1991
+--- relay/regress/out/test/b/2	Fri Feb 15 01:44:29 1991
+***************
+*** 4,7 ****
+--- 4,9 ----
+  Message-ID: <#3@host>
+  Newsgroups: test.a,test.b
++ Subject: test #3
++ Date: Tue, 5 Feb 1991 22:30:30 GMT
+  
+  ## This should appear in test/a/2
+
+*** cnpatch/old/relay/relaynews.c	Sat Mar 23 22:28:54 1991
+--- relay/relaynews.c	Sat Mar 16 22:31:36 1991
+***************
+*** 59,62 ****
+--- 59,63 ----
+  char *exclude = NULL;				/* site to exclude, for erik */
+  boolean histreject = NO;			/* keep history of rejects? */
++ long staledays = 0;			/* articles stale after this many days */
+  
+  /* internal */
+***************
+*** 97,104 ****
+  
+  	/* ignore signals (for locking). relaynews runs quickly, so don't worry. */
+! 	(void) signal(SIGINT, (sigarg_t)SIG_IGN);
+! 	(void) signal(SIGQUIT, (sigarg_t)SIG_IGN);
+! 	(void) signal(SIGHUP, (sigarg_t)SIG_IGN);
+! 	(void) signal(SIGTERM, (sigarg_t)SIG_IGN);
+  
+  	procopts(argc, argv, &redirlogs, &okrefusal);
+--- 98,105 ----
+  
+  	/* ignore signals (for locking). relaynews runs quickly, so don't worry. */
+! 	(void) signal(SIGINT, SIG_IGN);
+! 	(void) signal(SIGQUIT, SIG_IGN);
+! 	(void) signal(SIGHUP, SIG_IGN);
+! 	(void) signal(SIGTERM, SIG_IGN);
+  
+  	procopts(argc, argv, &redirlogs, &okrefusal);
+***************
+*** 209,213 ****
+  	int c, errflg = 0;
+  
+! 	while ((c = getopt(argc, argv, "d:inrsx:")) != EOF)
+  		switch (c) {
+  		case 'd':		/* -d debug-options; thanks, henry */
+--- 210,214 ----
+  	int c, errflg = 0;
+  
+! 	while ((c = getopt(argc, argv, "d:ino:rsx:")) != EOF)
+  		switch (c) {
+  		case 'd':		/* -d debug-options; thanks, henry */
+***************
+*** 221,224 ****
+--- 222,229 ----
+  			histreject = YES;
+  			break;
++ 		case 'o':
++ 			/* "oldness": drop articles older than this many days */
++ 			staledays = atol(optarg);
++ 			break;
+  		case 'r':		/* redirect std. ostreams to logs (rnews) */
+  			*redirlogsp = 2; /* stdout & stderr */
+***************
+*** 243,247 ****
+  		}
+  	if (errflg) {
+! 		(void) fprintf(stderr, "usage: %s [-inrs][-d fhlmt][-x site]\n",
+  			progname);
+  		exit(1);
+--- 248,253 ----
+  		}
+  	if (errflg) {
+! 		(void) fprintf(stderr,
+! 			"usage: %s [-inrs][-d fhlmt][-x site][-o days]\n",
+  			progname);
+  		exit(1);
+
+*** cnpatch/old/relay/sh/anne.jones	Sat Mar 23 22:28:58 1991
+--- relay/sh/anne.jones	Mon Mar  4 02:55:22 1991
+***************
+*** 107,112 ****
+  
+  # give defaults and headers to awk
+! cat $* |
+! 	# strip invisible chars, a la B news; turn tabs to spaces (RFC1036)
+  	case "$trversion" in
+  	v7)	tr -d  '\1-\7\13\15-\37' ;;
+--- 107,156 ----
+  
+  # give defaults and headers to awk
+! 
+! input=/tmp/aj$$in		# collected assumed-canonicalised headers
+! tmp=/tmp/aj$$tmp
+! cat $* >$input
+! artdate="` sed -n '/^Date: */s///p' $input `"
+! case "$artdate" in
+! "")					# none; supply default
+! 	set $date
+! 	defdate="$1, $3 $2 $6 $4 $5"
+! 	;;
+! *)					# canonicalise given date to RFC 822
+! 	timet="` getabsdate \"$artdate\" `"
+! 	case "$timet" in
+! 	-*)
+! 		echo "$0: bad Date: header" >&2
+! 		rm -f $tmp $input
+! 		exit 1
+! 		;;
+! 	*)
+! 		set `ctime -u "$timet"`
+! 		defdate="$1, $3 $2 $5 $4 GMT"
+! 		;;
+! 	esac
+! 	;;
+! esac
+! expiry="` sed -n '/^Expires: */s///p' $input `"
+! case "$expiry" in
+! "")	;;
+! *)
+! 	timet="` getdate \"$expiry\" `"	# temporary; use getreldate eventually
+! 	case "$timet" in
+! 	-*)
+! 		echo "$0: bad Expires: header" >&2
+! 		rm -f $tmp $input
+! 		exit 1
+! 		;;
+! 	*)
+! 		set `ctime -u "$timet"`
+! 		expiry="$1, $3 $2 $5 $4 GMT"
+! 		;;
+! 	esac
+! 	;;
+! esac
+! 
+! # strip invisible chars, a la B news; turn tabs to spaces (RFC1036)
+! egrep -v '^(Date|Expires):' $input |
+  	case "$trversion" in
+  	v7)	tr -d  '\1-\7\13\15-\37' ;;
+***************
+*** 113,120 ****
+  	v6)	tr -d '[\1-\7]\13[\15-\37]' ;;
+  	esac |
+! 	sed 's/:	/: /' |
+! 	awk -f $NEWSBIN/inject/defhdrs.awk \
+! defpath="$badsites$USER" \
+! deffrom="$FROM" deforg="$deforg" \
+! defdate="` set $date; echo $1, $3 $2 $6 $4 $5`" \
+! defmsgid="`set $date; echo \<$6$2$3.\`  echo $4 | tr -d : \`.$$@$host\>`" -
+--- 157,165 ----
+  	v6)	tr -d '[\1-\7]\13[\15-\37]' ;;
+  	esac |
+! 	sed -e 's/:	/: /' -e 's/:\([^ ]\)/: \1/' >$tmp
+! awk -f $NEWSBIN/inject/defhdrs.awk defpath="$badsites$USER" deffrom="$FROM" \
+!  deforg="$deforg" defdate="$defdate" defexpiry="$expiry" \
+!  defmsgid="`set $date; echo \<$6$2$3.\`  echo $4 | tr -d : \`.$$@$host\>`" $tmp
+! status=$?
+! rm -f $tmp $input
+! exit $status
+
+*** cnpatch/old/relay/sh/defhdrs.awk	Sat Mar 23 22:29:01 1991
+--- relay/sh/defhdrs.awk	Mon Mar  4 03:01:59 1991
+***************
+*** 2,5 ****
+--- 2,6 ----
+  # pass 1 - note presence | absence of certain headers
+  # a header keyword: remember it and its value
++ BEGIN	{ status = 0 }
+  /^[^\t ]*:/ {
+  	hdrval[$1] = $0
+***************
+*** 24,27 ****
+--- 25,29 ----
+  	distrname = "Distribution:"
+  	sendername = "Sender:"
++ 	expiresname = "Expires:"
+  
+  	# nullify headers with empty contents
+***************
+*** 47,51 ****
+  	if (hdrval[datename] == "")
+  		hdrval[datename] = datename " " defdate
+! 	if (hdrval[orgname] == "")
+  		hdrval[orgname] = orgname " " deforg
+  	if (hdrval[fromname] == "")
+--- 49,55 ----
+  	if (hdrval[datename] == "")
+  		hdrval[datename] = datename " " defdate
+! 	if (hdrval[expiresname] == "" && defexpiry != "")
+! 		hdrval[expiresname] = expiresname " " defexpiry
+! 	if (hdrval[orgname] == "" && deforg != "")
+  		hdrval[orgname] = orgname " " deforg
+  	if (hdrval[fromname] == "")
+***************
+*** 66,72 ****
+  		hdrval[ctlname] = ctlname " " substr(hdrval[subjname], 15)
+  
+  	# warn if no Newsgroups:
+! 	if (hdrval[ngname] == "")
+! 		print "no newsgroups header!" | "cat >&2"
+  
+  	# field the all.all.ctl hack, for the sake of the backward only:
+--- 70,88 ----
+  		hdrval[ctlname] = ctlname " " substr(hdrval[subjname], 15)
+  
++ 	# warn if no Subject:
++ 	if (hdrval[subjname] == "") {
++ 		print "defhdrs.awk: no " subjname " header!" | "cat >&2"
++ 		status = 1
++ 	}
++ 
+  	# warn if no Newsgroups:
+! 	if (hdrval[ngname] == "") {
+! 		print "defhdrs.awk: no " ngname " header!" | "cat >&2"
+! 		status = 1
+! 	}
+! 	if (hdrval[ngname] ~ /^Newsgroups:  *.*[\t ]/) {
+! 		print "defhdrs.awk: whitespace in " ngname " header" | "cat >&2"
+! 		status = 1
+! 	}
+  
+  	# field the all.all.ctl hack, for the sake of the backward only:
+***************
+*** 107,109 ****
+--- 123,127 ----
+  		if (hdrval[i] != "" && hdrval[i] !~ /^[^\t ]*:[\t ]*$/)
+  			print hdrval[i]
++ 
++ 	exit status
+  }
+
+*** cnpatch/old/relay/sh/inews	Sat Mar 23 22:29:03 1991
+--- relay/sh/inews	Sun Mar  3 23:28:24 1991
+***************
+*** 8,11 ****
+--- 8,12 ----
+  # Yes, it's big, slow and awkward.  The alternative is casting a lot of
+  # local policy in C.
++ # TODO: rewrite Date: and Expires: dates
+  
+  # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
+***************
+*** 60,64 ****
+  	-debug)	shift; debug="$1" ;;
+  	-A)	autopost=yes ;;		# wait for free space
+! 	-V)	relayopts= ;;		# verbose: don't redirect stdout (or stderr)
+  	-W)	waitcmd='wait; status=$?' ;;	# wait for completion
+  	# useful standard options
+--- 61,66 ----
+  	-debug)	shift; debug="$1" ;;
+  	-A)	autopost=yes ;;		# wait for free space
+! 	-N)	justfilter=yes; waitcmd='wait; status=$?' ;;
+! 	-V)	relayopts= ;;	# verbose: don't redirect stdout (or stderr)
+  	-W)	waitcmd='wait; status=$?' ;;	# wait for completion
+  	# useful standard options
+***************
+*** 106,156 ****
+  		exit 1
+  		;;
+! 	*)					# is a filename; append file
+! 		# B 2.11 kludge: assume -h if input starts with headers.
+! 		# apparently the B 2.11 newsreaders assume this.
+! 		tear /tmp/in$$ <$1
+! 		if test -s $inhdrs; then
+! 			hdrspresent=yes
+! 		fi
+! 
+! 		case "$hdrspresent" in
+! 		no)	echo "" >>$input; hdrspresent=yes ;;
+! 		esac
+! 		# capture incoming news in case relaynews fails
+! 		if cat $inhdrs $inbody >>$input; then
+! 			: far out
+! 		else
+! 			echo "$0: lost news; cat status $?" >&2
+! 			exit 1
+! 		fi
+! 		fileseen=yes
+! 		;;
+  	esac
+! 	shift		# pass option or filename (any value was done above)
+  done
+  
+! # if no files named, read stdin
+! case "$fileseen" in
+! yes)	;;
+! *)
+! 	# B 2.11 kludge: assume -h if input starts with headers
+! 	# apparently the B 2.11 newsreaders assume this.
+! 	tear /tmp/in$$
+! 	if test -s $inhdrs; then
+! 		hdrspresent=yes
+! 	fi
+! 
+! 	case "$hdrspresent" in
+! 	no)	echo "" >>$input; hdrspresent=yes ;;
+! 	esac
+! 	# capture incoming news in case relaynews fails
+! 	if cat $inhdrs $inbody >>$input; then
+! 		: far out
+! 	else
+! 		echo "$0: lost news; cat status $?" >&2
+! 		exit 1
+! 	fi
+! 	;;
+  esac
+  trap '' 1 2 15			# ignore signals to avoid losing articles
+  
+--- 108,133 ----
+  		exit 1
+  		;;
+! 	*)	break ;;			# is a filename
+  	esac
+! 	shift					# pass option
+  done
+  
+! # B 2.11 kludge: assume -h if input starts with headers.
+! # apparently the B 2.11 newsreaders assume this.
+! tear /tmp/in$$ $*
+! if test -s $inhdrs; then
+! 	hdrspresent=yes
+! fi
+! case "$hdrspresent" in
+! no)	echo "" >>$input; hdrspresent=yes ;;
+  esac
++ # capture incoming news in case relaynews fails
++ if cat $inhdrs $inbody >>$input; then
++ 	: far out
++ else
++ 	echo "$0: lost news; cat status $?" >&2
++ 	exit 1
++ fi
++ 
+  trap '' 1 2 15			# ignore signals to avoid losing articles
+  
+***************
+*** 160,163 ****
+--- 137,141 ----
+  trap "$cleanup" 0
+  tear /tmp/in$$ <$input		# output in $inhdrs and $inbody
++ 
+  # canonicalise header keyword capitalisation.
+  # greps for Control: and Approved: later assume this, as does defhdrs.awk.
+***************
+*** 164,167 ****
+--- 142,146 ----
+  canonhdr <$inhdrs >/tmp/in$$realtmp
+  mv /tmp/in$$realtmp $inhdrs
++ 
+  # pad zero-line articles, since old B [ir]news are confused by them
+  # and the news readers generate zero-line control messages, alas.
+***************
+*** 181,186 ****
+  # post with new headers and .signature
+  (anne.jones <$inhdrs		# bash headers
+  # lines="`			# sop to msb, just uncomment to use
+! # (sed 1d $inbody;	# take out the first (blank) line
+  # if test -r $HOME/.signature; then
+  # 	echo '-- '
+--- 160,173 ----
+  # post with new headers and .signature
+  (anne.jones <$inhdrs		# bash headers
++  status=$?
++  case $status in
++  0)	;;
++  *)
++ 	trap 0			# no cleanup yet
++ 	exit $status		# anne.jones was unhappy - bail out
++ 	;;
++  esac
+  # lines="`			# sop to msb, just uncomment to use
+! # (sed 1d $inbody;		# take out the first (blank) line
+  # if test -r $HOME/.signature; then
+  # 	echo '-- '
+***************
+*** 197,202 ****
+   if test -r $HOME/.signature; then
+  	echo "-- "; sed 4q $HOME/.signature	# glue on first bit of signature
+!  fi) >$censart
+  
+  ### the article is fully assembled now in $censart ###
+  
+--- 184,205 ----
+   if test -r $HOME/.signature; then
+  	echo "-- "; sed 4q $HOME/.signature	# glue on first bit of signature
+!  fi
+!  trap 0				# no cleanup yet
+!  exit 0) >$censart
+  
++ case $? in
++ 0)	;;
++ *)	exit $? ;;		# clean up; anne.jones will have complained
++ esac
++ 
++ # 64512 = 63*1024 to allow for Path: growth
++ max=64512
++ if test "`wc -c <$censart`" -gt $max; then
++ 	echo "$0: your article is over $max bytes, which makes it likely to be" >&2
++ 	echo "$0: dropped by older sites (and it's impolite to post such big ">&2
++ 	echo "$0: articles).  Try splitting it up, if you must." >&2
++ 	exit 1			# clean up
++ fi
++ 
+  ### the article is fully assembled now in $censart ###
+  
+***************
+*** 229,233 ****
+  rm -f $grpok
+  egrep "$egreppat" $NEWSCTL/active |
+! 	(while read ng high low flag junk	# look at next group's active entry
+  	do
+  		>>$grpok
+--- 232,236 ----
+  rm -f $grpok
+  egrep "$egreppat" $NEWSCTL/active |
+! 	(while read ng high low flag junk # look at next group's active entry
+  	do
+  		>>$grpok
+***************
+*** 235,239 ****
+  		[nx])
+  			echo "$0: sorry, $ng may not be posted to locally." >&2
+! 			trap 0		# this is a child process - no cleanup here
+  			echo 1 >$exitflag
+  			exit 1		# dregs in /tmp/in$$*
+--- 238,242 ----
+  		[nx])
+  			echo "$0: sorry, $ng may not be posted to locally." >&2
+! 			trap 0	# this is a child process - no cleanup here
+  			echo 1 >$exitflag
+  			exit 1		# dregs in /tmp/in$$*
+***************
+*** 243,260 ****
+  				:		# just post normally
+  			else
+! 				# un-Approved article: mail it to the moderator(s).
+! 				# look for a route for this group.
+  				# a dreadful B 2.11 hack: backbone == all
+! 				(sed 's/^backbone[	 ]/all /' \
+! 							$NEWSCTL/mailpaths |
+! 						gngp -a -r "`cat $nglist`";
+! 						echo 'default	%s') |
+! 					sed -n "1{s/^[^	 ]*[	 ][	 ]*//
+! 					  s/%s/` echo $ng | tr . - `/;p;q;}" \
+! 						>$modroute
+! 				moderator="`cat $modroute `"
+  				echo "mailing your article to $moderator"
+  				mail "$moderator" <$censart
+! 				trap 0	# this is a child process - no cleanup here
+  				echo 0 >$exitflag
+  				exit 0
+--- 246,268 ----
+  				:		# just post normally
+  			else
+! 				# unApproved article: mail it to the moderator(s).
+! 				# look for a route for this group ($ng).
+  				# a dreadful B 2.11 hack: backbone == all
+! 				nl=$NEWSCTL	# short form
+! 				(sed 's/^backbone[	 ]/all /' $nl/mailpaths |
+! 				    gngp -a -r "$ng";
+! 				 echo 'default	%s') |
+! 					sed -n "
+! 					1{
+! 						s/^[^	 ]*[	 ][	 ]*//
+! 						s/%s/` echo $ng | tr . - `/
+! 						p
+! 						q
+! 					}
+! 						" >$modroute
+! 				moderator="` cat $modroute `"
+  				echo "mailing your article to $moderator"
+  				mail "$moderator" <$censart
+! 				trap 0 # this is a child process - no cleanup here
+  				echo 0 >$exitflag
+  				exit 0
+***************
+*** 311,314 ****
+--- 319,331 ----
+  		esac
+  	done
++ 	;;
++ esac
++ 
++ case "$justfilter" in
++ yes)
++ 	cat $censart
++ 	rm -f $rmlist			# far out, it worked: clean up
++ 	trap 0				# normal exit: cleanup done
++ 	exit 0
+  	;;
+  esac
+
+*** cnpatch/old/relay/sys.c	Sat Mar 23 22:29:06 1991
+--- relay/sys.c	Tue Mar 12 17:42:49 1991
+***************
+*** 5,8 ****
+--- 5,9 ----
+  #include <stdio.h>
+  #include <ctype.h>
++ #include <string.h>
+  #include <errno.h>
+  #include "fixerrno.h"
+
+Files that are new:
+
+new relay/aux/relayrun (patch can't create, so diff against null):
+Index: relay/aux/relayrun
+*** cnpatch/old/relay/aux/relayrun	Sat Mar 23 22:29:10 1991
+--- relay/aux/relayrun	Sat Mar 23 21:33:33 1991
+***************
+*** 0 ****
+--- 1,10 ----
++ #! /bin/sh
++ # invoke relaynews with appropriate options
++ 
++ # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
++ . ${NEWSCONFIG-/usr/lib/news/bin/config}
++ 
++ PATH=$NEWSCTL/bin:$NEWSBIN/input:$NEWSBIN/relay:$NEWSBIN:$NEWSPATH ; export PATH
++ umask $NEWSUMASK
++ 
++ exec relaynews -r -n `staleness` $*
+
+new relay/aux/staleness (patch can't create, so diff against null):
+Index: relay/aux/staleness
+*** cnpatch/old/relay/aux/staleness	Sat Mar 23 22:29:11 1991
+--- relay/aux/staleness	Sat Mar 23 21:32:41 1991
+***************
+*** 0 ****
+--- 1,11 ----
++ #! /bin/sh
++ # extract staleness in days from $NEWSCTL/explist
++ 
++ # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
++ . ${NEWSCONFIG-/usr/lib/news/bin/config}
++ PATH=$NEWSCTL/bin:$NEWSBIN:$NEWSPATH; export PATH
++ 
++ exec sed -n '/^\/expired\//{
++ s/^[^	 ]*[	 ][	 ]*[^	 ]*[	 ][	 ]*\([^	 .]*\)[	 .].*/-o \1/p
++ q
++ }' $NEWSCTL/explist
+
+
+end of patch 23-Mar-1991
+-- 
+"[Some people] positively *wish* to     | Henry Spencer @ U of Toronto Zoology
+believe ill of the modern world."-R.Peto|  henry@zoo.toronto.edu  utzoo!henry

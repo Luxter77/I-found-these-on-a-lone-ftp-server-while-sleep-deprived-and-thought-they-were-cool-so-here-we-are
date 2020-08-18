@@ -1,0 +1,2455 @@
+#! /bin/sh
+# This is a shell archive, meaning:
+# 1. Remove everything above the #! /bin/sh line.
+# 2. Save the resulting text in a file.
+# 3. Execute the file with /bin/sh (not csh) to create the files:
+#	CHANGES.diff
+#	Makefile.diff
+#	server/putenv.c
+#	doc/doc.diff
+#	inews/inews.diff
+#	xfer/xfer.diff
+#	xmit/xmit.diff
+#	xmit/Makefile
+# This archive created: Mon Mar 12 09:01:38 CST 1990
+export PATH; PATH=/bin:$PATH
+echo shar: extracting "'CHANGES.diff'" '(1910 characters)'
+if test -f 'CHANGES.diff'
+then
+	echo shar: will not over-write existing file "'CHANGES.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'CHANGES.diff'
+	X*** CHANGES	Sun Mar 11 19:25:23 1990
+	X--- ../nntp.local/CHANGES	Fri Mar  9 22:31:07 1990
+	X***************
+	X*** 2,7
+	X  since the initial release.  Individuals who either reported the bug or
+	X  inspired the bug fix are in square brackets.
+	X  
+	X  1.5.7
+	X  	Typo in batch.c left the CNEWS BATCH_FILE undefined. [ Joe Weening
+	X  	<weening@neon.stanford.edu> ]
+	X
+	X--- 2,29 -----
+	X  since the initial release.  Individuals who either reported the bug or
+	X  inspired the bug fix are in square brackets.
+	X  
+	X+ 1.5.8
+	X+ 	Better support for SCO Xenix 2.3 with TCP/IP. [sob@bcm.tmc.edu]
+	X+ 	Better integration of nntpxmit and nntpxfer with the rest of the
+	X+ 	distribution. [muller%sdcc7@ucsd.edu]
+	X+ 	Inodes can now be checked to availability as well as disk space.
+	X+ 	See the new parameter MINFILES in common/README and common/conf.h.dist.
+	X+ 	[budd@bu.edu]
+	X+ 	USG systems with DBM can use it (assuming you compiled your news to use
+	X+ 	it) with less problems from nntp getting compiled wrong. 
+	X+ 	[igb@fulcrum.british-telecom.co.uk]
+	X+ 	IHAVE speed up by having gethistent() just do a check for an article
+	X+ 	instead of a full retrieval. [fletcher@cs.utexas.edu (Fletcher Maddox),
+	X+ 	david@elroy.jpl.nasa.gov (David Robinson)]
+	X+ 	If the article is garbled, it should be rejected. Hopefully, it will be
+	X+ 	now. [ warren@schizo.samsung.com (Warren Lavallee)]
+	X+ 	nntp now sets the USER and LOGNAME environmental variables to POSTER if
+	X+ 	POSTER is defined. This is mostly for CNEWS.[weening@neon.stanford.edu]
+	X+ 	mini-inews now places the fully qualified domain name in the Path:  lie
+	X+ 	to help those poor unfortunate that still think it supposed to contain
+	X+ 	a valid route for return mail. [ david@wiley.UUCP (David Hull) ]
+	X+ 	The reply to XHDR no longer appends extra blank lines. [ (Pekka
+	X+ 	Kytolaakso) netmgr@finsun.csc.fi ]
+	X  1.5.7
+	X  	Typo in batch.c left the CNEWS BATCH_FILE undefined. [ Joe Weening
+	X  	<weening@neon.stanford.edu> ]
+SHAR_EOF
+if test 1910 -ne "`wc -c < 'CHANGES.diff'`"
+then
+	echo shar: error transmitting "'CHANGES.diff'" '(should have been 1910 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'Makefile.diff'" '(2395 characters)'
+if test -f 'Makefile.diff'
+then
+	echo shar: will not over-write existing file "'Makefile.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'Makefile.diff'
+	X*** Makefile	Fri Feb 26 01:49:26 1988
+	X--- ../nntp.local/Makefile	Sun Mar 11 18:03:17 1990
+	X***************
+	X*** 1,4
+	X- 
+	X  #
+	X  # Makefile for NNTP intstallation
+	X  #
+	X
+	X--- 1,3 -----
+	X  #
+	X  # Makefile for NNTP intstallation
+	X  #
+	X***************
+	X*** 2,7
+	X  #
+	X  # Makefile for NNTP intstallation
+	X  #
+	X  
+	X  DISTFILES = Makefile README CHANGES rrnpatches
+	X  
+	X
+	X--- 1,10 -----
+	X  #
+	X  # Makefile for NNTP intstallation
+	X  #
+	X+ # set CFLAGS to be -Ipath/to/special/includes if needed
+	X+ CFLAGS= -O 
+	X+ # set LIBS to be -lneededlibrary if needed
+	X+ LIBS=
+	X  
+	X  DISTFILES = Makefile README CHANGES rrnpatches
+	X  
+	X***************
+	X*** 9,14
+	X  
+	X  DIST = $(DISTFILES) $(DISTDIRS)
+	X  
+	X  # Make this either "server" or "client" depending on whether
+	X  # you want this package compiled to be a server or a client
+	X  # (You can always say "make server" or "make client" if you want.
+	X
+	X--- 12,19 -----
+	X  
+	X  DIST = $(DISTFILES) $(DISTDIRS)
+	X  
+	X+ SHELL=/bin/sh
+	X+ 
+	X  # Make this either "server" or "client" depending on whether
+	X  # you want this package compiled to be a server or a client
+	X  # (You can always say "make server" or "make client" if you want.
+	X***************
+	X*** 23,32
+	X  	@ echo "See README for details."
+	X  
+	X  make_server: /nowhere
+	X! 	cd server; make
+	X! 	cd support; make
+	X! 	cd doc; make
+	X! 	cd xmit; make
+	X  
+	X  server: make_server
+	X  
+	X
+	X--- 28,38 -----
+	X  	@ echo "See README for details."
+	X  
+	X  make_server: /nowhere
+	X! 	cd server; make "LIBS=${LIBS}" "CFLAGS=${CFLAGS}"
+	X! 	cd support; make "LIBS=${LIBS}" "CFLAGS=${CFLAGS}"
+	X! 	cd doc; make "LIBS=${LIBS}" "CFLAGS=${CFLAGS}"
+	X! 	cd xmit; make "LIBS=${LIBS}" "CFLAGS=${CFLAGS}"
+	X! 	cd xfer; make "LIBS=${LIBS}" "CFLAGS=${CFLAGS}"
+	X  
+	X  server: make_server
+	X  
+	X***************
+	X*** 31,38
+	X  server: make_server
+	X  
+	X  make_client: /nowhere
+	X! 	cd inews; make
+	X! 	cd doc; make
+	X  
+	X  client: make_client
+	X  
+	X
+	X--- 37,44 -----
+	X  server: make_server
+	X  
+	X  make_client: /nowhere
+	X! 	cd inews; make "LIBS=${LIBS}" "CFLAGS=${CFLAGS}"
+	X! 	cd doc; make "LIBS=${LIBS}" "CFLAGS=${CFLAGS}"
+	X  
+	X  client: make_client
+	X  
+	X***************
+	X*** 54,60
+	X  	cd doc; make install
+	X  
+	X  clean:
+	X! 	for i in $(DISTDIRS); do cd $$i; make clean; cd ..; done
+	X  
+	X  check:
+	X  	for i in $(DISTDIRS); do cd $$i; make check; cd ..; done
+	X
+	X--- 60,66 -----
+	X  	cd doc; make install
+	X  
+	X  clean:
+	X! 	rm  -f .[a-z]* ; for i in $(DISTDIRS); do cd $$i; make clean; cd ..; done
+	X  
+	X  check:
+	X  	for i in $(DISTDIRS); do cd $$i; make check; cd ..; done
+SHAR_EOF
+if test 2395 -ne "`wc -c < 'Makefile.diff'`"
+then
+	echo shar: error transmitting "'Makefile.diff'" '(should have been 2395 characters)'
+fi
+fi # end of overwriting check
+if test -d server
+then
+echo shar: "entering 'server' directory"
+cd server
+echo shar: extracting "'putenv.c'" '(3116 characters)'
+if test -f 'putenv.c'
+then
+	echo shar: will not over-write existing file "'putenv.c'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'putenv.c'
+	X/*
+	X * Based on getenv.c and setenv.c which are:
+	X * Copyright (c) 1987 Regents of the University of California.
+	X * All rights reserved.
+	X *
+	X * Redistribution and use in source and binary forms are permitted
+	X * provided that the above copyright notice and this paragraph are
+	X * duplicated in all such forms and that any documentation,
+	X * advertising materials, and other materials related to such
+	X * distribution and use acknowledge that the software was developed
+	X * by the University of California, Berkeley.  The name of the
+	X * University may not be used to endorse or promote products derived
+	X * from this software without specific prior written permission.
+	X * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+	X * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+	X * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+	X */
+	X
+	X#ifndef lint
+	Xstatic char rcsid[] = "@(#)$Header: putenv.c,v 1.2 90/01/16 02:30:38 sob Exp $";
+	X#endif
+	X
+	X#include <sys/types.h>
+	X#include <stdio.h>
+	X
+	X/*
+	X * putenv --
+	X *	Set the value of the environmental variable "name" to be
+	X *	"value".  If rewrite is set, replace any current value.
+	X */
+	Xputenv(name, value, rewrite)
+	X	register char *name, *value;
+	X	int rewrite;
+	X{
+	X	extern char **environ;
+	X	static int alloced;			/* if allocated space before */
+	X	register char *C;
+	X	int l_value, offset;
+	X	char *malloc(), *realloc(), *_finditenv();
+	X
+	X	if (*value == '=')			/* no `=' in value */
+	X		++value;
+	X	l_value = strlen(value);
+	X	if ((C = _finditenv(name, &offset))) {	/* find if already exists */
+	X		if (!rewrite)
+	X			return(0);
+	X		if (strlen(C) >= l_value) {	/* old larger; copy over */
+	X			while (*C++ = *value++);
+	X			return(0);
+	X		}
+	X	}
+	X	else {					/* create new slot */
+	X		register int	cnt;
+	X		register char	**P;
+	X
+	X		for (P = environ, cnt = 0; *P; ++P, ++cnt);
+	X		if (alloced) {			/* just increase size */
+	X			environ = (char **)realloc((char *)environ,
+	X			    (unsigned int)(sizeof(char *) * (cnt + 2)));
+	X			if (!environ)
+	X				return(-1);
+	X		}
+	X		else {				/* get new space */
+	X			alloced = 1;		/* copy old entries into it */
+	X			P = (char **)malloc((unsigned int)(sizeof(char *) *
+	X			    (cnt + 2)));
+	X			if (!P)
+	X				return(-1);
+	X			bcopy(environ, P, cnt * sizeof(char *));
+	X			environ = P;
+	X		}
+	X		environ[cnt + 1] = NULL;
+	X		offset = cnt;
+	X	}
+	X	for (C = name; *C && *C != '='; ++C);	/* no `=' in name */
+	X	if (!(environ[offset] =			/* name + `=' + value */
+	X	    malloc((unsigned int)((int)(C - name) + l_value + 2))))
+	X		return(-1);
+	X	for (C = environ[offset]; (*C = *name++) && *C != '='; ++C);
+	X	for (*C++ = '='; *C++ = *value++;);
+	X	return(0);
+	X}
+	X
+	X/*
+	X * _finditenv --
+	X *	Returns pointer to value associated with name, if any, else NULL.
+	X *	Explicitly removes '=' in argument name.
+	X *
+	X *	This routine *should* be a static; don't use it.
+	X */
+	Xchar *
+	X_finditenv(name, offset)
+	X	register char *name;
+	X	int *offset;
+	X{
+	X	extern char **environ;
+	X	register int len;
+	X	register char **P, *C;
+	X
+	X	for (C = name, len = 0; *C && *C != '='; ++C, ++len);
+	X	for (P = environ; *P; ++P)
+	X		if (!strncmp(*P, name, len))
+	X			if (*(C = *P + len) == '=') {
+	X				*offset = P - environ;
+	X				return(++C);
+	X			}
+	X	return(NULL);
+	X}
+SHAR_EOF
+if test 3116 -ne "`wc -c < 'putenv.c'`"
+then
+	echo shar: error transmitting "'putenv.c'" '(should have been 3116 characters)'
+fi
+fi # end of overwriting check
+cd ..
+echo shar: "done with directory 'server'"
+fi
+if test -d doc
+then
+echo shar: "entering 'doc' directory"
+cd doc
+echo shar: extracting "'doc.diff'" '(4356 characters)'
+if test -f 'doc.diff'
+then
+	echo shar: will not over-write existing file "'doc.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'doc.diff'
+	X*** nntpd.dst	Sun Mar 11 19:20:42 1990
+	X--- ../../nntp.local/doc/nntpd.dst	Fri Mar  9 22:41:01 1990
+	X***************
+	X*** 1,7
+	X  .\"
+	X  .\" @(#)nntpd.dst	1.4	(Berkeley) 5/11/89
+	X  .\"
+	X! .TH NNTPD 8C "11 May 1989"
+	X  .UC 4
+	X  .SH NAME
+	X  nntpd \- Network News Transfer Protocol server
+	X
+	X--- 1,7 -----
+	X  .\"
+	X  .\" @(#)nntpd.dst	1.4	(Berkeley) 5/11/89
+	X  .\"
+	X! .TH NNTPD 8C "12 March 1990"
+	X  .UC 4
+	X  .SH NAME
+	X  nntpd \- Network News Transfer Protocol server
+	X***************
+	X*** 35,41
+	X  .sp
+	X  This manual page describes
+	X  .I nntpd
+	X! from version 1.5.4 of the NNTP package.
+	X  .PP
+	X  .I Nntpd
+	X  can operate either as a stand-alone server, or as a
+	X
+	X--- 35,41 -----
+	X  .sp
+	X  This manual page describes
+	X  .I nntpd
+	X! from version 1.5.8 of the NNTP package.
+	X  .PP
+	X  .I Nntpd
+	X  can operate either as a stand-alone server, or as a
+	X***************
+	X*** 83,89
+	X  This file consists of three or four fields in the following form:
+	X  .sp
+	X  .nf
+	X! host/net/*domain.suffix   read/xfer/no  post/no  newsgroups
+	X  .fi
+	X  .sp
+	X  where
+	X
+	X--- 83,89 -----
+	X  This file consists of three or four fields in the following form:
+	X  .sp
+	X  .nf
+	X! host/net/*domain.suffix/address   read/xfer/no  post/no  newsgroups
+	X  .fi
+	X  .sp
+	X  where
+	X***************
+	X*** 95,101
+	X  is a valid network name as found in
+	X  .I NETWORKFILE,
+	X  .I *.domain.suffix
+	X! is a valid domain part of a hostname preceeded by an asterisk, and
+	X  .I ``read'',
+	X  .I ``xfer'',
+	X  .I ``post'',
+	X
+	X--- 95,103 -----
+	X  is a valid network name as found in
+	X  .I NETWORKFILE,
+	X  .I *.domain.suffix
+	X! is a valid domain part of a hostname preceeded by an asterisk,
+	X! .I address
+	X! is a valid internet address in the form of a dotted quad, and
+	X  .I ``read'',
+	X  .I ``xfer'',
+	X  .I ``post'',
+	X***************
+	X*** 165,170
+	X  shadow          no      no
+	X  *.stanford.edu  no      no
+	X  ic              read    post     !ucb.postgres
+	X  .fi
+	X  .sp
+	X  .PP
+	X
+	X--- 167,173 -----
+	X  shadow          no      no
+	X  *.stanford.edu  no      no
+	X  ic              read    post     !ucb.postgres
+	X+ 128.249.1.1     read    no
+	X  .fi
+	X  .sp
+	X  .PP
+	X***************
+	X*** 176,182
+	X  to read or post news.
+	X  Hosts that have a domain suffix of ``.stanford.edu'' are denied access
+	X  to this server.
+	X! Finally, the host ``ic'' is allowed to read and post
+	X  news, but cannot access articles in the newsgroup
+	X  ``ucb.postgres'' or any of its child newsgroups
+	X  (e.g., ``ucb.postgres.core'').
+	X
+	X--- 179,185 -----
+	X  to read or post news.
+	X  Hosts that have a domain suffix of ``.stanford.edu'' are denied access
+	X  to this server.
+	X! The host ``ic'' is allowed to read and post
+	X  news, but cannot access articles in the newsgroup
+	X  ``ucb.postgres'' or any of its child newsgroups
+	X  (e.g., ``ucb.postgres.core'').
+	X***************
+	X*** 180,185
+	X  news, but cannot access articles in the newsgroup
+	X  ``ucb.postgres'' or any of its child newsgroups
+	X  (e.g., ``ucb.postgres.core'').
+	X  .SH "INFORMING USERS OF NEW NEWSGROUPS"
+	X  .PP
+	X  The NEWGROUPS command has never worked very well because
+	X
+	X--- 183,192 -----
+	X  news, but cannot access articles in the newsgroup
+	X  ``ucb.postgres'' or any of its child newsgroups
+	X  (e.g., ``ucb.postgres.core'').
+	X+ Finally, the host whose ip address is 128.249.1.1 is allowed to read but
+	X+ not post. If you have mutl-homed host, all addresses for that host will need
+	X+ to be listed with the same access information or things will not work as
+	X+ expected.
+	X  .SH "INFORMING USERS OF NEW NEWSGROUPS"
+	X  .PP
+	X  The NEWGROUPS command does not work well when used with B news.
+	X***************
+	X*** 182,193
+	X  (e.g., ``ucb.postgres.core'').
+	X  .SH "INFORMING USERS OF NEW NEWSGROUPS"
+	X  .PP
+	X! The NEWGROUPS command has never worked very well because
+	X! newsgroup creation dates are not stored under
+	X! the USENET news system.
+	X! As a result, it is left to client programs to determine
+	X! by difference in active file size whether new groups exist,
+	X! and if so, whether to inform the user of their existence.
+	X  .PP
+	X  Older versions of
+	X  .I nntpd
+	X
+	X--- 189,200 -----
+	X  expected.
+	X  .SH "INFORMING USERS OF NEW NEWSGROUPS"
+	X  .PP
+	X! The NEWGROUPS command does not work well when used with B news.
+	X! However, C news provides this information and use of the NEWGROUPS command
+	X! will be much more reliable.
+	X! For those sites using B news, client programs can determine if newgroups have
+	X! been created 
+	X! by testing for the difference in active file size from the previous session.
+	X  .PP
+	X  Older versions of
+	X  .I nntpd
+SHAR_EOF
+if test 4356 -ne "`wc -c < 'doc.diff'`"
+then
+	echo shar: error transmitting "'doc.diff'" '(should have been 4356 characters)'
+fi
+fi # end of overwriting check
+cd ..
+echo shar: "done with directory 'doc'"
+fi 
+if test -d inews
+then
+echo shar: "entering 'inews' directory"
+cd inews
+echo shar: extracting "'inews.diff'" '(1484 characters)'
+if test -f 'inews.diff'
+then
+	echo shar: will not over-write existing file "'inews.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'inews.diff'
+	X*** Makefile	Sun Feb  7 01:36:43 1988
+	X--- ../../nntp.local/inews/Makefile	Sun Mar 11 16:55:56 1990
+	X***************
+	X*** 8,13
+	X  
+	X  CFLAGS	= -O
+	X  
+	X  DESTDIR	= /usr/local
+	X  
+	X  inews:  $(OBJS) $(HFILES)
+	X
+	X--- 8,15 -----
+	X  
+	X  CFLAGS	= -O
+	X  
+	X+ LIBS	=
+	X+ 
+	X  DESTDIR	= /usr/local
+	X  
+	X  inews:  $(OBJS) $(HFILES)
+	X***************
+	X*** 11,17
+	X  DESTDIR	= /usr/local
+	X  
+	X  inews:  $(OBJS) $(HFILES)
+	X! 	$(CC) $(CFLAGS) $(OBJS) -o inews
+	X  
+	X  uname.o: ../common/conf.h
+	X  
+	X
+	X--- 13,19 -----
+	X  DESTDIR	= /usr/local
+	X  
+	X  inews:  $(OBJS) $(HFILES)
+	X! 	$(CC) $(CFLAGS) $(OBJS) -o inews $(LIBS)
+	X  
+	X  uname.o: ../common/conf.h
+	X  
+	X*** uname.c	Fri Dec 18 17:16:45 1987
+	X--- ../../nntp.local/inews/uname.c	Fri Mar  9 22:14:38 1990
+	X***************
+	X*** 32,37
+	X  #endif /* UNAME */
+	X  
+	X  #ifdef GHNAME
+	X  uname(uptr)
+	X  char	*uptr;
+	X  {
+	X
+	X--- 32,41 -----
+	X  #endif /* UNAME */
+	X  
+	X  #ifdef GHNAME
+	X+ #include <sys/types.h>
+	X+ #include <sys/socket.h>
+	X+ #include <netdb.h>
+	X+ 
+	X  uname(uptr)
+	X  char	*uptr;
+	X  {
+	X***************
+	X*** 35,40
+	X  uname(uptr)
+	X  char	*uptr;
+	X  {
+	X  	gethostname(uptr, 256);
+	X  }
+	X  # define DONE
+	X
+	X--- 39,46 -----
+	X  uname(uptr)
+	X  char	*uptr;
+	X  {
+	X+ 	struct hostent *he;
+	X+ 
+	X  	gethostname(uptr, 256);
+	X  
+	X  	he = gethostbyname(uptr);
+	X***************
+	X*** 36,41
+	X  char	*uptr;
+	X  {
+	X  	gethostname(uptr, 256);
+	X  }
+	X  # define DONE
+	X  #endif
+	X
+	X--- 42,51 -----
+	X  	struct hostent *he;
+	X  
+	X  	gethostname(uptr, 256);
+	X+ 
+	X+ 	he = gethostbyname(uptr);
+	X+ 	strncpy(uptr, he->h_name, 255);
+	X+ 	uptr[255] = '\0';
+	X  }
+	X  # define DONE
+	X  #endif
+SHAR_EOF
+if test 1484 -ne "`wc -c < 'inews.diff'`"
+then
+	echo shar: error transmitting "'inews.diff'" '(should have been 1484 characters)'
+fi
+fi # end of overwriting check
+cd ..
+echo shar: "done with directory 'inews'"
+fi 
+if test -d xfer
+then
+echo shar: "entering 'xfer' directory"
+cd xfer
+echo shar: extracting "'xfer.diff'" '(20199 characters)'
+if test -f 'xfer.diff'
+then
+	echo shar: will not over-write existing file "'xfer.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'xfer.diff'
+	X*** Makefile	Sun Mar 11 19:26:30 1990
+	X--- ../../nntp.local/xfer/Makefile	Tue Jan 16 01:19:17 1990
+	X***************
+	X*** 1,6
+	X! LIBS=-lresolv -ldbm
+	X! CFLAGS= -g 
+	X! DEFS=-DBSD4_2
+	X  
+	X  nntpxfer: nntpxfer.o get_tcp_conn.o
+	X  	$(CC) $(LDFLAGS) nntpxfer.o get_tcp_conn.o -o nntpxfer $(LIBS)
+	X
+	X--- 1,7 -----
+	X! #
+	X! # Makefile for nntpxfer
+	X! #
+	X! SRVRSRC = nntpxfer.c ../xmit/get_tcp_conn.c ../server/fakesyslog.c 
+	X  
+	X  SRVROBJ = nntpxfer.o get_tcp_conn.o fakesyslog.o 
+	X  
+	X***************
+	X*** 2,9
+	X  CFLAGS= -g 
+	X  DEFS=-DBSD4_2
+	X  
+	X! nntpxfer: nntpxfer.o get_tcp_conn.o
+	X! 	$(CC) $(LDFLAGS) nntpxfer.o get_tcp_conn.o -o nntpxfer $(LIBS)
+	X  
+	X  get_tcp_conn.o: ../xmit/get_tcp_conn.c ../xmit/get_tcp_conn.h
+	X  	$(CC) $(CFLAGS) $(DEFS) -I../xmit -c ../xmit/get_tcp_conn.c
+	X
+	X--- 3,9 -----
+	X  #
+	X  SRVRSRC = nntpxfer.c ../xmit/get_tcp_conn.c ../server/fakesyslog.c 
+	X  
+	X! SRVROBJ = nntpxfer.o get_tcp_conn.o fakesyslog.o 
+	X  
+	X  LIBS= -ldbm
+	X  
+	X***************
+	X*** 5,10
+	X  nntpxfer: nntpxfer.o get_tcp_conn.o
+	X  	$(CC) $(LDFLAGS) nntpxfer.o get_tcp_conn.o -o nntpxfer $(LIBS)
+	X  
+	X  get_tcp_conn.o: ../xmit/get_tcp_conn.c ../xmit/get_tcp_conn.h
+	X  	$(CC) $(CFLAGS) $(DEFS) -I../xmit -c ../xmit/get_tcp_conn.c
+	X  
+	X
+	X--- 5,17 -----
+	X  
+	X  SRVROBJ = nntpxfer.o get_tcp_conn.o fakesyslog.o 
+	X  
+	X+ LIBS= -ldbm
+	X+ 
+	X+ CFLAGS= -O
+	X+ 
+	X+ nntpxfer: ${SRVROBJ}
+	X+ 	${CC} ${LDFLAGS} ${SRVROBJ} -o nntpxfer ${LIBS}
+	X+ 
+	X  get_tcp_conn.o: ../xmit/get_tcp_conn.c ../xmit/get_tcp_conn.h
+	X  	${CC} ${CFLAGS} ${DEFS}	-c ../xmit/get_tcp_conn.c
+	X  
+	X***************
+	X*** 6,12
+	X  	$(CC) $(LDFLAGS) nntpxfer.o get_tcp_conn.o -o nntpxfer $(LIBS)
+	X  
+	X  get_tcp_conn.o: ../xmit/get_tcp_conn.c ../xmit/get_tcp_conn.h
+	X! 	$(CC) $(CFLAGS) $(DEFS) -I../xmit -c ../xmit/get_tcp_conn.c
+	X  
+	X  nntpxfer.o: nntpxfer.c
+	X  
+	X
+	X--- 13,19 -----
+	X  	${CC} ${LDFLAGS} ${SRVROBJ} -o nntpxfer ${LIBS}
+	X  
+	X  get_tcp_conn.o: ../xmit/get_tcp_conn.c ../xmit/get_tcp_conn.h
+	X! 	${CC} ${CFLAGS} ${DEFS}	-c ../xmit/get_tcp_conn.c
+	X  
+	X  fakesyslog.o: ../server/fakesyslog.c ../server/fakesyslog.h
+	X  	${CC} ${CFLAGS} ${DEFS} -c ../server/fakesyslog.c
+	X***************
+	X*** 8,14
+	X  get_tcp_conn.o: ../xmit/get_tcp_conn.c ../xmit/get_tcp_conn.h
+	X  	$(CC) $(CFLAGS) $(DEFS) -I../xmit -c ../xmit/get_tcp_conn.c
+	X  
+	X! nntpxfer.o: nntpxfer.c
+	X  
+	X  clean:
+	X  	-rm -f *.o nntpxfer make*.out
+	X
+	X--- 15,24 -----
+	X  get_tcp_conn.o: ../xmit/get_tcp_conn.c ../xmit/get_tcp_conn.h
+	X  	${CC} ${CFLAGS} ${DEFS}	-c ../xmit/get_tcp_conn.c
+	X  
+	X! fakesyslog.o: ../server/fakesyslog.c ../server/fakesyslog.h
+	X! 	${CC} ${CFLAGS} ${DEFS} -c ../server/fakesyslog.c
+	X! 
+	X! nntpxfer.o: nntpxfer.c ../common/conf.h ../server/fakesyslog.h
+	X  
+	X  clean:
+	X  	-rm -f *.o nntpxfer make*.out
+	X*** nntpxfer.c	Sun Mar 11 19:26:29 1990
+	X--- ../../nntp.local/xfer/nntpxfer.c	Tue Jan 16 01:18:59 1990
+	X***************
+	X*** 1,3
+	X  /*
+	X   * nntpxfer
+	X   *
+	X
+	X--- 1,6 -----
+	X+ #ifndef lint
+	X+ static char * scsid = "@(#)$Header: nntpxfer.c,v 1.5 90/01/16 01:18:32 sob Exp $";
+	X+ #endif
+	X  /*
+	X   * nntpxfer
+	X   *
+	X***************
+	X*** 20,25
+	X   */
+	X  
+	X  #include "../common/conf.h"
+	X  
+	X  #include <sys/types.h>
+	X  #ifdef NDIR
+	X
+	X--- 23,31 -----
+	X   */
+	X  
+	X  #include "../common/conf.h"
+	X+ #ifdef DEBUG
+	X+ #undef SYSLOG
+	X+ #endif
+	X  
+	X  #include <sys/types.h>
+	X  #ifdef NDIR
+	X***************
+	X*** 23,28
+	X  
+	X  #include <sys/types.h>
+	X  #ifdef NDIR
+	X  #include <ndir.h>
+	X  #else
+	X  #include <sys/dir.h>
+	X
+	X--- 29,37 -----
+	X  
+	X  #include <sys/types.h>
+	X  #ifdef NDIR
+	X+ #ifdef M_XENIX
+	X+ #include <sys/ndir.h>
+	X+ #else
+	X  #include <ndir.h>
+	X  #endif
+	X  #else
+	X***************
+	X*** 24,29
+	X  #include <sys/types.h>
+	X  #ifdef NDIR
+	X  #include <ndir.h>
+	X  #else
+	X  #include <sys/dir.h>
+	X  #endif
+	X
+	X--- 33,39 -----
+	X  #include <sys/ndir.h>
+	X  #else
+	X  #include <ndir.h>
+	X+ #endif
+	X  #else
+	X  #include <sys/dir.h>
+	X  #endif
+	X***************
+	X*** 36,41
+	X  #include <stdio.h>
+	X  #include <errno.h>
+	X  #include <ctype.h>
+	X  #ifndef NONETDB
+	X  #include <netdb.h>
+	X  #endif
+	X
+	X--- 46,52 -----
+	X  #include <stdio.h>
+	X  #include <errno.h>
+	X  #include <ctype.h>
+	X+ #include <setjmp.h>
+	X  #ifndef NONETDB
+	X  #include <netdb.h>
+	X  #endif
+	X***************
+	X*** 40,45
+	X  #include <netdb.h>
+	X  #endif
+	X  #include <signal.h>
+	X  
+	X  #ifdef DBM
+	X  #include <dbm.h>
+	X
+	X--- 51,63 -----
+	X  #include <netdb.h>
+	X  #endif
+	X  #include <signal.h>
+	X+ #ifdef SYSLOG
+	X+ #ifdef FAKESYSLOG
+	X+ #include "../server/fakesyslog.h"
+	X+ #else
+	X+ #include <syslog.h>
+	X+ #endif
+	X+ #endif
+	X  
+	X  #ifdef DBM
+	X  #include <dbm.h>
+	X***************
+	X*** 45,50
+	X  #include <dbm.h>
+	X  #endif
+	X  
+	X  char	*malloc();
+	X  char	*strcpy();
+	X  char	*strcat();
+	X
+	X--- 63,77 -----
+	X  #include <dbm.h>
+	X  #endif
+	X  
+	X+ #ifdef NDBM
+	X+ #include <ndbm.h>
+	X+ #include <fcntl.h>
+	X+ static DBM *db = NULL;
+	X+ #endif
+	X+ #ifndef TIMEOUT
+	X+ #define TIMEOUT (30*60)
+	X+ #endif
+	X+ 
+	X  char	*malloc();
+	X  char	*strcpy();
+	X  char	*strcat();
+	X***************
+	X*** 55,60
+	X  extern int errno;
+	X  char *artlist[MAX_ARTICLES];
+	X  int server;			/* stream socket to the nntp server */
+	X  int newart, dupart, misart;
+	X  char * Pname;
+	X  
+	X
+	X--- 82,88 -----
+	X  extern int errno;
+	X  char *artlist[MAX_ARTICLES];
+	X  int server;			/* stream socket to the nntp server */
+	X+ FILE * rd_fp, * wr_fp;
+	X  int newart, dupart, misart;
+	X  char * Pname;
+	X  
+	X***************
+	X*** 103,110
+	X  		}
+	X  	else
+	X  		{
+	X! 		(void) strcpy(dtname, "/usr/spool/news/nntp.");
+	X! 		(void) strcat(dtname, argv[1]);
+	X  		dtfile = fopen(dtname, "r");
+	X  		if (dtfile == NULL)
+	X  			{
+	X
+	X--- 131,137 -----
+	X  		}
+	X  	else
+	X  		{
+	X! 		(void) sprintf(dtname, "%s/nntp.%s",SPOOLDIR,argv[1]);
+	X  		dtfile = fopen(dtname, "r");
+	X  		if (dtfile == (FILE *) 0)
+	X  			{
+	X***************
+	X*** 106,112
+	X  		(void) strcpy(dtname, "/usr/spool/news/nntp.");
+	X  		(void) strcat(dtname, argv[1]);
+	X  		dtfile = fopen(dtname, "r");
+	X! 		if (dtfile == NULL)
+	X  			{
+	X  			(void) printf("%s not found; using * 860101 000000 \n", 
+	X  				dtname);
+	X
+	X--- 133,139 -----
+	X  		{
+	X  		(void) sprintf(dtname, "%s/nntp.%s",SPOOLDIR,argv[1]);
+	X  		dtfile = fopen(dtname, "r");
+	X! 		if (dtfile == (FILE *) 0)
+	X  			{
+	X  			(void) printf("%s not found; using * 860101 000000 \n", 
+	X  				dtname);
+	X***************
+	X*** 135,142
+	X  			((now->tm_mon + 1) * 100) + now->tm_mday;
+	X  		newtime = (now->tm_hour * 10000) +
+	X  			(now->tm_min * 100) + now->tm_sec;
+	X- 		}
+	X- 
+	X  #ifdef DEBUG
+	X  	(void) printf("newsgroups = '%s'\n", newsgroups);
+	X  	(void) printf("date = '%s'\n", lastdate);
+	X
+	X--- 162,167 -----
+	X  			((now->tm_mon + 1) * 100) + now->tm_mday;
+	X  		newtime = (now->tm_hour * 10000) +
+	X  			(now->tm_min * 100) + now->tm_sec;
+	X  #ifdef DEBUG
+	X  	printf("server is %s\n",argv[1]);
+	X  	printf("lastdate is %s\n",lastdate);
+	X***************
+	X*** 138,148
+	X  		}
+	X  
+	X  #ifdef DEBUG
+	X! 	(void) printf("newsgroups = '%s'\n", newsgroups);
+	X! 	(void) printf("date = '%s'\n", lastdate);
+	X! 	(void) printf("time = '%s'\n", lasttime);
+	X! 	(void) printf("distributions = '%s'\n", distributions);
+	X! 	(void) printf("now is = %06d %06d\n", newdate, newtime);
+	X  #endif
+	X  
+	X  #ifdef DBM
+	X
+	X--- 163,173 -----
+	X  		newtime = (now->tm_hour * 10000) +
+	X  			(now->tm_min * 100) + now->tm_sec;
+	X  #ifdef DEBUG
+	X! 	printf("server is %s\n",argv[1]);
+	X! 	printf("lastdate is %s\n",lastdate);
+	X! 	printf("lasttime is %s\n",lasttime);
+	X! 	printf("newsgroups is '%s'\n",newsgroups);
+	X! 	printf("distributions is '%s'\n",distributions);
+	X  #endif
+	X  		}
+	X  #ifdef SYSLOG
+	X***************
+	X*** 144,149
+	X  	(void) printf("distributions = '%s'\n", distributions);
+	X  	(void) printf("now is = %06d %06d\n", newdate, newtime);
+	X  #endif
+	X  
+	X  #ifdef DBM
+	X  	if (dbminit(HISTORY_FILE) < 0)
+	X
+	X--- 169,182 -----
+	X  	printf("newsgroups is '%s'\n",newsgroups);
+	X  	printf("distributions is '%s'\n",distributions);
+	X  #endif
+	X+ 		}
+	X+ #ifdef SYSLOG
+	X+ #ifdef BSD_42
+	X+ 	openlog("nntpxfer", LOG_PID);
+	X+ #else
+	X+ 	openlog("nntpxfer", LOG_PID, SYSLOG);
+	X+ #endif
+	X+ #endif
+	X  
+	X  #ifdef DBM
+	X  	if (dbminit(HISTORY_FILE) < 0)
+	X***************
+	X*** 148,154
+	X  #ifdef DBM
+	X  	if (dbminit(HISTORY_FILE) < 0)
+	X  		{
+	X! 		perror("couldn't open history file");
+	X  		exit(1);
+	X  		}
+	X  #endif
+	X
+	X--- 181,191 -----
+	X  #ifdef DBM
+	X  	if (dbminit(HISTORY_FILE) < 0)
+	X  		{
+	X! #ifdef SYSLOG
+	X! 		syslog(LOG_ERR,"couldn't open history file: %m");
+	X! #else
+	X! 		perror("nntpxfer: couldn't open history file");
+	X! #endif
+	X  		exit(1);
+	X  		}
+	X  #endif
+	X***************
+	X*** 152,157
+	X  		exit(1);
+	X  		}
+	X  #endif
+	X  	if ((server = get_tcp_conn(argv[1],"nntp")) < 0) 
+	X  		{
+	X  		perror("could not open socket");
+	X
+	X--- 189,205 -----
+	X  		exit(1);
+	X  		}
+	X  #endif
+	X+ #ifdef NDBM
+	X+  	if ((db = dbm_open(HISTORY_FILE, O_RDONLY, 0)) == NULL) 
+	X+  		{
+	X+ #ifdef SYSLOG
+	X+  		syslog(LOG_ERR,"couldn't open history file: %m");
+	X+ #else
+	X+  		perror("nntpxfer: couldn't open history file");
+	X+ #endif
+	X+  		exit(1);
+	X+  		}
+	X+ #endif
+	X  	if ((server = get_tcp_conn(argv[1],"nntp")) < 0) 
+	X  		{
+	X  #ifdef SYSLOG
+	X***************
+	X*** 154,160
+	X  #endif
+	X  	if ((server = get_tcp_conn(argv[1],"nntp")) < 0) 
+	X  		{
+	X! 		perror("could not open socket");
+	X  		exit(1);
+	X  		}
+	X  
+	X
+	X--- 202,212 -----
+	X  #endif
+	X  	if ((server = get_tcp_conn(argv[1],"nntp")) < 0) 
+	X  		{
+	X! #ifdef SYSLOG
+	X! 		syslog(LOG_ERR,"could not open socket: %m");
+	X! #else
+	X! 		perror("nntpxfer: could not open socket");
+	X! #endif
+	X  		exit(1);
+	X  		}
+	X  	if ((rd_fp = fdopen(server,"r")) == (FILE *) 0){
+	X***************
+	X*** 157,162
+	X  		perror("could not open socket");
+	X  		exit(1);
+	X  		}
+	X  
+	X  #ifdef DEBUG
+	X  	(void) printf("connected to nntp server at %s\n", argv[1]);
+	X
+	X--- 209,222 -----
+	X  #endif
+	X  		exit(1);
+	X  		}
+	X+ 	if ((rd_fp = fdopen(server,"r")) == (FILE *) 0){
+	X+ #ifdef SYSLOG
+	X+ 		syslog(LOG_ERR,"could not fdopen socket: %m");
+	X+ #else
+	X+ 		perror("nntpxfer: could not fdopen socket");
+	X+ #endif
+	X+ 		exit(1);
+	X+ 		}
+	X  
+	X  #ifdef SYSLOG
+	X  	syslog(LOG_DEBUG,"connected to nntp server at %s", argv[1]);
+	X***************
+	X*** 158,163
+	X  		exit(1);
+	X  		}
+	X  
+	X  #ifdef DEBUG
+	X  	(void) printf("connected to nntp server at %s\n", argv[1]);
+	X  #endif
+	X
+	X--- 218,226 -----
+	X  		exit(1);
+	X  		}
+	X  
+	X+ #ifdef SYSLOG
+	X+ 	syslog(LOG_DEBUG,"connected to nntp server at %s", argv[1]);
+	X+ #endif
+	X  #ifdef DEBUG
+	X  	printf("connected to nntp server at %s\n", argv[1]);
+	X  #endif
+	X***************
+	X*** 159,165
+	X  		}
+	X  
+	X  #ifdef DEBUG
+	X! 	(void) printf("connected to nntp server at %s\n", argv[1]);
+	X  #endif
+	X  	/*
+	X  	* ok, at this point we're connected to the nntp daemon 
+	X
+	X--- 222,228 -----
+	X  	syslog(LOG_DEBUG,"connected to nntp server at %s", argv[1]);
+	X  #endif
+	X  #ifdef DEBUG
+	X! 	printf("connected to nntp server at %s\n", argv[1]);
+	X  #endif
+	X  	/*
+	X  	* ok, at this point we're connected to the nntp daemon 
+	X***************
+	X*** 165,171
+	X  	* ok, at this point we're connected to the nntp daemon 
+	X  	* at the distant host.
+	X  	*/
+	X- 
+	X  	/* get the greeting herald */
+	X  	(void) sockread(buf);
+	X  #ifdef DEBUG
+	X
+	X--- 228,233 -----
+	X  	* ok, at this point we're connected to the nntp daemon 
+	X  	* at the distant host.
+	X  	*/
+	X  	/* get the greeting herald */
+	X  	(void) sockread(buf);
+	X  #ifdef DEBUG
+	X***************
+	X*** 173,179
+	X  #endif
+	X  	if (buf[0] != '2')	/* uh-oh, something's wrong! */
+	X  		{
+	X! 		(void) printf("protocol error: got '%s'\n", buf);
+	X  		(void) close(server);
+	X  		exit(1);
+	X  		}
+	X
+	X--- 235,245 -----
+	X  #endif
+	X  	if (buf[0] != '2')	/* uh-oh, something's wrong! */
+	X  		{
+	X! #ifdef SYSLOG
+	X! 		syslog(LOG_NOTICE,"protocol error: got '%s'\n", buf);
+	X! #else
+	X! 		(void) printf("%s: protocol error: got '%s'\n", Pname,buf);
+	X! #endif
+	X  		(void) close(server);
+	X  		exit(1);
+	X  		}
+	X***************
+	X*** 187,193
+	X  #endif
+	X  	if (buf[0] != '2')	/* uh-oh, something's wrong! */
+	X  		{
+	X! 		(void) printf("protocol error: got '%s'\n", buf);
+	X  		(void) close(server);
+	X  		exit(1);
+	X  		}
+	X
+	X--- 253,263 -----
+	X  #endif
+	X  	if (buf[0] != '2')	/* uh-oh, something's wrong! */
+	X  		{
+	X! #ifdef SYSLOG
+	X! 		syslog(LOG_NOTICE,"protocol error: got '%s'", buf);
+	X! #else
+	X! 		(void) printf("%s: protocol error: got '%s'\n", Pname,buf);
+	X! #endif
+	X  		(void) close(server);
+	X  		exit(1);
+	X  		}
+	X***************
+	X*** 206,212
+	X  #endif
+	X  	if (buf[0] != '2')	/* uh-oh, something's wrong! */
+	X  		{
+	X! 		(void) printf("protocol error: got '%s'\n", buf);
+	X  		(void) close(server);
+	X  		exit(1);
+	X  		}
+	X
+	X--- 276,286 -----
+	X  #endif
+	X  	if (buf[0] != '2')	/* uh-oh, something's wrong! */
+	X  		{
+	X! #ifdef SYSLOG
+	X! 		syslog(LOG_NOTICE,"protocol error: got '%s'", buf);
+	X! #else
+	X! 		(void) printf("%s: protocol error: got '%s'\n", Pname,buf);
+	X! #endif
+	X  		(void) close(server);
+	X  		exit(1);
+	X  		}
+	X***************
+	X*** 253,259
+	X  #endif
+	X  	if (buf[0] != '2')	/* uh-oh, something's wrong! */
+	X  		{
+	X! 		(void) printf("error: got '%s'\n", buf);
+	X  		(void) close(server);
+	X  		exit(1);
+	X  		}
+	X
+	X--- 327,337 -----
+	X  #endif
+	X  	if (buf[0] != '2')	/* uh-oh, something's wrong! */
+	X  		{
+	X! #ifdef SYSLOG
+	X! 		syslog(LOG_NOTICE,"error: got '%s'", buf);
+	X! #else
+	X! 		(void) printf("%s: error: got '%s'\n", Pname,buf);
+	X! #endif
+	X  		(void) close(server);
+	X  		exit(1);
+	X  		}
+	X***************
+	X*** 268,274
+	X  		(void) printf("updating %s:\n\t%s\n", dtname, buf);
+	X  #endif
+	X  		dtfile = fopen(dtname, "w");
+	X! 		if (dtfile == NULL)
+	X  			{
+	X  			perror(dtname);
+	X  			exit(1);
+	X
+	X--- 346,352 -----
+	X  		(void) printf("updating %s:\n\t%s\n", dtname, buf);
+	X  #endif
+	X  		dtfile = fopen(dtname, "w");
+	X! 		if (dtfile == (FILE *) 0)
+	X  			{
+	X  			perror(dtname);
+	X  			exit(1);
+	X***************
+	X*** 301,307
+	X  
+	X  	if (buf[0] != '2')	/* uh-oh, something's wrong! */
+	X  		{
+	X! 		(void) printf("protocol error: got '%s'\n", buf);
+	X  		(void) close(server);
+	X  		exit(1);
+	X  		}
+	X
+	X--- 379,389 -----
+	X  
+	X  	if (buf[0] != '2')	/* uh-oh, something's wrong! */
+	X  		{
+	X! #ifdef SYSLOG
+	X! 		syslog(LOG_NOTICE,"protocol error: got '%s'", buf);
+	X! #else
+	X! 		(void) printf("%s: protocol error: got '%s'\n", Pname, buf);
+	X! #endif
+	X  		(void) close(server);
+	X  		exit(1);
+	X  		}
+	X***************
+	X*** 308,314
+	X  #ifdef DEBUG
+	X  	(void) printf("command: %s\n", RNEWS);
+	X  #endif
+	X! 	if ( (inews = popen(RNEWS, "w")) == NULL)
+	X  		{
+	X  		perror(RNEWS);
+	X  		exit(1);
+	X
+	X--- 390,396 -----
+	X  #ifdef DEBUG
+	X  	(void) printf("command: %s\n", RNEWS);
+	X  #endif
+	X! 	if ( (inews = popen(RNEWS, "w")) == (FILE *) 0)
+	X  		{
+	X  		perror(RNEWS);
+	X  		exit(1);
+	X***************
+	X*** 336,341
+	X  	return(0);
+	X          }
+	X  
+	X  int
+	X  sockread(buf)
+	X  char *buf;
+	X
+	X--- 418,431 -----
+	X  	return(0);
+	X          }
+	X  
+	X+ static	jmp_buf	SFGstack;
+	X+ 
+	X+ static SIGRET
+	X+ to_sfgets()
+	X+ {
+	X+ 	longjmp(SFGstack, 1);
+	X+ }
+	X+ 
+	X  int
+	X  sockread(buf)
+	X  char *buf;
+	X***************
+	X*** 339,354
+	X  int
+	X  sockread(buf)
+	X  char *buf;
+	X! 	{
+	X! 	char c;
+	X! 	int j = 0;
+	X! #ifdef BSD43
+	X! 	fd_set rf;
+	X! #else BSD43
+	X! 	int rf;
+	X! #endif BSD43
+	X! #ifndef EXCELAN
+	X! 	struct timeval tv;
+	X  #endif
+	X  	int r;
+	X  	char *p = buf;
+	X
+	X--- 429,444 -----
+	X  int
+	X  sockread(buf)
+	X  char *buf;
+	X! {
+	X! 	int	esave, rz;
+	X! 	char * ret;
+	X! 	if (setjmp(SFGstack)) {
+	X! 		(void) alarm(0);	/* reset alarm clock */
+	X! 		(void) signal(SIGALRM, SIG_DFL);
+	X! #ifdef apollo
+	X! 		rd_fp->_flag |= _SIERR;
+	X! #else
+	X! 		rd_fp->_flag |= _IOERR;	/* set stdio error */
+	X  #endif
+	X  #ifndef ETIMEDOUT
+	X  		errno = EPIPE;		/* USG doesn't have ETIMEDOUT */
+	X***************
+	X*** 350,370
+	X  #ifndef EXCELAN
+	X  	struct timeval tv;
+	X  #endif
+	X! 	int r;
+	X! 	char *p = buf;
+	X! 
+	X! 	while ( 1 )
+	X! 		{
+	X! #ifndef EXCELAN
+	X! 		tv.tv_sec = 1800;	/* 15 minutes */
+	X! 		tv.tv_usec = 0L;
+	X! #ifdef BSD43
+	X! 		FD_ZERO(&rf);
+	X! 		FD_SET(server, &rf);
+	X! 		r = select(20, (fd_set *)&rf, (fd_set *)0, (fd_set *)&rf, &tv);#else BSD43
+	X! 		rf = 1 << server;
+	X! 		r = select(20, (int *)&rf, (int *)0, (int *)&rf, &tv);
+	X! #endif BSD43
+	X  #else
+	X  		rf = 1 << server;
+	X  		r = select(20, (long *)&rf, (long *)0, 110000L);
+	X
+	X--- 440,447 -----
+	X  #else
+	X  		rd_fp->_flag |= _IOERR;	/* set stdio error */
+	X  #endif
+	X! #ifndef ETIMEDOUT
+	X! 		errno = EPIPE;		/* USG doesn't have ETIMEDOUT */
+	X  #else
+	X  		errno = ETIMEDOUT;		/* connection timed out */
+	X  #endif
+	X***************
+	X*** 366,373
+	X  		r = select(20, (int *)&rf, (int *)0, (int *)&rf, &tv);
+	X  #endif BSD43
+	X  #else
+	X! 		rf = 1 << server;
+	X! 		r = select(20, (long *)&rf, (long *)0, 110000L);
+	X  #endif
+	X  		if (r < 0)
+	X  			{
+	X
+	X--- 443,449 -----
+	X  #ifndef ETIMEDOUT
+	X  		errno = EPIPE;		/* USG doesn't have ETIMEDOUT */
+	X  #else
+	X! 		errno = ETIMEDOUT;		/* connection timed out */
+	X  #endif
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR,"nntpxfer: read error on server socket: %m");
+	X***************
+	X*** 369,407
+	X  		rf = 1 << server;
+	X  		r = select(20, (long *)&rf, (long *)0, 110000L);
+	X  #endif
+	X! 		if (r < 0)
+	X! 			{
+	X! 			if (errno == EINTR)
+	X! 				continue;
+	X! 			perror("getsock select");
+	X! 			exit(1);
+	X! 			}
+	X! 		if (r == 0)
+	X! 			{
+	X! 			printf("read timed out.\n");
+	X! 			exit(1);
+	X! 			}
+	X! 		if (read (server,&c,1) <= 0)
+	X! 			break;
+	X! 
+	X! 		/* mask off any chance parity bits */
+	X! 		*p = c & 0x7f;
+	X! 
+	X! 		/* look for end of line (== LF) */
+	X! 		if (c == 0x0a)
+	X! 			{
+	X! 			if (j > 0 && *(p-1) == 0x0d)
+	X! 				*(p-1) = '\0';
+	X! 			else
+	X! 				*p = '\0';
+	X! 			return(strlen(buf));
+	X! 			}
+	X! 		j++; p++;
+	X! 		}
+	X! 	perror("sockread");
+	X! 	(void) close(server);
+	X! 	exit(1);
+	X! 	/* NOTREACHED */
+	X  	}
+	X  
+	X  sockwrite(buf)
+	X
+	X--- 445,457 -----
+	X  #else
+	X  		errno = ETIMEDOUT;		/* connection timed out */
+	X  #endif
+	X! #ifdef SYSLOG
+	X! 		syslog(LOG_ERR,"nntpxfer: read error on server socket: %m");
+	X! #else
+	X! 		(void) perror("nntpxfer: read error on server socket");
+	X! #endif
+	X! 		(void) close(server);
+	X! 		exit(1);
+	X  	}
+	X  	(void) signal(SIGALRM, to_sfgets);
+	X  	(void) alarm(TIMEOUT);
+	X***************
+	X*** 403,408
+	X  	exit(1);
+	X  	/* NOTREACHED */
+	X  	}
+	X  
+	X  sockwrite(buf)
+	X  char *buf;
+	X
+	X--- 453,478 -----
+	X  		(void) close(server);
+	X  		exit(1);
+	X  	}
+	X+ 	(void) signal(SIGALRM, to_sfgets);
+	X+ 	(void) alarm(TIMEOUT);
+	X+ 	ret  = fgets(buf, BUFSIZ, rd_fp);
+	X+ 	esave = errno;
+	X+ 	(void) alarm(0);			/* reset alarm clock */
+	X+ 	(void) signal(SIGALRM, SIG_DFL);	/* reset SIGALRM */
+	X+ 	errno = esave;
+	X+ 	rz = strlen(buf);
+	X+ 	buf[rz-2] = '\0';
+	X+ 	if (ret  == (char * ) 0) {
+	X+ #ifdef SYSLOG
+	X+     		syslog(LOG_ERR,"nntpxfer: read error on server socket: %m");
+	X+ #else
+	X+ 		(void) perror("nntpxfer: read error on server socket");
+	X+ #endif
+	X+ 		(void) fclose(rd_fp);
+	X+ 		exit(1);
+	X+ 	}
+	X+ 	return(0);
+	X+ }
+	X  
+	X  sockwrite(buf)
+	X  char *buf;
+	X***************
+	X*** 417,423
+	X  	sz = strlen(buf2);
+	X  	if (write(server,buf2,sz) != sz)
+	X  		{
+	X! 		(void) printf("write error on server socket\n");
+	X  		(void) close(server);
+	X  		exit(1);
+	X  		}
+	X
+	X--- 487,497 -----
+	X  	sz = strlen(buf2);
+	X  	if (write(server,buf2,sz) != sz)
+	X  		{
+	X! #ifdef SYSLOG
+	X! 		syslog(LOG_ERR,"nntpxfer: write error on server socket");
+	X! #else
+	X! 		(void) printf("nntpxfer: write error on server socket\n");
+	X! #endif
+	X  		(void) close(server);
+	X  		exit(1);
+	X  		}
+	X***************
+	X*** 427,433
+	X  wewant(articleid)
+	X  char *articleid;
+	X  	{
+	X! #ifdef DBM
+	X  	datum k, d;
+	X  #else
+	X  	FILE *k;
+	X
+	X--- 501,507 -----
+	X  wewant(articleid)
+	X  char *articleid;
+	X  	{
+	X! #if defined(DBM) || defined(NDBM)
+	X  	datum k, d;
+	X  #else
+	X  	FILE *k;
+	X***************
+	X*** 450,456
+	X  		p++;
+	X  		}
+	X  #endif
+	X! #ifdef DBM
+	X  	k.dptr = id;
+	X  	k.dsize = strlen(articleid) + 1;
+	X  
+	X
+	X--- 524,530 -----
+	X  		p++;
+	X  		}
+	X  #endif
+	X! #if defined(DBM) || defined(NDBM)
+	X  	k.dptr = id;
+	X  	k.dsize = strlen(articleid) + 1;
+	X  
+	X***************
+	X*** 454,459
+	X  	k.dptr = id;
+	X  	k.dsize = strlen(articleid) + 1;
+	X  
+	X  	d = fetch(k);
+	X  
+	X  	if (d.dptr)
+	X
+	X--- 528,534 -----
+	X  	k.dptr = id;
+	X  	k.dsize = strlen(articleid) + 1;
+	X  
+	X+ #ifdef DBM
+	X  	d = fetch(k);
+	X  #else
+	X   	d = dbm_fetch(db, k);
+	X***************
+	X*** 455,461
+	X  	k.dsize = strlen(articleid) + 1;
+	X  
+	X  	d = fetch(k);
+	X! 
+	X  	if (d.dptr)
+	X  		{
+	X  #ifdef DEBUG
+	X
+	X--- 530,538 -----
+	X  
+	X  #ifdef DBM
+	X  	d = fetch(k);
+	X! #else
+	X!  	d = dbm_fetch(db, k);
+	X! #endif
+	X  	if (d.dptr)
+	X  		{
+	X  #ifdef DEBUG
+	X***************
+	X*** 496,512
+	X  #endif
+	X  }
+	X  
+	X! char *
+	X! errmsg(n)
+	X! register int	n;
+	X! {
+	X! 	extern	int	sys_nerr;
+	X! 	extern 	char	*sys_errlist[];
+	X! 
+	X! 	return((n >= 0 && n < sys_nerr) ? sys_errlist[n] : "unknown error");
+	X! }
+	X! 
+	X! #ifndef DBM
+	X  /*
+	X  ** Generate the appropriate history subfile name
+	X  */
+	X
+	X--- 573,579 -----
+	X  #endif
+	X  }
+	X  
+	X! #ifdef USGHIST
+	X  /*
+	X  ** Generate the appropriate history subfile name
+	X  */
+	X***************
+	X*** 527,532
+	X  {
+	X  	register char *p;
+	X  	register int chr;
+	X  
+	X  	p = index(fn, '@');
+	X  	if (p != NULL && p > fn)
+	X
+	X--- 594,600 -----
+	X  {
+	X  	register char *p;
+	X  	register int chr;
+	X+ 	extern char * index();
+	X  
+	X  	p = index(fn, '@');
+	X  	if (p != NULL && p > fn)
+	X***************
+	X*** 538,540
+	X  	return chr;
+	X  }
+	X  #endif
+	X
+	X--- 606,623 -----
+	X  	return chr;
+	X  }
+	X  #endif
+	X+ char *
+	X+ errmsg(code)
+	X+ int code;
+	X+ {
+	X+ 	extern int sys_nerr;
+	X+ 	extern char *sys_errlist[];
+	X+ 	static char ebuf[6+5+1];
+	X+ 
+	X+ 	if (code > sys_nerr || code < 0) {
+	X+ 		(void) sprintf(ebuf, "Error %d", code);
+	X+ 		return ebuf;
+	X+ 	} else
+	X+ 		return sys_errlist[code];
+	X+ }
+	X+ 
+SHAR_EOF
+if test 20199 -ne "`wc -c < 'xfer.diff'`"
+then
+	echo shar: error transmitting "'xfer.diff'" '(should have been 20199 characters)'
+fi
+fi # end of overwriting check
+cd ..
+echo shar: "done with directory 'xmit'"
+fi 
+if test -d xmit
+then
+echo shar: "entering 'xmit' directory"
+cd xmit
+echo shar: extracting "'xmit.diff'" '(15579 characters)'
+if test -f 'xmit.diff'
+then
+	echo shar: will not over-write existing file "'xmit.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'xmit.diff'
+	X*** README	Fri Feb 26 00:23:52 1988
+	X--- ../../nntp.local/xmit/README	Sun Jan 14 20:41:34 1990
+	X***************
+	X*** 27,33
+	X  for debugging.
+	X  
+	X       Please forward comments/suggestions for improvement/bugs to
+	X! Erik Fair, <fair@ucbvax.berkeley.edu>.
+	X  
+	X       [My thanks extended to Erik for writing nntpxmit, shlock,
+	X  and the stats scripts.  My thanks also to Mel Pleasant
+	X
+	X--- 27,33 -----
+	X  for debugging.
+	X  
+	X       Please forward comments/suggestions for improvement/bugs to
+	X! sob@bcm.tmc.edu.
+	X  
+	X       [My thanks extended to Erik for writing nntpxmit, shlock,
+	X  and the stats scripts.  My thanks also to Mel Pleasant
+	X*** get_tcp_conn.c	Mon Nov 30 02:43:38 1987
+	X--- ../../nntp.local/xmit/get_tcp_conn.c	Sun Feb  4 23:44:35 1990
+	X***************
+	X*** 13,18
+	X  **
+	X  */
+	X  
+	X  #include <sys/types.h>
+	X  #include <sys/socket.h>
+	X  #include <netinet/in.h>
+	X
+	X--- 13,19 -----
+	X  **
+	X  */
+	X  
+	X+ #include "../common/conf.h"
+	X  #include <sys/types.h>
+	X  #include <sys/socket.h>
+	X  #include <netinet/in.h>
+	X*** get_tcp_conn.h	Sun Mar 11 19:22:58 1990
+	X--- ../../nntp.local/xmit/get_tcp_conn.h	Sun Mar 11 03:15:13 1990
+	X***************
+	X*** 12,17
+	X  #endif
+	X  
+	X  #ifdef USG	/* brain-dead USG compilers can't deal with typedef */
+	X  #ifndef dgux
+	X  #define	u_long	unsigned long
+	X  #define	u_short	unsigned short
+	X
+	X--- 12,19 -----
+	X  #endif
+	X  
+	X  #ifdef USG	/* brain-dead USG compilers can't deal with typedef */
+	X+ #define bcopy(a,b,c)   memcpy(b,a,c)
+	X+ #ifndef M_XENIX
+	X  #ifndef dgux
+	X  #define	u_long	unsigned long
+	X  #define	u_short	unsigned short
+	X***************
+	X*** 15,20
+	X  #ifndef dgux
+	X  #define	u_long	unsigned long
+	X  #define	u_short	unsigned short
+	X  #endif
+	X  #endif
+	X  
+	X
+	X--- 17,23 -----
+	X  #ifndef dgux
+	X  #define	u_long	unsigned long
+	X  #define	u_short	unsigned short
+	X+ #endif
+	X  #endif
+	X  #endif
+	X  
+	X*** llist.c	Tue Nov 17 16:51:05 1987
+	X--- ../../nntp.local/xmit/llist.c	Sun Mar 11 03:15:33 1990
+	X***************
+	X*** 3,8
+	X  ** Erik E. Fair <fair@ucbarpa.berkeley.edu>
+	X  */
+	X  
+	X  #include <sys/types.h>
+	X  #include "llist.h"
+	X  
+	X
+	X--- 3,9 -----
+	X  ** Erik E. Fair <fair@ucbarpa.berkeley.edu>
+	X  */
+	X  
+	X+ #include "../common/conf.h"
+	X  #include <sys/types.h>
+	X  #include "llist.h"
+	X  
+	X***************
+	X*** 5,10
+	X  
+	X  #include <sys/types.h>
+	X  #include "llist.h"
+	X  
+	X  extern free();
+	X  extern caddr_t	malloc();
+	X
+	X--- 6,15 -----
+	X  #include "../common/conf.h"
+	X  #include <sys/types.h>
+	X  #include "llist.h"
+	X+ 
+	X+ #ifdef USG
+	X+ #define bcopy(a,b,c)  memcpy(b,a,c)
+	X+ #endif
+	X  
+	X  extern free();
+	X  extern caddr_t	malloc();
+	X*** nntpxmit.c	Sun Mar 11 19:26:17 1990
+	X--- ../../nntp.local/xmit/nntpxmit.c	Mon Jan 15 02:24:09 1990
+	X***************
+	X*** 1,3
+	X  /* nntpxmit - transmit netnews articles across the internet with nntp
+	X  **
+	X  ** This program is for transmitting netnews articles between sites
+	X
+	X--- 1,6 -----
+	X+ #ifndef lint
+	X+ static char * rcsid = "@(#)$Header: nntpxmit.c,v 1.2 90/01/15 01:36:48 sob Exp $";
+	X+ #endif
+	X  /* nntpxmit - transmit netnews articles across the internet with nntp
+	X  **
+	X  ** This program is for transmitting netnews articles between sites
+	X***************
+	X*** 66,72
+	X  #include <ctype.h>
+	X  #include <sys/types.h>
+	X  #include <sys/time.h>
+	X! #ifdef	BSD4_2
+	X  #include <sys/resource.h>
+	X  #else
+	X  #include <sys/times.h>
+	X
+	X--- 69,75 -----
+	X  #include <ctype.h>
+	X  #include <sys/types.h>
+	X  #include <sys/time.h>
+	X! #if defined(BSD_42) || defined(BSD_43)
+	X  #include <sys/resource.h>
+	X  #else
+	X  #include <sys/times.h>
+	X***************
+	X*** 71,77
+	X  #else
+	X  #include <sys/times.h>
+	X  extern	time_t	time();
+	X! #endif	BSD4_2
+	X  #include <sys/file.h>
+	X  #include <fcntl.h>
+	X  #include <signal.h>
+	X
+	X--- 74,80 -----
+	X  #else
+	X  #include <sys/times.h>
+	X  extern	time_t	time();
+	X! #endif
+	X  #include <sys/file.h>
+	X  #include <fcntl.h>
+	X  #include <signal.h>
+	X***************
+	X*** 81,86
+	X  #include <sysexits.h>
+	X  #endif
+	X  #ifdef	SYSLOG
+	X  #include <syslog.h>
+	X  #endif	SYSLOG
+	X  #include "nntp.h"
+	X
+	X--- 84,92 -----
+	X  #include <sysexits.h>
+	X  #endif
+	X  #ifdef	SYSLOG
+	X+ #ifdef FAKESYSLOG
+	X+ #include "../server/fakesyslog.h"
+	X+ #else
+	X  #include <syslog.h>
+	X  #endif
+	X  #endif	SYSLOG
+	X***************
+	X*** 82,87
+	X  #endif
+	X  #ifdef	SYSLOG
+	X  #include <syslog.h>
+	X  #endif	SYSLOG
+	X  #include "nntp.h"
+	X  #include "llist.h"
+	X
+	X--- 88,94 -----
+	X  #include "../server/fakesyslog.h"
+	X  #else
+	X  #include <syslog.h>
+	X+ #endif
+	X  #endif	SYSLOG
+	X  #include "../common/nntp.h"
+	X  #include "llist.h"
+	X***************
+	X*** 83,89
+	X  #ifdef	SYSLOG
+	X  #include <syslog.h>
+	X  #endif	SYSLOG
+	X! #include "nntp.h"
+	X  #include "llist.h"
+	X  
+	X  #define	MAXFNAME	BUFSIZ	/* maximum filename size - big enough? */
+	X
+	X--- 90,96 -----
+	X  #include <syslog.h>
+	X  #endif
+	X  #endif	SYSLOG
+	X! #include "../common/nntp.h"
+	X  #include "llist.h"
+	X  
+	X  #define	MAXFNAME	BUFSIZ	/* maximum filename size - big enough? */
+	X***************
+	X*** 92,98
+	X  FILE	*getfp();
+	X  char	*errmsg();
+	X  void	requeue();
+	X! void	catchsig();
+	X  void	restsig();
+	X  void	logstats();
+	X  void	log();
+	X
+	X--- 99,105 -----
+	X  FILE	*getfp();
+	X  char	*errmsg();
+	X  void	requeue();
+	X! SIGRET	catchsig();
+	X  void	restsig();
+	X  void	logstats();
+	X  void	log();
+	X***************
+	X*** 126,135
+	X  char	*Fmt = "%s localhost %s[%d]: %s\n";
+	X  char	*E_fopen = "fopen(%s, \"%s\"): %s";
+	X  char	*E_unlk = "unlink(%s): %s";
+	X- #ifdef	USELOG
+	X- char	*NNTPlog = USELOG;	/* yet another external log file */
+	X- FILE	*Logfp = (FILE *)NULL;
+	X- #endif	USELOG
+	X  
+	X  ll_t	FailedArticles;		/* list of failed articles */
+	X  
+	X
+	X--- 133,138 -----
+	X  char	*Fmt = "%s localhost %s[%d]: %s\n";
+	X  char	*E_fopen = "fopen(%s, \"%s\"): %s";
+	X  char	*E_unlk = "unlink(%s): %s";
+	X  
+	X  ll_t	FailedArticles;		/* list of failed articles */
+	X  
+	X***************
+	X*** 166,175
+	X  	register int	i;
+	X  	int	transport = T_IP_TCP;	/* default is IP/TCP */
+	X  	int	isQfile = TRUE;		/* file arg is a Queue file */
+	X! #ifdef	USELOG
+	X! 	char	*amode = "a";
+	X! #endif	USELOG
+	X! #ifdef	BSD4_2
+	X  	struct timeval tod;
+	X  	struct timezone tz;
+	X  
+	X
+	X--- 169,175 -----
+	X  	register int	i;
+	X  	int	transport = T_IP_TCP;	/* default is IP/TCP */
+	X  	int	isQfile = TRUE;		/* file arg is a Queue file */
+	X! #if	defined(BSD_42) || defined(BSD_43)
+	X  	struct timeval tod;
+	X  	struct timezone tz;
+	X  
+	X***************
+	X*** 177,183
+	X  	Tbegin = tod.tv_sec + (double)tod.tv_usec/1000000.;
+	X  #else
+	X  	Tbegin = (double) time((time_t *)NULL);
+	X! #endif	BSD4_2
+	X  
+	X  	Pname = ((Pname = rindex(av[0],'/')) ? Pname + 1 : av[0]);
+	X  	
+	X
+	X--- 177,183 -----
+	X  	Tbegin = tod.tv_sec + (double)tod.tv_usec/1000000.;
+	X  #else
+	X  	Tbegin = (double) time((time_t *)NULL);
+	X! #endif
+	X  
+	X  	Pname = ((Pname = rindex(av[0],'/')) ? Pname + 1 : av[0]);
+	X  	
+	X***************
+	X*** 194,202
+	X  	(void) openlog(Pname, LOG_PID, SYSLOG);
+	X  #endif	BSD_42
+	X  #endif	SYSLOG
+	X- #ifdef	USELOG
+	X- 	if ((Logfp = fopen(NNTPlog, amode)) == (FILE *)NULL) {
+	X- 		char	buf[BUFSIZ];
+	X  
+	X  		sprintf(buf, E_fopen, NNTPlog, amode, errmsg(errno));
+	X  		log(L_NOTICE, buf);
+	X
+	X--- 194,199 -----
+	X  	(void) openlog(Pname, LOG_PID, SYSLOG);
+	X  #endif	BSD_42
+	X  #endif	SYSLOG
+	X  
+	X  	for(i = 1; i < ac; i++) {
+	X  		if (av[i][0] == '-') {
+	X***************
+	X*** 198,208
+	X  	if ((Logfp = fopen(NNTPlog, amode)) == (FILE *)NULL) {
+	X  		char	buf[BUFSIZ];
+	X  
+	X- 		sprintf(buf, E_fopen, NNTPlog, amode, errmsg(errno));
+	X- 		log(L_NOTICE, buf);
+	X- 	}
+	X- #endif	USELOG
+	X- 
+	X  	for(i = 1; i < ac; i++) {
+	X  		if (av[i][0] == '-') {
+	X  			switch(av[i][1]) {
+	X
+	X--- 195,200 -----
+	X  #endif	BSD_42
+	X  #endif	SYSLOG
+	X  
+	X  	for(i = 1; i < ac; i++) {
+	X  		if (av[i][0] == '-') {
+	X  			switch(av[i][1]) {
+	X***************
+	X*** 279,293
+	X  	static double ouser = 0.0, osys = 0.0;
+	X  	double user, sys;
+	X  	char buf[BUFSIZ];
+	X! #ifdef	USELOG
+	X! #ifdef	BSD4_2
+	X! 	extern	time_t	time();
+	X! #endif	BSD4_2
+	X! 	time_t	tstamp;
+	X! 	char	*tp;
+	X! 	extern	char	*ctime();
+	X! #endif	USELOG
+	X! #ifdef	BSD4_2
+	X  	struct rusage self, kids;
+	X  	struct timeval tod;
+	X  	struct timezone tzdummy;
+	X
+	X--- 271,277 -----
+	X  	static double ouser = 0.0, osys = 0.0;
+	X  	double user, sys;
+	X  	char buf[BUFSIZ];
+	X! #if	defined(BSD_42) || defined(BSD_43)
+	X  	struct rusage self, kids;
+	X  	struct timeval tod;
+	X  	struct timezone tzdummy;
+	X***************
+	X*** 314,320
+	X  	Tend = (double) time((time_t *)NULL);
+	X  	user = (double)(cpu.tms_utime + cpu.tms_cutime) / HZ;
+	X  	sys  = (double)(cpu.tms_stime + cpu.tms_cstime) / HZ;
+	X! #endif	BSD4_2
+	X  	sprintf(buf,
+	X  		"%s stats %lu offered %lu accepted %lu rejected %lu failed",
+	X  		Host, Stats.offered, Stats.accepted, Stats.rejected,
+	X
+	X--- 298,304 -----
+	X  	Tend = (double) time((time_t *)NULL);
+	X  	user = (double)(cpu.tms_utime + cpu.tms_cutime) / HZ;
+	X  	sys  = (double)(cpu.tms_stime + cpu.tms_cstime) / HZ;
+	X! #endif
+	X  	sprintf(buf,
+	X  		"%s stats %lu offered %lu accepted %lu rejected %lu failed",
+	X  		Host, Stats.offered, Stats.accepted, Stats.rejected,
+	X***************
+	X*** 320,335
+	X  		Host, Stats.offered, Stats.accepted, Stats.rejected,
+	X  		Stats.failed);
+	X  	log(L_INFO, buf);
+	X- #ifdef 	USELOG
+	X- 	if (Logfp != (FILE *)NULL) {
+	X- 		char * loc;
+	X- 		(void) time(&tstamp);
+	X- 		tp = (ctime(&tstamp))+4;	/* skip day of the week */
+	X- 		*(loc = tp + 16) = '\0';	/* get rid of year */
+	X- 		fprintf(Logfp, Fmt, tp, Pname, getpid(), buf);
+	X- 	}
+	X- #endif	USELOG
+	X- 
+	X  	sprintf(buf, "%s xmit user %.1f system %.1f elapsed %.1f",
+	X  		Host, (user - ouser), (sys - osys), (Tend - Tbegin));
+	X  	log(L_INFO, buf);
+	X
+	X--- 304,309 -----
+	X  		Host, Stats.offered, Stats.accepted, Stats.rejected,
+	X  		Stats.failed);
+	X  	log(L_INFO, buf);
+	X  	sprintf(buf, "%s xmit user %.1f system %.1f elapsed %.1f",
+	X  		Host, (user - ouser), (sys - osys), (Tend - Tbegin));
+	X  	log(L_INFO, buf);
+	X***************
+	X*** 333,345
+	X  	sprintf(buf, "%s xmit user %.1f system %.1f elapsed %.1f",
+	X  		Host, (user - ouser), (sys - osys), (Tend - Tbegin));
+	X  	log(L_INFO, buf);
+	X- #ifdef 	USELOG
+	X- 	if (Logfp != (FILE *)NULL) {
+	X- 		fprintf(Logfp, Fmt, tp, Pname, getpid(), buf);
+	X- 		(void) fflush(Logfp);
+	X- 	}
+	X- #endif	USELOG
+	X- 
+	X  	/* reset reference point */
+	X  	Tbegin = Tend;	
+	X  	ouser = user;
+	X
+	X--- 307,312 -----
+	X  	sprintf(buf, "%s xmit user %.1f system %.1f elapsed %.1f",
+	X  		Host, (user - ouser), (sys - osys), (Tend - Tbegin));
+	X  	log(L_INFO, buf);
+	X  	/* reset reference point */
+	X  	Tbegin = Tend;	
+	X  	ouser = user;
+	X***************
+	X*** 1064,1070
+	X  	{NULL}
+	X  };
+	X  
+	X! void
+	X  catchsig(handler)
+	X  ifunp	handler;
+	X  {
+	X
+	X--- 1031,1037 -----
+	X  	{NULL}
+	X  };
+	X  
+	X! SIGRET
+	X  catchsig(handler)
+	X  ifunp	handler;
+	X  {
+	X***************
+	X*** 1104,1110
+	X  	fprintf(report, "%s: %s\n", Pname, error);
+	X  #ifdef	SYSLOG
+	X  	switch(importance) {
+	X! 	case L_INFO:	importance = LOG_INFO;		break;
+	X  	case L_DEBUG:	importance = LOG_DEBUG;		break;
+	X  	case L_NOTICE:	importance = LOG_NOTICE;	break;
+	X  	case L_WARNING:	importance = LOG_WARNING;	break;
+	X
+	X--- 1071,1077 -----
+	X  	fprintf(report, "%s: %s\n", Pname, error);
+	X  #ifdef	SYSLOG
+	X  	switch(importance) {
+	X! #ifdef LOG
+	X  	case L_DEBUG:	importance = LOG_DEBUG;		break;
+	X  #endif
+	X  	case L_INFO:	importance = LOG_INFO;		break;
+	X***************
+	X*** 1106,1111
+	X  	switch(importance) {
+	X  	case L_INFO:	importance = LOG_INFO;		break;
+	X  	case L_DEBUG:	importance = LOG_DEBUG;		break;
+	X  	case L_NOTICE:	importance = LOG_NOTICE;	break;
+	X  	case L_WARNING:	importance = LOG_WARNING;	break;
+	X  	default:	importance = LOG_DEBUG;		break;
+	X
+	X--- 1073,1080 -----
+	X  	switch(importance) {
+	X  #ifdef LOG
+	X  	case L_DEBUG:	importance = LOG_DEBUG;		break;
+	X+ #endif
+	X+ 	case L_INFO:	importance = LOG_INFO;		break;
+	X  	case L_NOTICE:	importance = LOG_NOTICE;	break;
+	X  	case L_WARNING:	importance = LOG_WARNING;	break;
+	X  	default:	importance = LOG_DEBUG;		break;
+	X*** nntpxmit.h	Sun Mar 11 19:26:18 1990
+	X--- ../../nntp.local/xmit/nntpxmit.h	Mon Jan 15 01:37:52 1990
+	X***************
+	X*** 50,59
+	X  #define	L_NOTICE	3
+	X  #define	L_WARNING	4
+	X  
+	X- #if	(DECNET && !BSD4_2)	/* if we have DECNET, we're an Ultrix */
+	X- #define	BSD4_2
+	X- #undef	USG
+	X- #endif
+	X  
+	X  #if	(EXCELAN && !USG)	/* if we have EXCELAN, we're an Uglix */
+	X  #define	USG
+	X
+	X--- 50,55 -----
+	X  #define	L_NOTICE	3
+	X  #define	L_WARNING	4
+	X  
+	X  
+	X  #ifdef	BSD_42			/* look at all these goodies we get! */
+	X  #define	FTRUNCATE
+	X***************
+	X*** 55,75
+	X  #undef	USG
+	X  #endif
+	X  
+	X! #if	(EXCELAN && !USG)	/* if we have EXCELAN, we're an Uglix */
+	X! #define	USG
+	X! #undef	BSD4_2
+	X! #endif
+	X! 
+	X! #ifdef	USG			/* USG pinheadedness */
+	X! #ifndef dgux
+	X! #define	index	strchr
+	X! #define	rindex	strrchr
+	X! #define	u_long	unsigned long
+	X! #define	u_short	unsigned short
+	X! #endif
+	X! #endif
+	X! 
+	X! #ifdef	BSD4_2			/* look at all these goodies we get! */
+	X  #define	FTRUNCATE
+	X  #ifndef SYSLOG
+	X  #define	SYSLOG LOG_LOCAL6
+	X
+	X--- 51,57 -----
+	X  #define	L_WARNING	4
+	X  
+	X  
+	X! #ifdef	BSD_42			/* look at all these goodies we get! */
+	X  #define	FTRUNCATE
+	X  #define	RELSIG
+	X  #endif	BSD4_2
+	X***************
+	X*** 71,79
+	X  
+	X  #ifdef	BSD4_2			/* look at all these goodies we get! */
+	X  #define	FTRUNCATE
+	X- #ifndef SYSLOG
+	X- #define	SYSLOG LOG_LOCAL6
+	X- #endif
+	X  #define	RELSIG
+	X  #endif	BSD4_2
+	X  
+	X
+	X--- 53,58 -----
+	X  
+	X  #ifdef	BSD_42			/* look at all these goodies we get! */
+	X  #define	FTRUNCATE
+	X  #define	RELSIG
+	X  #endif	BSD4_2
+	X  
+	X***************
+	X*** 77,82
+	X  #define	RELSIG
+	X  #endif	BSD4_2
+	X  
+	X- #ifdef apollo
+	X- #undef SYSLOG			/* Apollos don't have this by default */
+	X- #endif
+	X
+	X--- 56,58 -----
+	X  #define	RELSIG
+	X  #endif	BSD4_2
+	X  
+	X*** remote.c	Sun Mar 11 19:23:02 1990
+	X--- ../../nntp.local/xmit/remote.c	Mon Jan 15 01:53:48 1990
+	X***************
+	X*** 1,3
+	X  /*
+	X  ** remote communication routines for NNTP/SMTP style communication.
+	X  **
+	X
+	X--- 1,6 -----
+	X+ #ifndef lint
+	X+ static char * rcsid = "@(#)$Header: remote.c,v 1.1 90/01/15 01:37:29 sob Exp $";
+	X+ #endif
+	X  /*
+	X  ** remote communication routines for NNTP/SMTP style communication.
+	X  **
+	X***************
+	X*** 27,33
+	X  **
+	X  ** Erik E. Fair <fair@ucbarpa.berkeley.edu>
+	X  */
+	X! 
+	X  #include "nntpxmit.h"
+	X  #include <sys/types.h>
+	X  #include <sys/socket.h>
+	X
+	X--- 30,36 -----
+	X  **
+	X  ** Erik E. Fair <fair@ucbarpa.berkeley.edu>
+	X  */
+	X! #include "../common/conf.h"
+	X  #include "nntpxmit.h"
+	X  #include <sys/types.h>
+	X  #include <sys/socket.h>
+	X***************
+	X*** 40,45
+	X  #define _IOERR  _IO_ERR
+	X  #endif
+	X  #ifdef SYSLOG
+	X  #include <syslog.h>
+	X  #endif
+	X  #include "get_tcp_conn.h"
+	X
+	X--- 43,51 -----
+	X  #define _IOERR  _IO_ERR
+	X  #endif
+	X  #ifdef SYSLOG
+	X+ #ifdef FAKESYSLOG
+	X+ #include "../server/fakesyslog.h"
+	X+ #else
+	X  #include <syslog.h>
+	X  #endif
+	X  #endif
+	X***************
+	X*** 42,47
+	X  #ifdef SYSLOG
+	X  #include <syslog.h>
+	X  #endif
+	X  #include "get_tcp_conn.h"
+	X  #include "nntp.h"
+	X  
+	X
+	X--- 48,54 -----
+	X  #else
+	X  #include <syslog.h>
+	X  #endif
+	X+ #endif
+	X  #include "get_tcp_conn.h"
+	X  #include "../common/nntp.h"
+	X  
+	X***************
+	X*** 43,49
+	X  #include <syslog.h>
+	X  #endif
+	X  #include "get_tcp_conn.h"
+	X! #include "nntp.h"
+	X  
+	X  static	jmp_buf	SFGstack;
+	X  FILE	*rmt_rd;
+	X
+	X--- 50,56 -----
+	X  #endif
+	X  #endif
+	X  #include "get_tcp_conn.h"
+	X! #include "../common/nntp.h"
+	X  
+	X  static	jmp_buf	SFGstack;
+	X  FILE	*rmt_rd;
+	X***************
+	X*** 286,292
+	X  		(void) signal(SIGPIPE, pstate);
+	X  }
+	X  
+	X! static
+	X  to_sfgets()
+	X  {
+	X  	longjmp(SFGstack, 1);
+	X
+	X--- 293,299 -----
+	X  		(void) signal(SIGPIPE, pstate);
+	X  }
+	X  
+	X! static SIGRET
+	X  to_sfgets()
+	X  {
+	X  	longjmp(SFGstack, 1);
+	X*** shlock.c	Sun Mar 11 19:26:18 1990
+	X--- ../../nntp.local/xmit/shlock.c	Mon Jan 15 01:37:38 1990
+	X***************
+	X*** 1,3
+	X  /*
+	X  ** Program to produce reliable locks for shell scripts.
+	X  ** Algorithmn suggested by Peter Honeyman, January 1984,
+	X
+	X--- 1,6 -----
+	X+ #ifndef lint
+	X+ static char * rcsid = "@(#)$Header: shlock.c,v 1.2 90/01/15 01:37:33 sob Exp $";
+	X+ #endif
+	X  /*
+	X  ** Program to produce reliable locks for shell scripts.
+	X  ** Algorithmn suggested by Peter Honeyman, January 1984,
+	X***************
+	X*** 30,35
+	X  #include <fcntl.h>			/* Needed on hpux */
+	X  #include <sys/file.h>
+	X  #include <errno.h>
+	X  
+	X  #define	LOCK_SET	0
+	X  #define	LOCK_FAIL	1
+	X
+	X--- 33,39 -----
+	X  #include <fcntl.h>			/* Needed on hpux */
+	X  #include <sys/file.h>
+	X  #include <errno.h>
+	X+ #include "../common/conf.h"
+	X  
+	X  #define	LOCK_SET	0
+	X  #define	LOCK_FAIL	1
+	X
+SHAR_EOF
+if test 15579 -ne "`wc -c < 'xmit.diff'`"
+then
+	echo shar: error transmitting "'xmit.diff'" '(should have been 15579 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'Makefile'" '(1275 characters)'
+sed 's/^	X//' << \SHAR_EOF > 'Makefile'
+	X#
+	X# Makefile for nntpxmit
+	X#
+	X
+	XSRVRSRC = nntpxmit.c remote.c llist.c get_tcp_conn.c ../server/fakesyslog.c
+	X
+	XSRVROBJ = nntpxmit.o remote.o llist.o get_tcp_conn.o fakesyslog.o
+	X
+	XSRVRINC = ../common/conf.h ../common/nntp.h nntpxmit.h get_tcp_conn.h \
+	X	llist.h sysexits.h ../common/nntp.h ../server/fakesyslog.h
+	X
+	XSRCS	= ${SRVRSRC}
+	X
+	XLIBS	=
+	X
+	XCFLAGS	= -O 
+	X
+	X# Where nntpxmit is going to live
+	X
+	XDESTDIR	= /usr/lib/news
+	X
+	Xall:	nntpxmit shlock
+	X
+	Xnntpxmit: ${SRVROBJ} ${SRVRINC}
+	X	${CC} ${CFLAGS} -o nntpxmit ${SRVROBJ} ${LIBS}
+	X
+	Xshlock: shlock.c
+	X	cc ${CFLAGS} -o shlock shlock.c
+	X
+	X${SRVROBJ}: ${SRVRINC}
+	X
+	Xinstall: nntpxmit shlock
+	X	cp nntpxmit ${DESTDIR}/nntpxmit
+	X	cp shlock ${DESTDIR}/shlock
+	X	chmod 755 ${DESTDIR}/nntpxmit
+	X	chmod 755 ${DESTDIR}/shlock
+	X
+	Xlint:
+	X	lint ${SRVRSRC}
+	X
+	Xclean:
+	X	-rm -f *.o nntpxmit shlock make*.out a.out
+	X
+	Xdistrib: clean
+	X	rm -rf SCCS save tags
+	X
+	Xcheck:
+	X	sccs check
+	X	sccs prt -y *.[ch] > /dev/null
+	X
+	Xtags:	${SRVRSRC} ${SRVRINC}
+	X	ctags ${SRVRSRC} ${SRVRINC}
+	X
+	Xfakesyslog.o: ../server/fakesyslog.c ../server/fakesyslog.h
+	X	${CC} ${CFLAGS} -c ../server/fakesyslog.c
+	X
+	Xnntpxmit.o: nntpxmit.c nntpxmit.h llist.h ../common/conf.h
+	X
+	Xget_tcp_conn.o: get_tcp_conn.c get_tcp_conn.h ../common/conf.h
+	X
+	Xremote.o: remote.c nntpxmit.h get_tcp_conn.h ../common/conf.h
+	X
+	Xllist.o: llist.c llist.h
+	X
+SHAR_EOF
+if test 1275 -ne "`wc -c < 'Makefile'`"
+then
+	echo shar: error transmitting "'Makefile'" '(should have been 1275 characters)'
+fi
+cd ..
+echo shar: "done with directory 'xmit'"
+fi 
+#	End of shell archive
+exit 0

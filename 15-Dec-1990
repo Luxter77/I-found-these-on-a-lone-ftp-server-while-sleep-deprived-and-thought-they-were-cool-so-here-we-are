@@ -1,0 +1,108 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 15-Dec-1990
+
+Oops.  We -- well, to be specific, I -- made a small error in the relaynews
+makefile.  As a final pre-Christmas patch, here's a fix.  Just to add some
+real technical content :-), I include a small fix that's been in the queue
+for some time:  having rnews report problems on stderr, as well as to the
+NEWSMASTER, so that smart transmission systems can pass the detailed
+nature of the problem back to the other end.  Oh yes, as a final Christmas
+present, the cnews.Z file on cs.toronto.edu will shortly be current again,
+the series of somewhat interrelated patches having been completed.
+
+start of patch 15-Dec-1990
+(suggested archive name: `pch15Dec90.Z')
+this should be run with   patch -p0 <thisfile
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+Prereq: 13-Dec-1990
+Prereq: 14-Dec-1990
+*** PATCHDATES.old	Sat Dec 15 19:59:27 1990
+--- PATCHDATES	Sat Dec 15 19:59:27 1990
+***************
+*** 1,22 ****
+--- 1,23 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
+  13-Dec-1990
+  14-Dec-1990
++ 15-Dec-1990
+
+Changed files, if any:
+
+*** cnpatch/old/input/rnews	Sat Dec 15 20:01:53 1990
+--- input/rnews	Sat Dec 15 19:49:01 1990
+***************
+*** 21,24 ****
+--- 21,25 ----
+  		echo incoming news discarded due to space shortage |
+  							mail "$NEWSMASTER"
++ 		echo incoming news discarded due to space shortage >&2
+  		exit 1
+  	fi
+***************
+*** 47,50 ****
+--- 48,52 ----
+  		cat /tmp/ngripe.$$
+  	) | mail "$NEWSMASTER"
++ 	cat /tmp/ngripe.$$ >&2
+  	rm -f /tmp/ngripe.$$
+  	exit 1
+
+*** cnpatch/old/relay/makefile	Sat Dec 15 20:05:20 1990
+--- relay/makefile	Sat Dec 15 19:24:44 1990
+***************
+*** 77,81 ****
+  	rm -f $(BIN)/inews $(NEWSCTL)/inews
+  	ln $(NEWSBIN)/inject/inews $(BIN)/inews 2>/dev/null || cp sh/inews $(BIN)
+! 	ln $(NEWSCTL)/inject/inews $(NEWSCTL)/inews 2>/dev/null || cp sh/inews $(NEWSCTL)
+  
+  cmp:	relaynews
+--- 77,81 ----
+  	rm -f $(BIN)/inews $(NEWSCTL)/inews
+  	ln $(NEWSBIN)/inject/inews $(BIN)/inews 2>/dev/null || cp sh/inews $(BIN)
+! 	ln $(NEWSBIN)/inject/inews $(NEWSCTL)/inews 2>/dev/null || cp sh/inews $(NEWSCTL)
+  
+  cmp:	relaynews
+
+
+end of patch 15-Dec-1990

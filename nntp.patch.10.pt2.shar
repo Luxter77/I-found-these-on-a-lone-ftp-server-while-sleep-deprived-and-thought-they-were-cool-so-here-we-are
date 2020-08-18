@@ -1,0 +1,2154 @@
+#! /bin/sh
+# This is a shell archive, meaning:
+# 1. Remove everything above the #! /bin/sh line.
+# 2. Save the resulting text in a file.
+# 3. Execute the file with /bin/sh (not csh) to create the files:
+#	server
+# This archive created: Mon Sep  3 14:08:40 1990
+export PATH; PATH=/bin:$PATH
+if test ! -d 'server'
+then
+	echo shar: creating directory "'server'"
+	mkdir 'server'
+fi
+echo shar: entering directory "'server'"
+cd 'server'
+echo shar: extracting "'server.diff'" '(43885 characters)'
+if test -f 'server.diff'
+then
+	echo shar: will not over-write existing file "'server.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'server.diff'
+	X*** access.c	Sun Jul  8 05:46:46 1990
+	X--- ../../nntp/server/access.c	Fri Aug 10 22:59:02 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: access.c,v 1.22 90/07/05 02:24:51 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: access.c,v 1.23 90/08/10 22:58:39 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 53,59
+	X  	int		sockt;
+	X  	int		length;
+	X  	struct sockaddr	sa;
+	X! 	int		match;
+	X  	int		count;
+	X  	char		hostornet[MAXHOSTNAMELEN];
+	X  	char		host_name[MAXHOSTNAMELEN];
+	X
+	X--- 53,59 -----
+	X  	int		sockt;
+	X  	int		length;
+	X  	struct sockaddr	sa;
+	X! 	int		match = 0;
+	X  	int		count;
+	X  	char		hostornet[MAXHOSTNAMELEN];
+	X  	char		host_name[MAXHOSTNAMELEN];
+	X***************
+	X*** 84,90
+	X  	if (getpeername(sockt, &sa, &length) < 0) {
+	X  #endif
+	X  		if (isatty(sockt)) {
+	X- #ifdef LOG
+	X  			(void) strcpy(hostname, "stdin");
+	X  #endif
+	X  			*canread = 1;
+	X
+	X--- 84,89 -----
+	X  	if (getpeername(sockt, &sa, &length) < 0) {
+	X  #endif
+	X  		if (isatty(sockt)) {
+	X  			(void) strcpy(hostname, "stdin");
+	X  			*canread = 1;
+	X  		} else {
+	X***************
+	X*** 86,92
+	X  		if (isatty(sockt)) {
+	X  #ifdef LOG
+	X  			(void) strcpy(hostname, "stdin");
+	X- #endif
+	X  			*canread = 1;
+	X  		} else {
+	X  #ifdef SYSLOG
+	X
+	X--- 85,90 -----
+	X  #endif
+	X  		if (isatty(sockt)) {
+	X  			(void) strcpy(hostname, "stdin");
+	X  			*canread = 1;
+	X  		} else {
+	X  #ifdef SYSLOG
+	X***************
+	X*** 92,98
+	X  #ifdef SYSLOG
+	X  			syslog(LOG_ERR, "host_access: getpeername: %m");
+	X  #endif
+	X- #ifdef LOG
+	X  			(void) strcpy(hostname, "unknown");
+	X  #endif
+	X  		}
+	X
+	X--- 90,95 -----
+	X  #ifdef SYSLOG
+	X  			syslog(LOG_ERR, "host_access: getpeername: %m");
+	X  #endif
+	X  			(void) strcpy(hostname, "unknown");
+	X  		}
+	X  		return;
+	X***************
+	X*** 94,100
+	X  #endif
+	X  #ifdef LOG
+	X  			(void) strcpy(hostname, "unknown");
+	X- #endif
+	X  		}
+	X  		return;
+	X  	}
+	X
+	X--- 91,96 -----
+	X  			syslog(LOG_ERR, "host_access: getpeername: %m");
+	X  #endif
+	X  			(void) strcpy(hostname, "unknown");
+	X  		}
+	X  		return;
+	X  	}
+	X***************
+	X*** 128,134
+	X  
+	X  #ifdef LOG
+	X  	syslog(LOG_INFO, "%s connect\n", host_name);
+	X- 	(void) strcpy(hostname, host_name);
+	X  #endif
+	X  
+	X  	/*
+	X
+	X--- 124,129 -----
+	X  
+	X  #ifdef LOG
+	X  	syslog(LOG_INFO, "%s connect\n", host_name);
+	X  #endif
+	X  	(void) strcpy(hostname, host_name);
+	X  
+	X***************
+	X*** 130,135
+	X  	syslog(LOG_INFO, "%s connect\n", host_name);
+	X  	(void) strcpy(hostname, host_name);
+	X  #endif
+	X  
+	X  	/*
+	X  	 * We now we have host_name, snet_name, and net_name.
+	X
+	X--- 125,131 -----
+	X  #ifdef LOG
+	X  	syslog(LOG_INFO, "%s connect\n", host_name);
+	X  #endif
+	X+ 	(void) strcpy(hostname, host_name);
+	X  
+	X  	/*
+	X  	 * We now we have host_name, snet_name, and net_name.
+	X*** auth.c	Sun Jul  8 01:38:19 1990
+	X--- ../../nntp/server/auth.c	Fri Aug 10 22:59:10 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: auth.c,v 1.1 90/07/05 02:25:31 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: auth.c,v 1.2 90/08/10 22:59:08 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X*** batch.c	Thu Jul  5 02:29:11 1990
+	X--- ../../nntp/server/batch.c	Sat Aug 25 16:59:48 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static	char	*rcsid = "@(#)$Header: batch.c,v 1.4 90/07/05 02:25:42 sob Exp $";
+	X  #endif
+	X  /*
+	X   * Batch subroutine for Cnews.
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static	char	*rcsid = "@(#)Header: batch.c,v 1.5 90/08/02 13:32:10 sob Exp $";
+	X  #endif
+	X  /*
+	X   * Batch subroutine for Cnews.
+	X***************
+	X*** 30,35
+	X  /* imports */
+	X  extern time_t time();
+	X  extern char *malloc(), *mktemp(), *index(), *rindex();
+	X  
+	X  /* forwards */
+	X  static char *strsave();
+	X
+	X--- 30,36 -----
+	X  /* imports */
+	X  extern time_t time();
+	X  extern char *malloc(), *mktemp(), *index(), *rindex();
+	X+ extern char **myenviron;
+	X  
+	X  /* forwards */
+	X  static char *strsave();
+	X***************
+	X*** 34,39
+	X  /* forwards */
+	X  static char *strsave();
+	X  static int xfer_timeout();
+	X  
+	X  /* private data */
+	X  static char tempfile[256];
+	X
+	X--- 35,43 -----
+	X  /* forwards */
+	X  static char *strsave();
+	X  static int xfer_timeout();
+	X+ static int cpstdin();
+	X+ static int appbatch();
+	X+ static int enqueue();
+	X  
+	X  /* private data */
+	X  static char tempfile[256];
+	X***************
+	X*** 88,94
+	X  	if (!cpstdin(cont_code, err_code, errbuf)) /* may create tempfile */
+	X  		return 0;
+	X  #ifdef POSTER
+	X! 	(void) chown(tempfile, uid_poster, gid_poster);
+	X  #endif
+	X  	status = appbatch();
+	X  	if (tempfile[0] != '\0')
+	X
+	X--- 92,99 -----
+	X  	if (!cpstdin(cont_code, err_code, errbuf)) /* may create tempfile */
+	X  		return 0;
+	X  #ifdef POSTER
+	X! 	if (tempfile[0])
+	X! 		(void) chown(tempfile, uid_poster, gid_poster);
+	X  #endif
+	X  	status = appbatch();
+	X  	if (tempfile[0] != '\0')
+	X***************
+	X*** 252,258
+	X  
+	X  	if (btch.file == NULL) {
+	X  		btch.file = fopen(btch.name, "a");
+	X! 		if (btch.file == NULL)
+	X  			return 0;
+	X  		btch.isopen = YES;
+	X  		btch.size = 0;
+	X
+	X--- 257,266 -----
+	X  
+	X  	if (btch.file == NULL) {
+	X  		btch.file = fopen(btch.name, "a");
+	X! 		if (btch.file == NULL) {
+	X! #ifdef SYSLOG
+	X! 			syslog(LOG_ERR,"appbatch(): %s: %m", btch.name);
+	X! #endif
+	X  			return 0;
+	X  		}
+	X  		btch.isopen = YES;
+	X***************
+	X*** 254,259
+	X  		btch.file = fopen(btch.name, "a");
+	X  		if (btch.file == NULL)
+	X  			return 0;
+	X  		btch.isopen = YES;
+	X  		btch.size = 0;
+	X  		btch.start = time(&btch.start);
+	X
+	X--- 262,268 -----
+	X  			syslog(LOG_ERR,"appbatch(): %s: %m", btch.name);
+	X  #endif
+	X  			return 0;
+	X+ 		}
+	X  		btch.isopen = YES;
+	X  		btch.size = 0;
+	X  		btch.start = time(&btch.start);
+	X***************
+	X*** 365,370
+	X  #endif
+	X  
+	X  	/* child: must exit */
+	X  	for (fd = 3; fd < 20; fd++)
+	X  		(void) close(fd);
+	X  	if (chdir(INDIR) < 0) {
+	X
+	X--- 374,383 -----
+	X  #endif
+	X  
+	X  	/* child: must exit */
+	X+ #ifdef SYSLOG
+	X+ 	/* Close in such a way that syslog() will know to reopen */
+	X+ 	closelog();
+	X+ #endif
+	X  	for (fd = 3; fd < 20; fd++)
+	X  		(void) close(fd);
+	X  	if (chdir(INDIR) < 0) {
+	X***************
+	X*** 398,404
+	X  	newsrun = strsave(NEWSRUN);
+	X  	if (newsrun == NULL)
+	X  		newsrun = "/usr/lib/newsbin/input/newsrun";
+	X! 	execl(newsrun, newsrun, (char *)NULL);
+	X  #ifdef SYSLOG
+	X  	syslog(LOG_ERR, "can't run %s", newsrun);
+	X  #endif
+	X
+	X--- 411,417 -----
+	X  	newsrun = strsave(NEWSRUN);
+	X  	if (newsrun == NULL)
+	X  		newsrun = "/usr/lib/newsbin/input/newsrun";
+	X! 	execle(newsrun, newsrun, (char *)NULL, myenviron);
+	X  #ifdef SYSLOG
+	X  	syslog(LOG_ERR, "enqueue: execle(%s): %m", newsrun);
+	X  #endif
+	X***************
+	X*** 400,406
+	X  		newsrun = "/usr/lib/newsbin/input/newsrun";
+	X  	execl(newsrun, newsrun, (char *)NULL);
+	X  #ifdef SYSLOG
+	X! 	syslog(LOG_ERR, "can't run %s", newsrun);
+	X  #endif
+	X  	exit(1);
+	X  	/* NOTREACHED */
+	X
+	X--- 413,419 -----
+	X  		newsrun = "/usr/lib/newsbin/input/newsrun";
+	X  	execle(newsrun, newsrun, (char *)NULL, myenviron);
+	X  #ifdef SYSLOG
+	X! 	syslog(LOG_ERR, "enqueue: execle(%s): %m", newsrun);
+	X  #endif
+	X  	exit(1);
+	X  	/* NOTREACHED */
+	X*** common.h	Thu Jul  5 02:28:40 1990
+	X--- ../../nntp/server/common.h	Sat Aug 25 17:00:35 1990
+	X***************
+	X*** 1,7
+	X  /*
+	X   * Common declarations, includes, and other goodies.
+	X   *
+	X!  * @(#)$Header: common.h,v 1.31 90/07/05 02:28:29 sob Exp $
+	X   */
+	X  
+	X  
+	X
+	X--- 1,7 -----
+	X  /*
+	X   * Common declarations, includes, and other goodies.
+	X   *
+	X!  * @(#)$Header: common.h,v 1.33 90/08/25 17:00:11 sob Exp $
+	X   */
+	X  
+	X  
+	X***************
+	X*** 63,73
+	X   */
+	X  
+	X  #ifdef DBM
+	X! # undef NULL
+	X! # include <dbm.h>
+	X! # undef NULL
+	X! # define NULL	0
+	X! #endif DBM
+	X  
+	X  #ifdef NDBM
+	X  # include <ndbm.h>
+	X
+	X--- 63,77 -----
+	X   */
+	X  
+	X  #ifdef DBM
+	X! # ifdef DBZ
+	X! #  include <dbz.h>
+	X! # else /* DBZ */
+	X! #  undef NULL
+	X! #  include <dbm.h>
+	X! #  undef NULL
+	X! #  define NULL	0
+	X! # endif /* DBZ */
+	X! #endif /* DBM */
+	X  
+	X  #ifdef NDBM
+	X  # include <ndbm.h>
+	X*** ihave.c	Thu Jul  5 02:29:15 1990
+	X--- ../../nntp/server/ihave.c	Sat Aug 18 17:15:57 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: ihave.c,v 1.16 90/07/05 02:26:22 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: ihave.c,v 1.17 90/08/18 17:15:17 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 74,91
+	X  #endif
+	X  
+	X  	if (retcode <= 0){
+	X! 		cp = index(errbuf,':');
+	X! 		while (*cp == ' ') cp++;
+	X! 		if (strcasecmp(cp,"inbound",7))
+	X! 		    printf("%d %s\r\n", ERR_XFERFAIL, errbuf);
+	X! 		else
+	X! 		    printf("%d %s\r\n", ERR_XFERRJCT, errbuf);
+	X! 	}
+	X! 	else if (retcode > 0)
+	X! 		printf("%d Thanks.\r\n",
+	X! 			OK_XFERED);
+	X! 	(void) fflush(stdout);
+	X! 
+	X  #ifdef LOG
+	X  	if (retcode == 1)
+	X  		ih_accepted++;
+	X
+	X--- 74,94 -----
+	X  #endif
+	X  
+	X  	if (retcode <= 0){
+	X!                /* Reject if "*:<optional_whitespace>inbound*", else fail */
+	X!                register int i;
+	X!  
+	X!                i = ERR_XFERFAIL;
+	X!                if (cp = index(errbuf,':')) {
+	X!                        for (++cp; isspace(*cp); ++cp)
+	X!                                ;
+	X!                        if (strncasecmp(cp, "inbound", 7) == 0)
+	X!                                i = ERR_XFERRJCT;
+	X!                }
+	X!                printf("%d %s\r\n", i, errbuf);
+	X!        }
+	X!         else
+	X!                printf("%d Thanks.\r\n", OK_XFERED);
+	X!         (void) fflush(stdout);
+	X  #ifdef LOG
+	X  	if (retcode == 1)
+	X  		ih_accepted++;
+	X*** list.c	Thu Jul  5 02:29:16 1990
+	X--- ../../nntp/server/list.c	Sat Aug 18 17:16:28 1990
+	X***************
+	X*** 24,29
+	X  	register FILE	*list_fp;
+	X  	
+	X  	if (argc == 1 || (argc == 2 && !strcasecmp(argv[1],"active"))){
+	X  		filename = activefile;
+	X  		items = "active newsgroups";
+	X  		format = "Newsgroups in form \"group high low y/n/m\".";
+	X
+	X--- 24,39 -----
+	X  	register FILE	*list_fp;
+	X  	
+	X  	if (argc == 1 || (argc == 2 && !strcasecmp(argv[1],"active"))){
+	X+                 num_groups = read_groups();
+	X+                 if (num_groups == 0){ /* can't get a group list */
+	X+                   printf("%d Group update failed. Try later.\r\n",
+	X+                          ERR_FAULT);
+	X+                   (void) fflush(stdout);
+	X+ #ifdef LOG
+	X+                   syslog(LOG_INFO, "%s group update failed in LIST", hostname);
+	X+ #endif
+	X+                   exit(1);
+	X+                 }
+	X  		filename = activefile;
+	X  		items = "active newsgroups";
+	X  		format = "Newsgroups in form \"group high low y/n/m\".";
+	X*** main.c	Thu Jul  5 23:09:27 1990
+	X--- ../../nntp/server/main.c	Sat Aug 11 21:30:22 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: main.c,v 1.14 90/07/05 23:09:24 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: main.c,v 1.15 90/08/11 21:29:53 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 22,27
+	X  struct sockaddr_in current_peer = { AF_INET, IPPORT_NNTP };
+	X  #endif
+	X  #include <signal.h>
+	X  
+	X  #ifdef SETPROCTITLE
+	X  char	**Argv = NULL;		/* pointer to argument vector */
+	X
+	X--- 22,30 -----
+	X  struct sockaddr_in current_peer = { AF_INET, IPPORT_NNTP };
+	X  #endif
+	X  #include <signal.h>
+	X+ #ifdef hpux
+	X+ #include <varargs.h>
+	X+ #endif /*hpux*/
+	X  
+	X  #ifdef SETPROCTITLE
+	X  char	**Argv = NULL;		/* pointer to argument vector */
+	X***************
+	X*** 28,33
+	X  char	*LastArgv = NULL;	/* end of argv */
+	X  #endif /* SETPROCTITLE */
+	X  
+	X  main(argc,argv,envp)
+	X  char **argv, **envp;
+	X  {
+	X
+	X--- 31,38 -----
+	X  char	*LastArgv = NULL;	/* end of argv */
+	X  #endif /* SETPROCTITLE */
+	X  
+	X+ char **myenviron;
+	X+ 
+	X  main(argc,argv,envp)
+	X  char **argv, **envp;
+	X  {
+	X***************
+	X*** 49,55
+	X  #ifdef SYSLOG
+	X  #ifdef BSD_42
+	X  	openlog("nntpd", LOG_PID);			/* fd 3 */
+	X! #else
+	X  	openlog("nntpd", LOG_PID, SYSLOG);		/* fd 3 */
+	X  #endif
+	X  #endif
+	X
+	X--- 54,60 -----
+	X  #ifdef SYSLOG
+	X  #ifdef BSD_42
+	X  	openlog("nntpd", LOG_PID);			/* fd 3 */
+	X! #else /* !BSD_42 */
+	X  	openlog("nntpd", LOG_PID, SYSLOG);		/* fd 3 */
+	X  #endif /* BSD_42 */
+	X  #endif /* SYSLOG */
+	X***************
+	X*** 51,58
+	X  	openlog("nntpd", LOG_PID);			/* fd 3 */
+	X  #else
+	X  	openlog("nntpd", LOG_PID, SYSLOG);		/* fd 3 */
+	X! #endif
+	X! #endif
+	X  
+	X  
+	X  #ifdef FASTFORK
+	X
+	X--- 56,63 -----
+	X  	openlog("nntpd", LOG_PID);			/* fd 3 */
+	X  #else /* !BSD_42 */
+	X  	openlog("nntpd", LOG_PID, SYSLOG);		/* fd 3 */
+	X! #endif /* BSD_42 */
+	X! #endif /* SYSLOG */
+	X  
+	X  
+	X  #ifdef FASTFORK
+	X***************
+	X*** 59,65
+	X  	num_groups = read_groups();	/* Read active file now (fd 4) */
+	X  					/* and then do it every */
+	X  	set_timer();			/* so often later */
+	X! #endif
+	X  
+	X  #ifndef EXCELAN
+	X  	sockt = get_socket();		/* should be fd 4 or 5 */
+	X
+	X--- 64,70 -----
+	X  	num_groups = read_groups();	/* Read active file now (fd 4) */
+	X  					/* and then do it every */
+	X  	set_timer();			/* so often later */
+	X! #endif /* FASTFORK */
+	X  
+	X  #ifndef EXCELAN
+	X  	sockt = get_socket();		/* should be fd 4 or 5 */
+	X***************
+	X*** 65,71
+	X  	sockt = get_socket();		/* should be fd 4 or 5 */
+	X  #ifdef USG
+	X  	(void) signal(SIGCLD, SIG_IGN);
+	X! #else
+	X  	(void) signal(SIGCHLD, reaper);
+	X  #endif
+	X  
+	X
+	X--- 70,76 -----
+	X  	sockt = get_socket();		/* should be fd 4 or 5 */
+	X  #ifdef USG
+	X  	(void) signal(SIGCLD, SIG_IGN);
+	X! #else /* !USG */
+	X  	(void) signal(SIGCHLD, reaper);
+	X  #endif /* USG */
+	X  
+	X***************
+	X*** 67,73
+	X  	(void) signal(SIGCLD, SIG_IGN);
+	X  #else
+	X  	(void) signal(SIGCHLD, reaper);
+	X! #endif
+	X  
+	X  	if (listen(sockt, SOMAXCONN) < 0) {
+	X  #ifdef SYSLOG
+	X
+	X--- 72,78 -----
+	X  	(void) signal(SIGCLD, SIG_IGN);
+	X  #else /* !USG */
+	X  	(void) signal(SIGCHLD, reaper);
+	X! #endif /* USG */
+	X  
+	X  	if (listen(sockt, SOMAXCONN) < 0) {
+	X  #ifdef SYSLOG
+	X***************
+	X*** 72,78
+	X  	if (listen(sockt, SOMAXCONN) < 0) {
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "main: listen: %m");
+	X! #endif
+	X  		exit(1);
+	X  	}
+	X  #endif
+	X
+	X--- 77,83 -----
+	X  	if (listen(sockt, SOMAXCONN) < 0) {
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "main: listen: %m");
+	X! #endif /* SYSLOG */
+	X  		exit(1);
+	X  	}
+	X  #endif /* EXCELAN */
+	X***************
+	X*** 75,81
+	X  #endif
+	X  		exit(1);
+	X  	}
+	X! #endif
+	X  
+	X  #ifdef SETPROCTITLE
+	X  	/*
+	X
+	X--- 80,86 -----
+	X  #endif /* SYSLOG */
+	X  		exit(1);
+	X  	}
+	X! #endif /* EXCELAN */
+	X  
+	X  #ifdef SETPROCTITLE
+	X  	/*
+	X***************
+	X*** 79,84
+	X  
+	X  #ifdef SETPROCTITLE
+	X  	/*
+	X  	 *  Save start and extent of argv for setproctitle.
+	X  	 */
+	X  
+	X
+	X--- 84,105 -----
+	X  
+	X  #ifdef SETPROCTITLE
+	X  	/*
+	X+ 	 * Stash away a copy of the environment for use by later exec's.
+	X+ 	 * (This leaves us free to trash the original copy.)
+	X+ 	 */
+	X+ 	{
+	X+ 	register int i;
+	X+ 
+	X+ 	i = 0;
+	X+ 	while (envp[i++])
+	X+ 		;
+	X+ 	myenviron = (char **)malloc(i * sizeof(char **));
+	X+ 	myenviron[--i] = 0;
+	X+ 	while (--i >= 0)
+	X+ 		myenviron[i] =
+	X+ 		    strcpy((char *)malloc(strlen(envp[i]) + 1), envp[i]);
+	X+ 	}
+	X+ 	/*
+	X  	 *  Save start and extent of argv for setproctitle.
+	X  	 */
+	X  
+	X***************
+	X*** 83,88
+	X  	 */
+	X  
+	X  	Argv = argv;
+	X  	while (*envp)
+	X  		envp++;
+	X  	LastArgv = envp[-1] + strlen(envp[-1]);
+	X
+	X--- 104,112 -----
+	X  	 */
+	X  
+	X  	Argv = argv;
+	X+ #ifdef SDD
+	X+ 	LastArgv = argv[argc - 1] + strlen(argv[argc - 1]);
+	X+ #else /*SDD*/
+	X  	while (*envp)
+	X  		envp++;
+	X  	LastArgv = envp[-1] + strlen(envp[-1]);
+	X***************
+	X*** 86,91
+	X  	while (*envp)
+	X  		envp++;
+	X  	LastArgv = envp[-1] + strlen(envp[-1]);
+	X  #endif /* SETPROCTITLE */
+	X  
+	X  	for (;;) {
+	X
+	X--- 110,119 -----
+	X  	while (*envp)
+	X  		envp++;
+	X  	LastArgv = envp[-1] + strlen(envp[-1]);
+	X+ #endif /*SDD*/
+	X+ #else /* SETPROCTITLE */
+	X+ 	/* Just use original copy if not doing proctitle hacking */
+	X+ 	myenviron = envp;
+	X  #endif /* SETPROCTITLE */
+	X  
+	X  	for (;;) {
+	X***************
+	X*** 92,98
+	X  #ifdef LOAD
+	X  		register int load;
+	X  		char oline[NNTP_STRLEN];
+	X! #endif LOAD
+	X  #ifdef EXCELAN
+	X  		int status;
+	X  		sockt = 3;
+	X
+	X--- 120,126 -----
+	X  #ifdef LOAD
+	X  		register int load;
+	X  		char oline[NNTP_STRLEN];
+	X! #endif /* LOAD */
+	X  #ifdef EXCELAN
+	X  		int status;
+	X  		sockt = 3;
+	X***************
+	X*** 102,108
+	X  #ifdef USG
+	X  		(void) signal(SIGCLD, SIG_IGN);
+	X  		memset((char *)&from,'\0',sizeof(from));
+	X! #else
+	X  		bzero((char *)&from,sizeof(from));
+	X  #endif
+	X  		client = accept(sockt, &from);
+	X
+	X--- 130,136 -----
+	X  #ifdef USG
+	X  		(void) signal(SIGCLD, SIG_IGN);
+	X  		memset((char *)&from,'\0',sizeof(from));
+	X! #else /* !USG */
+	X  		bzero((char *)&from,sizeof(from));
+	X  #endif /* USG */
+	X  		client = accept(sockt, &from);
+	X***************
+	X*** 104,110
+	X  		memset((char *)&from,'\0',sizeof(from));
+	X  #else
+	X  		bzero((char *)&from,sizeof(from));
+	X! #endif
+	X  		client = accept(sockt, &from);
+	X  #else
+	X  		length = sizeof (from);
+	X
+	X--- 132,138 -----
+	X  		memset((char *)&from,'\0',sizeof(from));
+	X  #else /* !USG */
+	X  		bzero((char *)&from,sizeof(from));
+	X! #endif /* USG */
+	X  		client = accept(sockt, &from);
+	X  #else /* !EXCELAN */
+	X  		length = sizeof (from);
+	X***************
+	X*** 106,112
+	X  		bzero((char *)&from,sizeof(from));
+	X  #endif
+	X  		client = accept(sockt, &from);
+	X! #else
+	X  		length = sizeof (from);
+	X  		client = accept(sockt, &from, &length);
+	X  #endif EXCELAN
+	X
+	X--- 134,140 -----
+	X  		bzero((char *)&from,sizeof(from));
+	X  #endif /* USG */
+	X  		client = accept(sockt, &from);
+	X! #else /* !EXCELAN */
+	X  		length = sizeof (from);
+	X  		client = accept(sockt, &from, &length);
+	X  #endif /* EXCELAN */
+	X***************
+	X*** 109,115
+	X  #else
+	X  		length = sizeof (from);
+	X  		client = accept(sockt, &from, &length);
+	X! #endif EXCELAN
+	X  		if (client < 0) {
+	X  #ifdef SYSLOG
+	X  #ifdef EXCELAN
+	X
+	X--- 137,143 -----
+	X  #else /* !EXCELAN */
+	X  		length = sizeof (from);
+	X  		client = accept(sockt, &from, &length);
+	X! #endif /* EXCELAN */
+	X  		if (client < 0) {
+	X  #ifdef SYSLOG
+	X  #ifdef EXCELAN
+	X***************
+	X*** 114,120
+	X  #ifdef SYSLOG
+	X  #ifdef EXCELAN
+	X  			if (errno != EINTR && errno != 60 )
+	X! #else
+	X  			if (errno != EINTR)
+	X  #endif
+	X  				syslog(LOG_ERR, "accept: %m\n");
+	X
+	X--- 142,148 -----
+	X  #ifdef SYSLOG
+	X  #ifdef EXCELAN
+	X  			if (errno != EINTR && errno != 60 )
+	X! #else /* !EXCELAN */
+	X  			if (errno != EINTR)
+	X  #endif /* EXCELAN */
+	X  				syslog(LOG_ERR, "accept: %m\n");
+	X***************
+	X*** 116,122
+	X  			if (errno != EINTR && errno != 60 )
+	X  #else
+	X  			if (errno != EINTR)
+	X! #endif
+	X  				syslog(LOG_ERR, "accept: %m\n");
+	X  #endif
+	X  #ifdef EXCELAN
+	X
+	X--- 144,150 -----
+	X  			if (errno != EINTR && errno != 60 )
+	X  #else /* !EXCELAN */
+	X  			if (errno != EINTR)
+	X! #endif /* EXCELAN */
+	X  				syslog(LOG_ERR, "accept: %m\n");
+	X  #endif /* SYSLOG */
+	X  #ifdef EXCELAN
+	X***************
+	X*** 118,124
+	X  			if (errno != EINTR)
+	X  #endif
+	X  				syslog(LOG_ERR, "accept: %m\n");
+	X! #endif
+	X  #ifdef EXCELAN
+	X  			close(sockt);
+	X  			sleep(1);
+	X
+	X--- 146,152 -----
+	X  			if (errno != EINTR)
+	X  #endif /* EXCELAN */
+	X  				syslog(LOG_ERR, "accept: %m\n");
+	X! #endif /* SYSLOG */
+	X  #ifdef EXCELAN
+	X  			close(sockt);
+	X  			sleep(1);
+	X***************
+	X*** 122,128
+	X  #ifdef EXCELAN
+	X  			close(sockt);
+	X  			sleep(1);
+	X! #endif
+	X  			continue;
+	X  		}
+	X  
+	X
+	X--- 150,156 -----
+	X  #ifdef EXCELAN
+	X  			close(sockt);
+	X  			sleep(1);
+	X! #endif /* EXCELAN */
+	X  			continue;
+	X  		}
+	X  
+	X***************
+	X*** 134,140
+	X  			write( client, oline, strlen( oline ));
+	X  #ifdef SYSLOG
+	X  			syslog( LOG_INFO, "loadav at %d, sleeping", load );
+	X! #endif SYSLOG
+	X  			close( client );
+	X  			sleep( 5 );
+	X  			continue;
+	X
+	X--- 162,168 -----
+	X  			write( client, oline, strlen( oline ));
+	X  #ifdef SYSLOG
+	X  			syslog( LOG_INFO, "loadav at %d, sleeping", load );
+	X! #endif /* SYSLOG */
+	X  			close( client );
+	X  			sleep( 5 );
+	X  			continue;
+	X***************
+	X*** 147,153
+	X  		case	-1:
+	X  #ifdef SYSLOG
+	X  				syslog(LOG_ERR, "fork: %m\n");
+	X! #endif
+	X  #ifdef EXCELAN
+	X  				(void) close(sockt);
+	X  #endif
+	X
+	X--- 175,181 -----
+	X  		case	-1:
+	X  #ifdef SYSLOG
+	X  				syslog(LOG_ERR, "fork: %m\n");
+	X! #endif /* SYSLOG */
+	X  #ifdef EXCELAN
+	X  				(void) close(sockt);
+	X  #endif /* EXCELAN */
+	X***************
+	X*** 150,156
+	X  #endif
+	X  #ifdef EXCELAN
+	X  				(void) close(sockt);
+	X! #endif
+	X  				(void) close(client);
+	X  				break;
+	X  
+	X
+	X--- 178,184 -----
+	X  #endif /* SYSLOG */
+	X  #ifdef EXCELAN
+	X  				(void) close(sockt);
+	X! #endif /* EXCELAN */
+	X  				(void) close(client);
+	X  				break;
+	X  
+	X***************
+	X*** 161,167
+	X  #ifdef USG
+	X  				(void * )memcpy(&current_peer,&from,
+	X  					 sizeof(from));
+	X! #else
+	X  				bcopy(&from,&current_peer,sizeof(from));
+	X  #endif
+	X  				make_stdio(sockt);
+	X
+	X--- 189,195 -----
+	X  #ifdef USG
+	X  				(void * )memcpy(&current_peer,&from,
+	X  					 sizeof(from));
+	X! #else /* !USG */
+	X  				bcopy(&from,&current_peer,sizeof(from));
+	X  #endif /* USG */
+	X  				make_stdio(sockt);
+	X***************
+	X*** 163,169
+	X  					 sizeof(from));
+	X  #else
+	X  				bcopy(&from,&current_peer,sizeof(from));
+	X! #endif
+	X  				make_stdio(sockt);
+	X  #else
+	X  				(void) close(sockt);
+	X
+	X--- 191,197 -----
+	X  					 sizeof(from));
+	X  #else /* !USG */
+	X  				bcopy(&from,&current_peer,sizeof(from));
+	X! #endif /* USG */
+	X  				make_stdio(sockt);
+	X  #else /* !EXCELAN */
+	X  				(void) close(sockt);
+	X***************
+	X*** 165,171
+	X  				bcopy(&from,&current_peer,sizeof(from));
+	X  #endif
+	X  				make_stdio(sockt);
+	X! #else
+	X  				(void) close(sockt);
+	X  				make_stdio(client);
+	X  #endif
+	X
+	X--- 193,199 -----
+	X  				bcopy(&from,&current_peer,sizeof(from));
+	X  #endif /* USG */
+	X  				make_stdio(sockt);
+	X! #else /* !EXCELAN */
+	X  				(void) close(sockt);
+	X  				make_stdio(client);
+	X  #endif /* EXCELAN */
+	X***************
+	X*** 168,174
+	X  #else
+	X  				(void) close(sockt);
+	X  				make_stdio(client);
+	X! #endif
+	X  #ifdef USG
+	X  				(void) signal(SIGCLD,SIG_DFL);
+	X  #endif
+	X
+	X--- 196,202 -----
+	X  #else /* !EXCELAN */
+	X  				(void) close(sockt);
+	X  				make_stdio(client);
+	X! #endif /* EXCELAN */
+	X  #ifdef USG
+	X  				(void) signal(SIGCLD,SIG_DFL);
+	X  #endif /* USG */
+	X***************
+	X*** 171,177
+	X  #endif
+	X  #ifdef USG
+	X  				(void) signal(SIGCLD,SIG_DFL);
+	X! #endif
+	X  				serve();
+	X  				break;
+	X  
+	X
+	X--- 199,205 -----
+	X  #endif /* EXCELAN */
+	X  #ifdef USG
+	X  				(void) signal(SIGCLD,SIG_DFL);
+	X! #endif /* USG */
+	X  				serve();
+	X  				break;
+	X  
+	X***************
+	X*** 178,184
+	X  		default:
+	X  #ifdef EXCELAN
+	X  				(void) close(sockt);
+	X! #else
+	X  				(void) close(client);
+	X  #endif
+	X  				break;
+	X
+	X--- 206,212 -----
+	X  		default:
+	X  #ifdef EXCELAN
+	X  				(void) close(sockt);
+	X! #else /* EXCELAN */
+	X  				(void) close(client);
+	X  #endif /* EXCELAN */
+	X  				break;
+	X***************
+	X*** 180,186
+	X  				(void) close(sockt);
+	X  #else
+	X  				(void) close(client);
+	X! #endif
+	X  				break;
+	X  		}
+	X  	}
+	X
+	X--- 208,214 -----
+	X  				(void) close(sockt);
+	X  #else /* EXCELAN */
+	X  				(void) close(client);
+	X! #endif /* EXCELAN */
+	X  				break;
+	X  		}
+	X  	}
+	X***************
+	X*** 185,191
+	X  		}
+	X  	}
+	X  
+	X! #else		/* We have inetd */
+	X  
+	X  #ifdef SETPROCTITLE
+	X  	/*
+	X
+	X--- 213,219 -----
+	X  		}
+	X  	}
+	X  
+	X! #else /* !ALONE */		/* We have inetd */
+	X  
+	X  #ifdef LOAD
+	X  	{
+	X***************
+	X*** 187,192
+	X  
+	X  #else		/* We have inetd */
+	X  
+	X  #ifdef SETPROCTITLE
+	X  	/*
+	X  	 *  Save start and extent of argv for setproctitle.
+	X
+	X--- 215,240 -----
+	X  
+	X  #else /* !ALONE */		/* We have inetd */
+	X  
+	X+ #ifdef LOAD
+	X+ 	{
+	X+ 		register int load;
+	X+ 
+	X+ 		if (( load = getla()) > LOAD ) {
+	X+ 			printf("%d loadav at %d, try later\n", 
+	X+ 			       ERR_GOODBYE, load );
+	X+ #ifdef SYSLOG
+	X+ #ifdef BSD_42
+	X+ 			openlog("nntpd", LOG_PID);
+	X+ #else /* !BSD_42 */
+	X+ 			openlog("nntpd", LOG_PID, SYSLOG);
+	X+ #endif /* BSD_42 */
+	X+ 			syslog( LOG_INFO, "loadav at %d, exiting", load );
+	X+ #endif /* SYSLOG */
+	X+ 			(void) fflush(stdout);
+	X+ 			exit(1);
+	X+ 		}
+	X+ 	}
+	X+ #endif LOAD
+	X  #ifdef SETPROCTITLE
+	X  	/*
+	X  	 *  Save start and extent of argv for setproctitle.
+	X***************
+	X*** 193,198
+	X  	 */
+	X  
+	X  	Argv = argv;
+	X  	while (*envp)
+	X  		envp++;
+	X  	LastArgv = envp[-1] + strlen(envp[-1]);
+	X
+	X--- 241,249 -----
+	X  	 */
+	X  
+	X  	Argv = argv;
+	X+ #ifdef SDD
+	X+ 	LastArgv = argv[argc - 1] + strlen(argv[argc - 1]);
+	X+ #else /*SDD*/
+	X  	while (*envp)
+	X  		envp++;
+	X  	LastArgv = envp[-1] + strlen(envp[-1]);
+	X***************
+	X*** 196,201
+	X  	while (*envp)
+	X  		envp++;
+	X  	LastArgv = envp[-1] + strlen(envp[-1]);
+	X  #endif /* SETPROCTITLE */
+	X  
+	X  	serve();
+	X
+	X--- 247,253 -----
+	X  	while (*envp)
+	X  		envp++;
+	X  	LastArgv = envp[-1] + strlen(envp[-1]);
+	X+ #endif /*SDD*/
+	X  #endif /* SETPROCTITLE */
+	X  
+	X  	serve();
+	X***************
+	X*** 200,206
+	X  
+	X  	serve();
+	X  
+	X! #endif
+	X  }
+	X  
+	X  /*
+	X
+	X--- 252,258 -----
+	X  
+	X  	serve();
+	X  
+	X! #endif /* ALONE */
+	X  }
+	X  
+	X  /*
+	X***************
+	X*** 207,212
+	X   * clobber argv so ps will show what we're doing.
+	X   * stolen from sendmail
+	X   */
+	X  /*VARARGS1*/
+	X  setproctitle(fmt, a, b, c)
+	X  char *fmt;
+	X
+	X--- 259,299 -----
+	X   * clobber argv so ps will show what we're doing.
+	X   * stolen from sendmail
+	X   */
+	X+ #ifdef hpux
+	X+ /*VARARGS*/
+	X+ void
+	X+ setproctitle(va_alist)
+	X+     va_dcl
+	X+ {
+	X+     register char *p, *fmt;
+	X+     register int i;
+	X+     char buf[BUFSIZ];
+	X+     va_list ap;
+	X+ 
+	X+     va_start(ap);
+	X+ #ifdef SETPROCTITLE
+	X+     fmt = va_arg(ap, char *);
+	X+     
+	X+     (void) vsprintf(buf, fmt, ap);
+	X+ 
+	X+     /* make ps print "(nntpd)" */
+	X+     p = Argv[0];
+	X+     *p++ = '-';
+	X+ 
+	X+     i = strlen(buf);
+	X+     if (i > LastArgv - p - 2) {
+	X+ 	i = LastArgv - p - 2;
+	X+ 	buf[i] = '\0';
+	X+     }
+	X+     strcpy(p, buf);
+	X+     p += i;
+	X+     while (p < LastArgv)
+	X+ 	*p++ = ' ';
+	X+ 
+	X+ #endif /* SETPROCTITLE */
+	X+     va_end(ap);
+	X+ }
+	X+ #else
+	X  /*VARARGS1*/
+	X  setproctitle(fmt, a, b, c)
+	X  char *fmt;
+	X***************
+	X*** 233,235
+	X  		*p++ = ' ';
+	X  #endif /* SETPROCTITLE */
+	X  }
+	X
+	X--- 320,323 -----
+	X  		*p++ = ' ';
+	X  #endif /* SETPROCTITLE */
+	X  }
+	X+ #endif /* hpux */
+	X*** misc.c	Thu Jul  5 02:29:17 1990
+	X--- ../../nntp/server/misc.c	Sat Aug 25 17:00:10 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: misc.c,v 1.36 90/07/05 02:26:34 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: misc.c,v 1.39 90/08/25 16:59:48 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 129,134
+	X  #endif
+	X  		if (isupper(*cp))
+	X  			*cp = tolower(*cp);
+	X  	}
+	X  #ifdef USGHIST
+	X  	hfp = fopen(histfile(msg_id), "r");
+	X
+	X--- 129,136 -----
+	X  #endif
+	X  		if (isupper(*cp))
+	X  			*cp = tolower(*cp);
+	X+ /* Make ctags happy */
+	X+ #ifdef CNEWS
+	X  	}
+	X  #else
+	X  	}
+	X***************
+	X*** 130,135
+	X  		if (isupper(*cp))
+	X  			*cp = tolower(*cp);
+	X  	}
+	X  #ifdef USGHIST
+	X  	hfp = fopen(histfile(msg_id), "r");
+	X  	if (hfp == NULL) {
+	X
+	X--- 132,140 -----
+	X  /* Make ctags happy */
+	X  #ifdef CNEWS
+	X  	}
+	X+ #else
+	X+ 	}
+	X+ #endif
+	X  #ifdef USGHIST
+	X  	hfp = fopen(histfile(msg_id), "r");
+	X  	if (hfp == NULL) {
+	X***************
+	X*** 291,297
+	X  	char		buf[MAXBUFLEN];
+	X  	register char	*cp;
+	X  	static char	**ngarray;
+	X! 	int		ngcount;
+	X  
+	X  	if (ngpermcount == 0) {
+	X  		if (ALLBUT == 0)
+	X
+	X--- 296,302 -----
+	X  	char		buf[MAXBUFLEN];
+	X  	register char	*cp;
+	X  	static char	**ngarray;
+	X! 	int		ngcount = 0;
+	X  
+	X  	if (ngpermcount == 0) {
+	X  		if (ALLBUT == 0)
+	X***************
+	X*** 809,815
+	X       if (filfree(fsys) < MINFILES )
+	X   	return( DFREE_INODES );
+	X  # endif
+	X!     if (blkavail(fsys) == -1) {
+	X  	/* the bavail field doesn't apply to this file system */
+	X  	if(blkfree(fsys) < free_space)
+	X  	    return( DFREE_BLOCKS );
+	X
+	X--- 814,820 -----
+	X       if (filfree(fsys) < MINFILES )
+	X   	return( DFREE_INODES );
+	X  # endif
+	X!     if (blkavail(fsys) < 0L) {
+	X  	/* the bavail field doesn't apply to this file system */
+	X  	if(blkfree(fsys) < free_space)
+	X  	    return( DFREE_BLOCKS );
+	X***************
+	X*** 855,860
+	X      do {
+	X  	if (stat(lname,&namest))		/* if stat fails, die */
+	X  	{
+	X  	  syslog(LOG_ERR,"dfree stat(%s) failed: %m", lname);
+	X  	  return  DFREE_ERR;			
+	X  	}
+	X
+	X--- 860,866 -----
+	X      do {
+	X  	if (stat(lname,&namest))		/* if stat fails, die */
+	X  	{
+	X+ #ifdef SYSLOG
+	X  	  syslog(LOG_ERR,"dfree stat(%s) failed: %m", lname);
+	X  #endif
+	X  	  return  DFREE_ERR;			
+	X***************
+	X*** 856,861
+	X  	if (stat(lname,&namest))		/* if stat fails, die */
+	X  	{
+	X  	  syslog(LOG_ERR,"dfree stat(%s) failed: %m", lname);
+	X  	  return  DFREE_ERR;			
+	X  	}
+	X  	if ((namest.st_mode & S_IFMT) == S_IFLNK) { /* if symlink */
+	X
+	X--- 862,868 -----
+	X  	{
+	X  #ifdef SYSLOG
+	X  	  syslog(LOG_ERR,"dfree stat(%s) failed: %m", lname);
+	X+ #endif
+	X  	  return  DFREE_ERR;			
+	X  	}
+	X  	if ((namest.st_mode & S_IFMT) == S_IFLNK) { /* if symlink */
+	X***************
+	X*** 861,866
+	X  	if ((namest.st_mode & S_IFMT) == S_IFLNK) { /* if symlink */
+	X  	    if ((fd = readlink(lname,lname,sizeof(lname))) < 0) 
+	X  	    {
+	X  	      syslog(LOG_ERR,"dfree readlink() failed: %m");
+	X  	      return DFREE_ERR;
+	X  	    }
+	X
+	X--- 868,874 -----
+	X  	if ((namest.st_mode & S_IFMT) == S_IFLNK) { /* if symlink */
+	X  	    if ((fd = readlink(lname,lname,sizeof(lname))) < 0) 
+	X  	    {
+	X+ #ifdef SYSLOG
+	X  	      syslog(LOG_ERR,"dfree readlink() failed: %m");
+	X  #endif
+	X  	      return DFREE_ERR;
+	X***************
+	X*** 862,867
+	X  	    if ((fd = readlink(lname,lname,sizeof(lname))) < 0) 
+	X  	    {
+	X  	      syslog(LOG_ERR,"dfree readlink() failed: %m");
+	X  	      return DFREE_ERR;
+	X  	    }
+	X  	    lname[fd] = '\0';
+	X
+	X--- 870,876 -----
+	X  	    {
+	X  #ifdef SYSLOG
+	X  	      syslog(LOG_ERR,"dfree readlink() failed: %m");
+	X+ #endif
+	X  	      return DFREE_ERR;
+	X  	    }
+	X  	    lname[fd] = '\0';
+	X***************
+	X*** 879,884
+	X  
+	X      if (!fsp ||	(fd = open(fsp->fs_spec,O_RDONLY)) < 0) {
+	X  	(void) endfsent();
+	X  	syslog(LOG_ERR,"dfree open(%s,O_RDONLY) failed: %m", fsp->fs_spec);
+	X  	return DFREE_ERR;
+	X      }
+	X
+	X--- 888,894 -----
+	X  
+	X      if (!fsp ||	(fd = open(fsp->fs_spec,O_RDONLY)) < 0) {
+	X  	(void) endfsent();
+	X+ #ifdef SYSLOG
+	X  	syslog(LOG_ERR,"dfree open(%s,O_RDONLY) failed: %m", fsp->fs_spec);
+	X  #endif
+	X  	return DFREE_ERR;
+	X***************
+	X*** 880,885
+	X      if (!fsp ||	(fd = open(fsp->fs_spec,O_RDONLY)) < 0) {
+	X  	(void) endfsent();
+	X  	syslog(LOG_ERR,"dfree open(%s,O_RDONLY) failed: %m", fsp->fs_spec);
+	X  	return DFREE_ERR;
+	X      }
+	X      (void) endfsent();
+	X
+	X--- 890,896 -----
+	X  	(void) endfsent();
+	X  #ifdef SYSLOG
+	X  	syslog(LOG_ERR,"dfree open(%s,O_RDONLY) failed: %m", fsp->fs_spec);
+	X+ #endif
+	X  	return DFREE_ERR;
+	X      }
+	X      (void) endfsent();
+	X***************
+	X*** 888,893
+	X      if (read(fd,(char *)&sblock,SBSIZE) != SBSIZE ||
+	X  	(sblock.fs_magic != FS_MAGIC))
+	X      {
+	X        syslog(LOG_ERR,"dfree read() failed: %m");
+	X        return DFREE_ERR;
+	X      }
+	X
+	X--- 899,905 -----
+	X      if (read(fd,(char *)&sblock,SBSIZE) != SBSIZE ||
+	X  	(sblock.fs_magic != FS_MAGIC))
+	X      {
+	X+ #ifdef SYSLOG
+	X        syslog(LOG_ERR,"dfree read() failed: %m");
+	X  #endif
+	X        return DFREE_ERR;
+	X***************
+	X*** 889,894
+	X  	(sblock.fs_magic != FS_MAGIC))
+	X      {
+	X        syslog(LOG_ERR,"dfree read() failed: %m");
+	X        return DFREE_ERR;
+	X      }
+	X      (void) close(fd);
+	X
+	X--- 901,907 -----
+	X      {
+	X  #ifdef SYSLOG
+	X        syslog(LOG_ERR,"dfree read() failed: %m");
+	X+ #endif
+	X        return DFREE_ERR;
+	X      }
+	X      (void) close(fd);
+	X*** serve.c	Thu Jul  5 23:09:53 1990
+	X--- ../../nntp/server/serve.c	Sat Aug 11 21:33:30 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: serve.c,v 1.34 90/07/05 23:09:51 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: serve.c,v 1.35 90/08/11 21:33:10 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 20,25
+	X  # endif not USG
+	X  #endif
+	X  
+	X  extern	int	ahbs(), group(), help(), ihave();
+	X  extern	int	list(), newgroups(), newnews(), nextlast(), post();
+	X  extern	int	slave(), stat(), xhdr();
+	X
+	X--- 20,35 -----
+	X  # endif not USG
+	X  #endif
+	X  
+	X+ #ifdef TIMEOUT
+	X+ /* Not all systems define these */
+	X+ #ifndef FD_SETSIZE
+	X+ #define FD_SET(n, p)	((p)->fds_bits[0] |= (1<<(n)))
+	X+ #define FD_CLR(n, p)	((p)->fds_bits[0] &= ~(1<<(n)))
+	X+ #define FD_ISSET(n, p)	((p)->fds_bits[0] & (1<<(n)))
+	X+ #define FD_ZERO(p)	((p)->fds_bits[0] = 0)
+	X+ #endif
+	X+ #endif
+	X+ 
+	X  extern	int	ahbs(), group(), help(), ihave();
+	X  extern	int	list(), newgroups(), newnews(), nextlast(), post();
+	X  extern	int	slave(), stat(), xhdr();
+	X***************
+	X*** 24,29
+	X  extern	int	list(), newgroups(), newnews(), nextlast(), post();
+	X  extern	int	slave(), stat(), xhdr();
+	X  
+	X  #ifdef AUTH
+	X  extern	int	doauth();
+	X  #endif AUTH
+	X
+	X--- 34,41 -----
+	X  extern	int	list(), newgroups(), newnews(), nextlast(), post();
+	X  extern	int	slave(), stat(), xhdr();
+	X  
+	X+ extern int errno;
+	X+ 
+	X  #ifdef AUTH
+	X  extern	int	doauth();
+	X  #endif AUTH
+	X***************
+	X*** 88,94
+	X  	double		user, sys;
+	X  #ifdef USG
+	X  	time_t		start, finish;
+	X! #else not USG
+	X  	struct timeval	start, finish;
+	X  #endif not USG
+	X  	extern char	*ctime();
+	X
+	X--- 100,106 -----
+	X  	double		user, sys;
+	X  #ifdef USG
+	X  	time_t		start, finish;
+	X! #else /* not USG */
+	X  	struct timeval	start, finish;
+	X  #endif /* not USG */
+	X  	extern char	*ctime();
+	X***************
+	X*** 90,96
+	X  	time_t		start, finish;
+	X  #else not USG
+	X  	struct timeval	start, finish;
+	X! #endif not USG
+	X  	extern char	*ctime();
+	X  #ifdef POSTER
+	X  	struct passwd	*pp;
+	X
+	X--- 102,108 -----
+	X  	time_t		start, finish;
+	X  #else /* not USG */
+	X  	struct timeval	start, finish;
+	X! #endif /* not USG */
+	X  	extern char	*ctime();
+	X  #ifdef POSTER
+	X  	struct passwd	*pp;
+	X***************
+	X*** 95,103
+	X  #ifdef POSTER
+	X  	struct passwd	*pp;
+	X  #endif
+	X! # ifdef TIMEOUT
+	X! 	void		timeout();
+	X! # endif
+	X  #ifdef LOG
+	X  # ifdef USG
+	X  	struct tms	cpu;
+	X
+	X--- 107,116 -----
+	X  #ifdef POSTER
+	X  	struct passwd	*pp;
+	X  #endif
+	X! #ifdef TIMEOUT
+	X! 	struct timeval timeout;
+	X! 	fd_set readfds;
+	X! #endif
+	X  #ifdef LOG
+	X  # ifdef USG
+	X  	struct tms	cpu;
+	X***************
+	X*** 101,107
+	X  #ifdef LOG
+	X  # ifdef USG
+	X  	struct tms	cpu;
+	X! # else not USG
+	X  	struct rusage	me, kids;
+	X  # endif not USG
+	X  	grps_acsd = arts_acsd = 0;
+	X
+	X--- 114,120 -----
+	X  #ifdef LOG
+	X  # ifdef USG
+	X  	struct tms	cpu;
+	X! # else /* not USG */
+	X  	struct rusage	me, kids;
+	X  # endif /* not USG */
+	X  	grps_acsd = arts_acsd = 0;
+	X***************
+	X*** 103,109
+	X  	struct tms	cpu;
+	X  # else not USG
+	X  	struct rusage	me, kids;
+	X! # endif not USG
+	X  	grps_acsd = arts_acsd = 0;
+	X  #endif
+	X  
+	X
+	X--- 116,122 -----
+	X  	struct tms	cpu;
+	X  # else /* not USG */
+	X  	struct rusage	me, kids;
+	X! # endif /* not USG */
+	X  	grps_acsd = arts_acsd = 0;
+	X  #endif
+	X  
+	X***************
+	X*** 189,195
+	X  					/* these things */
+	X  #endif
+	X  	/*
+	X!  	 * num_groups may be zero if expire is running and the active
+	X  	 * file is locked. (Under System V with lockf, for example.)
+	X  	 * Or, something may be really screwed up....
+	X  	 */
+	X
+	X--- 202,208 -----
+	X  					/* these things */
+	X  #endif
+	X  	/*
+	X! 	 * num_groups may be zero if expire is running and the active
+	X  	 * file is locked. (Under System V with lockf, for example.)
+	X  	 * Or, something may be really screwed up....
+	X  	 */
+	X***************
+	X*** 236,246
+	X  	 */
+	X  
+	X  #ifdef TIMEOUT
+	X! 	(void) signal(SIGALRM, timeout);
+	X! 	(void) alarm(TIMEOUT);
+	X! #endif TIMEOUT
+	X! 
+	X! 	while (fgets(line, sizeof(line), stdin) != NULL) {
+	X  #ifdef TIMEOUT
+	X  		(void) alarm(0);
+	X  #endif TIMEOUT
+	X
+	X--- 249,258 -----
+	X  	 */
+	X  
+	X  #ifdef TIMEOUT
+	X! 	timeout.tv_sec = TIMEOUT;
+	X! 	timeout.tv_usec = 0;
+	X! #endif
+	X! 	for (;;) {
+	X  #ifdef TIMEOUT
+	X  		/* Do timeout with select() (i.e. the intelligent way) */
+	X  		FD_ZERO(&readfds);
+	X***************
+	X*** 242,249
+	X  
+	X  	while (fgets(line, sizeof(line), stdin) != NULL) {
+	X  #ifdef TIMEOUT
+	X! 		(void) alarm(0);
+	X! #endif TIMEOUT
+	X  
+	X  		cp = index(line, '\r');		/* Zap CR-LF */
+	X  		if (cp != NULL)
+	X
+	X--- 254,277 -----
+	X  #endif
+	X  	for (;;) {
+	X  #ifdef TIMEOUT
+	X! 		/* Do timeout with select() (i.e. the intelligent way) */
+	X! 		FD_ZERO(&readfds);
+	X! 		FD_SET(fileno(stdin), &readfds);
+	X! 		errno = 0;
+	X! 		i = select(fileno(stdin) + 1,
+	X! 		    &readfds, (fd_set*)0, (fd_set*)0, &timeout);
+	X! 		if (i < 0) {
+	X! 			/* "Interrupted system call" isn't a real error */
+	X! 			if (errno == EINTR)
+	X! 				continue;
+	X! 			syslog(LOG_ERR, "%s read select: %m", hostname);
+	X! 			break;
+	X! 		}
+	X! 		if (!FD_ISSET(fileno(stdin), &readfds)) {
+	X! 			printf(
+	X! 		    "%d Timeout after %d seconds, closing connection.\r\n",
+	X! 				ERR_FAULT, TIMEOUT);
+	X! 			(void) fflush(stdout);
+	X  
+	X  #ifdef LOG
+	X  			syslog(LOG_ERR, "%s timeout", hostname);
+	X***************
+	X*** 245,257
+	X  		(void) alarm(0);
+	X  #endif TIMEOUT
+	X  
+	X! 		cp = index(line, '\r');		/* Zap CR-LF */
+	X! 		if (cp != NULL)
+	X! 			*cp = '\0';
+	X! 		else {
+	X! 			cp = index(line, '\n');
+	X! 			if (cp != NULL)
+	X! 				*cp = '\0';
+	X  		}
+	X  
+	X  		if ((argnum = parsit(line, &argp)) == 0)
+	X
+	X--- 273,282 -----
+	X  				ERR_FAULT, TIMEOUT);
+	X  			(void) fflush(stdout);
+	X  
+	X! #ifdef LOG
+	X! 			syslog(LOG_ERR, "%s timeout", hostname);
+	X! #endif LOG
+	X! 			exit(1);
+	X  		}
+	X  #endif
+	X  		if (fgets(line, sizeof(line), stdin) == NULL)
+	X***************
+	X*** 253,258
+	X  			if (cp != NULL)
+	X  				*cp = '\0';
+	X  		}
+	X  
+	X  		if ((argnum = parsit(line, &argp)) == 0)
+	X  			continue;		/* Null command */
+	X
+	X--- 278,293 -----
+	X  #endif LOG
+	X  			exit(1);
+	X  		}
+	X+ #endif
+	X+ 		if (fgets(line, sizeof(line), stdin) == NULL)
+	X+ 			break;
+	X+ 		/* Strip trailing CR-LF */
+	X+ 		cp = line + strlen(line) - 1;
+	X+ 		while (cp >= line && (*cp == '\n' || *cp == '\r'))
+	X+ 			*cp-- = '\0';
+	X+ #ifdef DEBUG
+	X+ 		syslog(LOG_DEBUG, "<- \"%s\"", line);
+	X+ #endif
+	X  
+	X  		if ((argnum = parsit(line, &argp)) == 0)
+	X  			continue;		/* Null command */
+	X***************
+	X*** 287,295
+	X  				(void) fflush(stdout);
+	X  			}
+	X  		}
+	X- #ifdef TIMEOUT
+	X- 		(void) alarm(TIMEOUT);
+	X- #endif TIMEOUT
+	X  	}
+	X  
+	X  	printf("%d %s closing connection.  Goodbye.\r\n",
+	X
+	X--- 322,327 -----
+	X  				(void) fflush(stdout);
+	X  			}
+	X  		}
+	X  	}
+	X  
+	X  	printf("%d %s closing connection.  Goodbye.\r\n",
+	X***************
+	X*** 297,303
+	X  
+	X  	(void) fflush(stdout);
+	X  
+	X!   	(void) fflush(stdout);
+	X  
+	X  #ifdef BATCHED_INPUT
+	X  	{
+	X
+	X--- 329,338 -----
+	X  
+	X  	(void) fflush(stdout);
+	X  
+	X! #ifdef notdef
+	X! 	/* XXX why do this twice? */
+	X! 	(void) fflush(stdout);
+	X! #endif
+	X  
+	X  #ifdef BATCHED_INPUT
+	X  	{
+	X***************
+	X*** 302,308
+	X  #ifdef BATCHED_INPUT
+	X  	{
+	X  		char errbuf[2 * NNTP_STRLEN];
+	X!   
+	X  		enqpartbatch(CONT_XFER, ERR_XFERFAIL, errbuf);
+	X  	}
+	X  #endif
+	X
+	X--- 337,343 -----
+	X  #ifdef BATCHED_INPUT
+	X  	{
+	X  		char errbuf[2 * NNTP_STRLEN];
+	X! 
+	X  		enqpartbatch(CONT_XFER, ERR_XFERFAIL, errbuf);
+	X  	}
+	X  #endif
+	X***************
+	X*** 348,354
+	X  			ih_accepted,
+	X  			ih_rejected,
+	X  			ih_failed);
+	X! 	(void) sprintf(line, "user %.1f system %.1f elapsed %.1f",
+	X  		user, sys, Tfinish - Tstart);
+	X  	syslog(LOG_INFO, "%s times %s", hostname, line);
+	X  #endif LOG
+	X
+	X--- 383,389 -----
+	X  			ih_accepted,
+	X  			ih_rejected,
+	X  			ih_failed);
+	X! 	(void) sprintf(line, "user %.3f system %.3f elapsed %.3f",
+	X  		user, sys, Tfinish - Tstart);
+	X  	syslog(LOG_INFO, "%s times %s", hostname, line);
+	X  #endif LOG
+	X***************
+	X*** 358,382
+	X  #endif
+	X  	exit(0);
+	X  }
+	X- 
+	X- 
+	X- #ifdef TIMEOUT
+	X- /*
+	X-  * No activity for TIMEOUT seconds, so print an error message
+	X-  * and close the connection.
+	X-  */
+	X- 
+	X- void
+	X- timeout()
+	X- {
+	X- 	printf("%d Timeout after %d seconds, closing connection.\r\n",
+	X- 		ERR_FAULT, TIMEOUT);
+	X- 	(void) fflush(stdout);
+	X- 
+	X- #ifdef LOG
+	X- 	syslog(LOG_ERR, "%s timeout", hostname);
+	X- #endif LOG
+	X- 
+	X- 	exit(1);
+	X- }
+	X- #endif TIMEOUT
+	X
+	X--- 393,395 -----
+	X  #endif
+	X  	exit(0);
+	X  }
+	X*** spawn.c	Thu Jul  5 23:47:03 1990
+	X--- ../../nntp/server/spawn.c	Sat Aug 18 17:17:03 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static	char	*sccsid = "@(#)$Header: spawn.c,v 1.10 90/07/05 23:46:48 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static	char	*sccsid = "@(#)$Header: spawn.c,v 1.15 90/08/18 17:16:47 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 13,18
+	X  static int	old_xfer_lines;
+	X  #endif
+	X  
+	X  static char	tempfile[256];
+	X  static char	badfile[256];
+	X  
+	X
+	X--- 13,21 -----
+	X  static int	old_xfer_lines;
+	X  #endif
+	X  
+	X+ /* imports */
+	X+ extern char **myenviron;
+	X+ 
+	X  static char	tempfile[256];
+	X  static char	badfile[256];
+	X  
+	X***************
+	X*** 61,67
+	X  #endif not USG
+	X  	register FILE	*fp;
+	X  
+	X! 	(void) strcpy(tempfile, "/usr/spool/news/.tmp/rpostXXXXXX");
+	X  	(void) mktemp(tempfile);
+	X  
+	X  	fp = fopen(tempfile, "w");
+	X
+	X--- 64,74 -----
+	X  #endif not USG
+	X  	register FILE	*fp;
+	X  
+	X! #ifdef CNEWS
+	X! 	(void) strcpy(tempfile, "/usr/tmp/rpostXXXXXX");
+	X! #else
+	X! 	sprintf(tempfile, "%s/.tmp/rpostXXXXXX",SPOOLDIR);
+	X! #endif
+	X  	(void) mktemp(tempfile);
+	X  
+	X  	fp = fopen(tempfile, "w");
+	X***************
+	X*** 130,136
+	X  	}
+	X  		
+	X  #ifdef POSTER
+	X! 	(void) chown(tempfile, uid_poster, gid_poster);
+	X  #endif
+	X  
+	X  	/* Set up a pipe so we can see errors from rnews */
+	X
+	X--- 137,144 -----
+	X  	}
+	X  		
+	X  #ifdef POSTER
+	X! 	if (tempfile[0])
+	X! 		(void) chown(tempfile, uid_poster, gid_poster);
+	X  #endif
+	X  
+	X  	/* Set up a pipe so we can see errors from rnews */
+	X***************
+	X*** 147,153
+	X  	 * Ok, now we have the article in "tempfile".  We
+	X  	 * should be able to fork off, close fd's 0 to 31 (or
+	X  	 * whatever), open "tempfile" for input, thus making
+	X! 	 * it stdin, and then execl the inews.  We think.
+	X  	 */
+	X  
+	X  	pid = vfork();
+	X
+	X--- 155,161 -----
+	X  	 * Ok, now we have the article in "tempfile".  We
+	X  	 * should be able to fork off, close fd's 0 to 31 (or
+	X  	 * whatever), open "tempfile" for input, thus making
+	X! 	 * it stdin, and then execle the inews.  We think.
+	X  	 */
+	X  
+	X  	pid = vfork();
+	X***************
+	X*** 168,173
+	X  		}
+	X  		(void) dup2(1, 2);
+	X  
+	X  		for (i = 3; i < 10; ++i) /* XXX but getdtablesize is too big */
+	X  			(void) close(i);
+	X  
+	X
+	X--- 176,185 -----
+	X  		}
+	X  		(void) dup2(1, 2);
+	X  
+	X+ #ifdef SYSLOG
+	X+ 		/* Close in such a way that syslog() will know to reopen */
+	X+ 		closelog();
+	X+ #endif
+	X  		for (i = 3; i < 10; ++i) /* XXX but getdtablesize is too big */
+	X  			(void) close(i);
+	X  
+	X***************
+	X*** 177,184
+	X  			(void) close(fd);
+	X  		}
+	X  
+	X! 		execl(path, name, flag, (char *) NULL);
+	X! 		fprintf(stderr, "spawn: execl ");
+	X  		perror(path);
+	X  		_exit(-1);	/* Error */
+	X  	} else {	/* We're in parent. */
+	X
+	X--- 189,196 -----
+	X  			(void) close(fd);
+	X  		}
+	X  
+	X! 		execle(path, name, flag, (char *) NULL, myenviron);
+	X! 		fprintf(stderr, "spawn: execle(%s)", path);
+	X  		perror(path);
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "spawn: execle(%s): %m", path);
+	X***************
+	X*** 180,185
+	X  		execl(path, name, flag, (char *) NULL);
+	X  		fprintf(stderr, "spawn: execl ");
+	X  		perror(path);
+	X  		_exit(-1);	/* Error */
+	X  	} else {	/* We're in parent. */
+	X  		if (pid == -1) {
+	X
+	X--- 192,200 -----
+	X  		execle(path, name, flag, (char *) NULL, myenviron);
+	X  		fprintf(stderr, "spawn: execle(%s)", path);
+	X  		perror(path);
+	X+ #ifdef SYSLOG
+	X+ 		syslog(LOG_ERR, "spawn: execle(%s): %m", path);
+	X+ #endif
+	X  		_exit(-1);	/* Error */
+	X  		/*NOTREACHED*/
+	X  	} else {	/* We're in parent. */
+	X***************
+	X*** 181,186
+	X  		fprintf(stderr, "spawn: execl ");
+	X  		perror(path);
+	X  		_exit(-1);	/* Error */
+	X  	} else {	/* We're in parent. */
+	X  		if (pid == -1) {
+	X  			/* fork failed! */
+	X
+	X--- 196,202 -----
+	X  		syslog(LOG_ERR, "spawn: execle(%s): %m", path);
+	X  #endif
+	X  		_exit(-1);	/* Error */
+	X+ 		/*NOTREACHED*/
+	X  	} else {	/* We're in parent. */
+	X  		if (pid == -1) {
+	X  			/* fork failed! */
+	X***************
+	X*** 224,230
+	X  			if (npid == pid) {
+	X  #ifdef USG
+	X  				exit_status = (status >> 8) & 0xff;
+	X! #else not USG
+	X  				exit_status = status.w_T.w_Retcode;
+	X  #endif not USG
+	X  				break;
+	X
+	X--- 240,246 -----
+	X  			if (npid == pid) {
+	X  #ifdef USG
+	X  				exit_status = (status >> 8) & 0xff;
+	X! #else /* not USG */
+	X  				exit_status = status.w_T.w_Retcode;
+	X  #endif /*not USG */
+	X  				break;
+	X***************
+	X*** 226,232
+	X  				exit_status = (status >> 8) & 0xff;
+	X  #else not USG
+	X  				exit_status = status.w_T.w_Retcode;
+	X! #endif not USG
+	X  				break;
+	X  			}
+	X  
+	X
+	X--- 242,248 -----
+	X  				exit_status = (status >> 8) & 0xff;
+	X  #else /* not USG */
+	X  				exit_status = status.w_T.w_Retcode;
+	X! #endif /*not USG */
+	X  				break;
+	X  			}
+	X  
+	X***************
+	X*** 239,244
+	X  			return (-1);
+	X  		}
+	X  
+	X  		if (exit_status != 0) {
+	X  #ifdef SYSLOG
+	X  			syslog(LOG_ERR, "spawn: %s exit status %d",
+	X
+	X--- 255,264 -----
+	X  			return (-1);
+	X  		}
+	X  
+	X+ #ifdef notdef
+	X+ 		/* Make ctags happy */
+	X+ 		{
+	X+ #endif
+	X  		if (exit_status != 0) {
+	X  #ifdef SYSLOG
+	X  			syslog(LOG_ERR, "spawn: %s exit status %d",
+	X***************
+	X*** 244,250
+	X  			syslog(LOG_ERR, "spawn: %s exit status %d",
+	X  				path, exit_status);
+	X  #endif
+	X! 			/* Save the tempfile away in .bad.
+	X  			 */
+	X  			(void) strcpy(badfile, "/usr/spool/news/.bad/nntpXXXXXX");
+	X  			(void) mktemp(badfile);
+	X
+	X--- 264,271 -----
+	X  			syslog(LOG_ERR, "spawn: %s exit status %d",
+	X  				path, exit_status);
+	X  #endif
+	X! 			/*
+	X! 			 * Save the tempfile away in .bad.
+	X  			 */
+	X  #ifdef CNEWS
+	X  			}
+	X***************
+	X*** 246,252
+	X  #endif
+	X  			/* Save the tempfile away in .bad.
+	X  			 */
+	X! 			(void) strcpy(badfile, "/usr/spool/news/.bad/nntpXXXXXX");
+	X  			(void) mktemp(badfile);
+	X  			(void) rename(tempfile, badfile);
+	X  		} else {
+	X
+	X--- 267,277 -----
+	X  			/*
+	X  			 * Save the tempfile away in .bad.
+	X  			 */
+	X! #ifdef CNEWS
+	X! 			}
+	X! 		(void) unlink(tempfile);
+	X! #else
+	X! 			sprintf(badfile, "%s/.bad/nntpXXXXXX",SPOOLDIR);
+	X  			(void) mktemp(badfile);
+	X  			(void) rename(tempfile, badfile);
+	X  		} else {
+	X***************
+	X*** 252,258
+	X  		} else {
+	X  			(void) unlink(tempfile);
+	X  		}
+	X! 			
+	X  		return (exit_status ? -1 : 1);
+	X  	}
+	X  }
+	X
+	X--- 277,283 -----
+	X  		} else {
+	X  			(void) unlink(tempfile);
+	X  		}
+	X! #endif			
+	X  		return (exit_status ? -1 : 1);
+	X  	}
+	X  }
+SHAR_EOF
+if test 43885 -ne "`wc -c < 'server.diff'`"
+then
+	echo shar: error transmitting "'server.diff'" '(should have been 43885 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'server'"
+cd ..
+#	End of shell archive
+exit 0

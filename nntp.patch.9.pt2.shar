@@ -1,0 +1,1546 @@
+#! /bin/sh
+# This is a shell archive, meaning:
+# 1. Remove everything above the #! /bin/sh line.
+# 2. Save the resulting text in a file.
+# 3. Execute the file with /bin/sh (not csh) to create the files:
+#	doc
+#	inews
+#	xfer
+#	xmit
+# This archive created: Thu Jul 12 20:57:09 1990
+export PATH; PATH=/bin:$PATH
+if test ! -d 'doc'
+then
+	echo shar: creating directory "'doc'"
+	mkdir 'doc'
+fi
+echo shar: entering directory "'doc'"
+cd 'doc'
+echo shar: extracting "'doc.diff'" '(6686 characters)'
+if test -f 'doc.diff'
+then
+	echo shar: will not over-write existing file "'doc.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'doc.diff'
+	XIndex: Makefile
+	X*** Makefile	Sun Feb  7 01:36:35 1988
+	X--- ../../nntp/doc/Makefile	Sun Jul  8 03:07:57 1990
+	X***************
+	X*** 1,7
+	X  #
+	X  # Makefile for manual pages for nntp service
+	X  #
+	X! # Created by Stan Barber; Mon Apr  6 13:25:27 CDT 1987
+	X  #
+	X  
+	X  # change these to suit your system
+	X
+	X--- 1,7 -----
+	X  #
+	X  # Makefile for manual pages for nntp service
+	X  #
+	X! # $Header: Makefile,v 1.3 90/07/08 03:07:56 sob Exp $
+	X  #
+	X  
+	X  # change these to suit your system
+	X***************
+	X*** 12,18
+	X  # from here down should be constant
+	X  SHELL	= /bin/sh
+	X  MACROS	= -man
+	X! MANPAGES= nntpd.8c mkgrdates.8c getactive.1
+	X  EXTRACT	= ./config.sh
+	X  
+	X  all: $(MANPAGES)
+	X
+	X--- 12,18 -----
+	X  # from here down should be constant
+	X  SHELL	= /bin/sh
+	X  MACROS	= -man
+	X! MANPAGES= nntpd.8c mkgrdates.8c getactive.1 nntpxmit.1
+	X  EXTRACT	= ./config.sh
+	X  
+	X  all: $(MANPAGES)
+	X***************
+	X*** 27,32
+	X  getactive.1: getactive.dst $(EXTRACT)
+	X  	$(EXTRACT) getactive.dst getactive.1
+	X  
+	X  install: $(MANPAGES)
+	X  	mv nntpd.8c $(MANDIR)/man8/nntpd.8c
+	X  	mv mkgrdates.8c $(MANDIR)/man8/mkgrdates.8c
+	X
+	X--- 27,35 -----
+	X  getactive.1: getactive.dst $(EXTRACT)
+	X  	$(EXTRACT) getactive.dst getactive.1
+	X  
+	X+ nntpxmit.1: nntpxmit.dst $(EXTRACT)
+	X+ 	$(EXTRACT) nntpxmit.dst nntpxmit.1
+	X+ 
+	X  install: $(MANPAGES)
+	X  	mv nntpd.8c $(MANDIR)/man8/nntpd.8c
+	X  	mv mkgrdates.8c $(MANDIR)/man8/mkgrdates.8c
+	X***************
+	X*** 37,42
+	X  	$(ROFF) $(MACROS) -P$(PRINTER) nntpd.8c
+	X  	$(ROFF) $(MACROS) -P$(PRINTER) mkgrdates.8c
+	X  	$(ROFF) $(MACROS) -P$(PRINTER) getactive.1
+	X  
+	X  clean:
+	X  	-rm -f $(MANPAGES)
+	X
+	X--- 40,46 -----
+	X  	$(ROFF) $(MACROS) -P$(PRINTER) nntpd.8c
+	X  	$(ROFF) $(MACROS) -P$(PRINTER) mkgrdates.8c
+	X  	$(ROFF) $(MACROS) -P$(PRINTER) getactive.1
+	X+ 	$(ROFF) $(MACROS) -P$(PRINTER) nntpxmit.1
+	X  
+	X  clean:
+	X  	-rm -f $(MANPAGES)
+	XIndex: nntpd.dst
+	XPrereq: 1.4
+	X*** nntpd.dst	Fri Mar  9 22:41:01 1990
+	X--- ../../nntp/doc/nntpd.dst	Thu Jul  5 02:20:45 1990
+	X***************
+	X*** 1,5
+	X  .\"
+	X! .\" @(#)nntpd.dst	1.4	(Berkeley) 5/11/89
+	X  .\"
+	X  .TH NNTPD 8C "12 March 1990"
+	X  .UC 4
+	X
+	X--- 1,5 -----
+	X  .\"
+	X! .\" @(#)$Header: nntpd.dst,v 1.5 90/07/05 02:20:42 sob Exp $
+	X  .\"
+	X  .TH NNTPD 8C "4 July 1990"
+	X  .UC 4
+	X***************
+	X*** 1,7
+	X  .\"
+	X  .\" @(#)nntpd.dst	1.4	(Berkeley) 5/11/89
+	X  .\"
+	X! .TH NNTPD 8C "12 March 1990"
+	X  .UC 4
+	X  .SH NAME
+	X  nntpd \- Network News Transfer Protocol server
+	X
+	X--- 1,7 -----
+	X  .\"
+	X  .\" @(#)$Header: nntpd.dst,v 1.5 90/07/05 02:20:42 sob Exp $
+	X  .\"
+	X! .TH NNTPD 8C "4 July 1990"
+	X  .UC 4
+	X  .SH NAME
+	X  nntpd \- Network News Transfer Protocol server
+	X***************
+	X*** 35,41
+	X  .sp
+	X  This manual page describes
+	X  .I nntpd
+	X! from version 1.5.8 of the NNTP package.
+	X  .PP
+	X  .I Nntpd
+	X  can operate either as a stand-alone server, or as a
+	X
+	X--- 35,41 -----
+	X  .sp
+	X  This manual page describes
+	X  .I nntpd
+	X! from version 1.5.9 of the NNTP package.
+	X  .PP
+	X  .I Nntpd
+	X  can operate either as a stand-alone server, or as a
+	X***************
+	X*** 40,46
+	X  .I Nntpd
+	X  can operate either as a stand-alone server, or as a
+	X  server under
+	X! .IR inetd (1).
+	X  For stand-alone use,
+	X  .I nntpd
+	X  must be compiled with the -DALONE option, and is
+	X
+	X--- 40,46 -----
+	X  .I Nntpd
+	X  can operate either as a stand-alone server, or as a
+	X  server under
+	X! .IR inetd (8C).
+	X  For stand-alone use,
+	X  .I nntpd
+	X  must be compiled with the -DALONE option, and is
+	X***************
+	X*** 48,54
+	X  .IR /etc/rc.local 
+	X  script.
+	X  Under
+	X! .IR inetd (1),
+	X  the appropriate entry must be made in
+	X  .IR INETDCONFIG ,
+	X  and the server must be compiled without the
+	X
+	X--- 48,54 -----
+	X  .IR /etc/rc.local 
+	X  script.
+	X  Under
+	X! .IR inetd (8C),
+	X  the appropriate entry must be made in
+	X  .IR INETDCONFIG ,
+	X  and the server must be compiled without the
+	X***************
+	X*** 53,59
+	X  .IR INETDCONFIG ,
+	X  and the server must be compiled without the
+	X  -DALONE flag. You may need to halt and restart 
+	X! .IR inetd (1)
+	X  or send it SIGHUP to force it to reread
+	X  .IR INETDCONFIG .
+	X  .PP
+	X
+	X--- 53,59 -----
+	X  .IR INETDCONFIG ,
+	X  and the server must be compiled without the
+	X  -DALONE flag. You may need to halt and restart 
+	X! .IR inetd (8C)
+	X  or send it SIGHUP to force it to reread
+	X  .IR INETDCONFIG .
+	X  .PP
+	X***************
+	X*** 83,89
+	X  This file consists of three or four fields in the following form:
+	X  .sp
+	X  .nf
+	X! host/net/*domain.suffix/address   read/xfer/no  post/no  newsgroups
+	X  .fi
+	X  .sp
+	X  where
+	X
+	X--- 83,89 -----
+	X  This file consists of three or four fields in the following form:
+	X  .sp
+	X  .nf
+	X! host/net/*domain.suffix/address   read/xfer/both/no  post/no  newsgroups
+	X  .fi
+	X  .sp
+	X  where
+	X***************
+	X*** 100,105
+	X  is a valid internet address in the form of a dotted quad, and
+	X  .I ``read'',
+	X  .I ``xfer'',
+	X  .I ``post'',
+	X  and
+	X  .I ``no''
+	X
+	X--- 100,106 -----
+	X  is a valid internet address in the form of a dotted quad, and
+	X  .I ``read'',
+	X  .I ``xfer'',
+	X+ .I ``both'',
+	X  .I ``post'',
+	X  and
+	X  .I ``no''
+	X***************
+	X*** 126,132
+	X  specifies the read access of the host/net in
+	X  question.
+	X  If the entry is ``read,'' matching
+	X! hosts can both read and transfer news.
+	X  If the entry is ``xfer,'' however,
+	X  matching hosts can only execute commands
+	X  used for transferring news, such as
+	X
+	X--- 127,134 -----
+	X  specifies the read access of the host/net in
+	X  question.
+	X  If the entry is ``read,'' matching
+	X! hosts can read news. This means that all commands but IHAVE and POST can
+	X! be executed.
+	X  If the entry is ``xfer,'' however,
+	X  matching hosts can only execute commands
+	X  used for transferring news, such as
+	X***************
+	X*** 131,136
+	X  matching hosts can only execute commands
+	X  used for transferring news, such as
+	X  NEWNEWS, NEWGROUPS, IHAVE, and ARTICLE with message-id parameters.
+	X  The string ``no'' denies read permission
+	X  of any kind to a matching host.
+	X  .PP
+	X
+	X--- 133,140 -----
+	X  matching hosts can only execute commands
+	X  used for transferring news, such as
+	X  NEWNEWS, NEWGROUPS, IHAVE, and ARTICLE with message-id parameters.
+	X+ If the entry is ``both,'' ths host can
+	X+ execute all commands but POST.
+	X  The string ``no'' denies read permission
+	X  of any kind to a matching host.
+	X  .PP
+	X***************
+	X*** 174,180
+	X  The above file allows only transfer of news (i.e., no reading or posting)
+	X  by default.
+	X  Hosts on the network ``ucb-ether'' would be able to
+	X! read and post news.
+	X  The host ``shadow'' would not be allowed
+	X  to read or post news.
+	X  Hosts that have a domain suffix of ``.stanford.edu'' are denied access
+	X
+	X--- 178,184 -----
+	X  The above file allows only transfer of news (i.e., no reading or posting)
+	X  by default.
+	X  Hosts on the network ``ucb-ether'' would be able to
+	X! read and post news, however news transfer would not be allowed.
+	X  The host ``shadow'' would not be allowed
+	X  to read or post news.
+	X  Hosts that have a domain suffix of ``.stanford.edu'' are denied access
+SHAR_EOF
+if test 6686 -ne "`wc -c < 'doc.diff'`"
+then
+	echo shar: error transmitting "'doc.diff'" '(should have been 6686 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'nntpxmit.dst'" '(5838 characters)'
+if test -f 'nntpxmit.dst'
+then
+	echo shar: will not over-write existing file "'nntpxmit.dst'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'nntpxmit.dst'
+	X.TH NNTPXMIT 1 netnews/NNTP
+	X.SH NAME
+	X.I nntpxmit
+	X\- transmit netnews articles to a remote NNTP server
+	X.SH SYNOPSIS
+	X.I nntpxmit
+	X[
+	X.B \-a
+	X]
+	X[
+	X.B \-d
+	X]
+	X[
+	X.B \-s
+	X]
+	X[
+	X.B \-r
+	X]
+	X[
+	X.B \-T
+	X]
+	X[
+	X.B \-F
+	X]
+	X[
+	X.B \-D
+	X] hostname|hostname:file [...]
+	X.SH DESCRIPTION
+	X.PP
+	X.I Nntpxmit
+	Xoffers netnews articles [RFC850] named in a queue file (a file of
+	Xfilenames) to a remote NNTP (Network News Transfer Protocol,
+	X[RFC977]) server, transmitting those articles that the remote server
+	Xindicates that it does not already have.
+	X.PP
+	XThe command line arguments a processed sequentially, and the flags
+	Xcan thus be toggled several times during one invocation of the
+	Xprogram, by giving the options more than once.
+	XThe options are:
+	X.IP hostname|hostname:file
+	XThe name of the remote host, and the name of the queue file of
+	Xarticles destined for that host.
+	XThe hostname may be an internet address in dotted
+	Xformat (e.g. 10.2.0.78, [10.0.0.78]).
+	XIf the hostname is given without an associated file, it is assumed
+	Xthat the hostname is also the name of the queue file.
+	XIf the separator is "::" instead of ":", it is assumed that the
+	Xremote host speaks DECNET, instead of the default, IP/TCP.
+	X.IP -s
+	XToggles reporting of transfer statistics (how many articles we
+	Xoffered them, how many they accepted, etc).
+	X.br
+	XDefault is
+	X.B ON.
+	X.IP -d
+	XToggles DEBUG output on stderr.
+	XThis can be used to see exactly what the two systems are saying to
+	Xeach other, except for the actual article text.
+	X.br
+	XDefault is
+	X.B OFF.
+	X.IP -r
+	XToggles requeuing of failed articles.
+	XA failed article is an article that we (client) offer them (remote server),
+	Xthey accept, we transmit, and then they report that they "failed"
+	Xor dropped the article (i.e. inews(1) on the remote returned non-zero).
+	XIf we have requeuing set, we save the list of articles that they
+	Xfailed on, and rewrite the queue file with them, so that they get
+	Xreoffered the next time we initiate transmission to them.
+	X.br
+	XDefault is
+	X.B ON.
+	X.IP -a
+	XThis flag says that the next queue file on the command line isn't
+	Xa queue file, but is a single netnews
+	Xarticle to be transmitted to the remote in a single operation.
+	X.IP
+	X.B NOTE:
+	Xthis option causes
+	X.I nntpxmit
+	Xto exit immediately after this transfer is done (regardless of
+	Xwhatever else is on the command line), and to exit with a code
+	Xindicating whether the articles was successfully accepted by the
+	Xremote server (zero exit for success, non-zero for failure).
+	X.PP
+	XThe next options set the underlying transport protocol that
+	X.I nntpxmit
+	Xuses.
+	XThe NNTP specification assumes a TCP-style transport protocol
+	Xunderlies it (i.e. a reliable, flow-controlled, full-duplex byte
+	Xstream).
+	X.I Nntpxmit
+	Xassumes that after doing some magic to get a descriptor, 
+	Xit can do read(2) and write(2) calls (and use stdio) to move data
+	Xand check for errors.
+	XBy default, 
+	X.I nntpxmit
+	Xwill use IP/TCP (DoD Internet Protocol suite).
+	X.IP -T
+	XSets transport protocol to IP/TCP for all remaining
+	Xtransfers (unless reset by other transport flags).
+	XDefault transport.
+	X.IP -D
+	XSets transport protocol to DECNET for all remaining
+	Xtransfers (unless reset by other transport flags).
+	X.B NOTE:
+	Xusing "::" as the hostname/queue filename separator has the
+	Xsame effect.
+	X.IP -F
+	XThis says that the hostname is a file descriptor number, already
+	Xopen to a remote server (with some reliable protocol underneath)
+	Xthat was passed to
+	X.I nntpxmit
+	Xthrough a fork(2).
+	X.SH "THEORY OF OPERATION"
+	X.PP
+	X.I Nntpxmit
+	Ximplements an interactive ihave/sendme transmission system.
+	XRoughly, the protocol is
+	X.IP 1.
+	Xopen the article,
+	Xfetch out the message-id (required on all netnews articles),
+	Xand send the command IHAVE <message-id> to the remote.
+	X.IP 2.
+	XThe remote will then say either "I've seen it already" or "please send
+	Xthat article to me."
+	X.IP 3.
+	XIf the response was negative,
+	X.I nntpxmit
+	Xloops back to step 1 and offers the next article (until queue file EOF).
+	XOtherwise,
+	X.I nntpxmit
+	Xwill send the article, using SMTP [RFC821] text transmission conventions
+	X(i.e. CRLF line terminators, and dot escaping).
+	X.IP 4.
+	X.I Nntpxmit
+	Xwaits for the remote to say whether the article was successfully
+	Xaccepted or not.
+	XIf the answer is negative and requeuing of failed articles is enabled,
+	X.I nntpxmit
+	Xwill queue this article's filename to be
+	Xwritten back to the queue file at the end of the session with this
+	Xremote.
+	X.PP
+	XIf the communcation link should fail (and
+	X.I nntpxmit
+	Xdetects it through a system call error return),
+	X.I nntpxmit
+	Xwill rewrite the queue file with the article filenames of the
+	Xarticles that it did not transmit (that is, we don't retransmit
+	Xstuff we've already successfully sent and gotten back an positive
+	Xconfirmation that they got it).
+	X.SH FILES
+	X/tmp/nntpxmitXXXXXX
+	X.SH AUTHOR
+	XErik E. Fair
+	X.SH "SEE ALSO"
+	Xinews(1),
+	X.br
+	XRFC977 \- Network News Transfer Protocol (NNTP),
+	X.br
+	XRFC850 \- USENET Article Format standard,
+	X.br
+	XRFC821 \- Simple Mail Transfer Protocol (SMTP),
+	X.SH BUGS
+	X.PP
+	XAlways requeuing failed articles can lead to beating the remote to
+	Xdeath with a list of articles that he can't accept for come structural
+	Xreason.
+	XHow many of these have to pile up before you should declare that
+	Xsomething is seriously wrong with the remote system and stop trying?
+	X.PP
+	XWhile
+	X.B nntpxmit
+	Xwill lock a queue file (your version of UNIX permitting) against
+	Xmultiple invocations of itself, there is no locking with inews(1),
+	Xwhich is what writes the queue files in the first place.
+	XTherefore, never use
+	X.B nntpxmit
+	Xon the queue files that inews(1) writes, because two processes
+	Xwriting into the same file without some kind of cooperation will
+	Xalmost certainly trash the file; move them to some other name that
+	Xinews(1) knows nothing about, so that you won't lose articles to
+	Xraces between inews and nntpxmit.
+	X.PP
+	XAdding inews(1) compatible locking to the C code would be much more
+	Xtrouble than it's worth, and violates the KISS principle besides.
+SHAR_EOF
+if test 5838 -ne "`wc -c < 'nntpxmit.dst'`"
+then
+	echo shar: error transmitting "'nntpxmit.dst'" '(should have been 5838 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'doc'"
+cd ..
+if test ! -d 'inews'
+then
+	echo shar: creating directory "'inews'"
+	mkdir 'inews'
+fi
+echo shar: entering directory "'inews'"
+cd 'inews'
+echo shar: extracting "'postauth.c'" '(1444 characters)'
+if test -f 'postauth.c'
+then
+	echo shar: will not over-write existing file "'postauth.c'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'postauth.c'
+	X/* 
+	X * postauth: do authorization handshake when posting requires it.
+	X * Originally by Brian Kantor. Some modifications by Stan Barber.
+	X */
+	X#ifndef lint
+	Xstatic char * rcsid = "$Header: postauth.c,v 1.2 90/07/08 01:00:05 sob Exp $";
+	X#endif
+	X#include <stdio.h>
+	X#include "../common/conf.h"
+	X#include "../common/nntp.h"
+	X
+	X#ifdef AUTH
+	X
+	Xextern FILE *passfile;
+	X
+	Xpostauth(host)
+	Xchar *host;
+	X	{
+	X	char remote[64], user[16], pass[16];
+	X	char buf[1024];
+	X	int i;
+	X
+	X	if (passfile == NULL)
+	X		{
+	X		fprintf(stderr,"Posting is not allowed from this system.\n");
+	X		exit(1);
+	X		}
+	X
+	X	while(fgets(buf, sizeof(buf), passfile))
+	X		{
+	X		if (buf[0] == '#')
+	X			continue;
+	X		
+	X		i = sscanf(buf,"%s %s %s", remote, user, pass);
+	X		/* malformed entry? */
+	X		if (i != 3)
+	X			{
+	X			fprintf(stderr,"Posting Authorization Denied. File format error.\n");
+	X			continue;
+	X			}
+	X		
+	X		/* right host? */
+	X		if (!strcasecmp(remote,host))
+	X			break;
+	X		}
+	X	if (feof(passfile))
+	X		{
+	X		fprintf(stderr,"Posting to %s is not allowed from this system\n", host);
+	X		exit(1);
+	X		}
+	X	
+	X	sprintf(buf,"authinfo user %s", user);
+	X	if (converse(buf, sizeof(buf)) != NEED_AUTHDATA)
+	X		{
+	X		fprintf(stderr,"%s\n", buf);
+	X		exit(1);
+	X		}
+	X	
+	X	sprintf(buf,"authinfo pass %s", pass);
+	X	if (converse(buf, sizeof(buf)) != OK_AUTH)
+	X		{
+	X		fprintf(stderr,"%s\n", buf);
+	X		exit(1);
+	X		}
+	X	
+	X	fclose(passfile);
+	X	}
+	X
+	Xint
+	Xconverse(buf,buflen)
+	Xchar *buf;
+	Xint buflen;
+	X	{
+	X	put_server(buf,buflen);
+	X	get_server(buf,buflen);
+	X	return(atoi(buf));
+	X	}
+	X#endif AUTH
+SHAR_EOF
+if test 1444 -ne "`wc -c < 'postauth.c'`"
+then
+	echo shar: error transmitting "'postauth.c'" '(should have been 1444 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'inews.diff'" '(12508 characters)'
+if test -f 'inews.diff'
+then
+	echo shar: will not over-write existing file "'inews.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'inews.diff'
+	XIndex: Makefile
+	X*** Makefile	Sun Mar 11 16:55:56 1990
+	X--- ../../nntp/inews/Makefile	Sun Jul  8 02:46:58 1990
+	X***************
+	X*** 2,9
+	X  # Makefile for pseudo-inews
+	X  #
+	X  
+	X! SRCS	=	inews.c uname.c ../common/clientlib.c ../common/version.c
+	X! OBJS	=	inews.o uname.o ../common/clientlib.o ../common/version.o
+	X  HFILES	=	../common/nntp.h ../common/conf.h
+	X  
+	X  CFLAGS	= -O
+	X
+	X--- 2,9 -----
+	X  # Makefile for pseudo-inews
+	X  #
+	X  
+	X! SRCS	=	inews.c uname.c postauth.c ../common/clientlib.c ../common/version.c ../server/strcasecmp.c
+	X! OBJS	=	inews.o uname.o postauth.o ../common/clientlib.o ../common/version.o ../server/strcasecmp.o
+	X  HFILES	=	../common/nntp.h ../common/conf.h
+	X  
+	X  CFLAGS	= -O
+	X***************
+	X*** 15,21
+	X  inews:  $(OBJS) $(HFILES)
+	X  	$(CC) $(CFLAGS) $(OBJS) -o inews $(LIBS)
+	X  
+	X! uname.o: ../common/conf.h
+	X  
+	X  ../common/clientlib.o:
+	X  	${CC} ${CFLAGS} -DNNTPSRC -c ../common/clientlib.c
+	X
+	X--- 15,21 -----
+	X  inews:  $(OBJS) $(HFILES)
+	X  	$(CC) $(CFLAGS) $(OBJS) -o inews $(LIBS)
+	X  
+	X! uname.o: uname.c ../common/conf.h
+	X  
+	X  inews.o: inews.c ../common/conf.h
+	X  
+	X***************
+	X*** 17,22
+	X  
+	X  uname.o: ../common/conf.h
+	X  
+	X  ../common/clientlib.o:
+	X  	${CC} ${CFLAGS} -DNNTPSRC -c ../common/clientlib.c
+	X  	mv clientlib.o ../common/clientlib.o
+	X
+	X--- 17,24 -----
+	X  
+	X  uname.o: uname.c ../common/conf.h
+	X  
+	X+ inews.o: inews.c ../common/conf.h
+	X+ 
+	X  ../common/clientlib.o:
+	X  	${CC} ${CFLAGS} -DNNTPSRC -c ../common/clientlib.c
+	X  	mv clientlib.o ../common/clientlib.o
+	X***************
+	X*** 24,29
+	X  ../common/version.o:
+	X  	${CC} ${CFLAGS} -c ../common/version.c
+	X  	mv version.o ../common/version.o
+	X  
+	X  install: inews
+	X  	cp inews ${DESTDIR}/inews
+	X
+	X--- 26,35 -----
+	X  ../common/version.o:
+	X  	${CC} ${CFLAGS} -c ../common/version.c
+	X  	mv version.o ../common/version.o
+	X+ 
+	X+ ../server/strcasecmp.o:
+	X+ 	${CC} ${CFLAGS} -c ../server/strcasecmp.c
+	X+ 	mv strcasecmp.o ../server/strcasecmp.o
+	X  
+	X  install: inews
+	X  	cp inews ${DESTDIR}/inews
+	XIndex: inews.c
+	XPrereq: 1.16
+	X*** inews.c	Sun Jan 14 13:41:31 1990
+	X--- ../../nntp/inews/inews.c	Sun Jul  8 01:00:01 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char *sccsid = "@(#)inews.c	1.16	(Berkeley) 8/27/89";
+	X  #endif
+	X  
+	X  /*
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char *sccsid = "@(#)$Header: inews.c,v 1.18 90/07/08 00:59:48 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 25,30
+	X  #else not USG
+	X  #include <strings.h>
+	X  #endif not USG
+	X  
+	X  #define	MAX_SIGNATURE	4
+	X  
+	X
+	X--- 25,33 -----
+	X  #else not USG
+	X  #include <strings.h>
+	X  #endif not USG
+	X+ /* for gen_frompath() */
+	X+ #define FROM 1
+	X+ #define PATH 2
+	X  
+	X  #define	MAX_SIGNATURE	4
+	X  
+	X***************
+	X*** 29,34
+	X  #define	MAX_SIGNATURE	4
+	X  
+	X  extern	FILE	*ser_wr_fp;
+	X  
+	X  char	host_name[256];
+	X  
+	X
+	X--- 32,38 -----
+	X  #define	MAX_SIGNATURE	4
+	X  
+	X  extern	FILE	*ser_wr_fp;
+	X+ extern	char	*getlogin();
+	X  
+	X  #ifdef AUTH
+	X  FILE *passfile;
+	X***************
+	X*** 30,35
+	X  
+	X  extern	FILE	*ser_wr_fp;
+	X  
+	X  char	host_name[256];
+	X  
+	X  main(argc, argv)
+	X
+	X--- 34,43 -----
+	X  extern	FILE	*ser_wr_fp;
+	X  extern	char	*getlogin();
+	X  
+	X+ #ifdef AUTH
+	X+ FILE *passfile;
+	X+ #endif AUTH
+	X+ 
+	X  char	host_name[256];
+	X  struct	passwd *passwd;
+	X  
+	X***************
+	X*** 31,36
+	X  extern	FILE	*ser_wr_fp;
+	X  
+	X  char	host_name[256];
+	X  
+	X  main(argc, argv)
+	X  int	argc;
+	X
+	X--- 39,45 -----
+	X  #endif AUTH
+	X  
+	X  char	host_name[256];
+	X+ struct	passwd *passwd;
+	X  
+	X  main(argc, argv)
+	X  int	argc;
+	X***************
+	X*** 37,43
+	X  char	*argv[];
+	X  {
+	X  	char	line[NNTP_STRLEN], s[NNTP_STRLEN];
+	X! 	int	seen_fromline, in_header, seen_header;
+	X  	int	response;
+	X  	char	*server;
+	X  	char	*getserverbyfile();
+	X
+	X--- 46,52 -----
+	X  char	*argv[];
+	X  {
+	X  	char	line[NNTP_STRLEN], s[NNTP_STRLEN];
+	X! 	int	seen_fromline, in_header, seen_header, seen_pathline;
+	X  	int	response;
+	X  	char	*server;
+	X  	char	*getserverbyfile();
+	X***************
+	X*** 42,47
+	X  	char	*server;
+	X  	char	*getserverbyfile();
+	X  	register char	*cp;
+	X  
+	X  	++argv;
+	X  	while (argc > 1)
+	X
+	X--- 51,57 -----
+	X  	char	*server;
+	X  	char	*getserverbyfile();
+	X  	register char	*cp;
+	X+ 	char 	*username;
+	X  
+	X  	/* find out who they REALLY are */
+	X  	username = getlogin();
+	X***************
+	X*** 43,48
+	X  	char	*getserverbyfile();
+	X  	register char	*cp;
+	X  
+	X  	++argv;
+	X  	while (argc > 1)
+	X  		if (*argv[0] == '-') {
+	X
+	X--- 53,79 -----
+	X  	register char	*cp;
+	X  	char 	*username;
+	X  
+	X+ 	/* find out who they REALLY are */
+	X+ 	username = getlogin();
+	X+ 	if (username)
+	X+ 		passwd = getpwnam(username);
+	X+ 	else
+	X+ 		{
+	X+ 		passwd = getpwuid(getuid());
+	X+ 		username = passwd->pw_name;
+	X+ 		}
+	X+ 
+	X+ #ifdef AUTH
+	X+ 	/*
+	X+ 	 * we have to be setuid to news to open the file, but not afterwards
+	X+ 	 */
+	X+ 	passfile = fopen(PASSFILE, "r");
+	X+ #ifndef USG	/* this call does not exist on USG */
+	X+ 	seteuid(getuid());
+	X+ 	setegid(getgid());
+	X+ #endif
+	X+ #endif AUTH
+	X+ 
+	X  	++argv;
+	X  	while (argc > 1)
+	X  		if (*argv[0] == '-') {
+	X***************
+	X*** 83,88
+	X  		exit(1);
+	X  	}
+	X  
+	X  	put_server("POST");
+	X  	(void) get_server(line, sizeof(line));
+	X  	if (*line != CHAR_CONT) {
+	X
+	X--- 114,120 -----
+	X  		exit(1);
+	X  	}
+	X  
+	X+ again:
+	X  	put_server("POST");
+	X  	(void) get_server(line, sizeof(line));
+	X  	if (*line != CHAR_CONT) {
+	X***************
+	X*** 91,100
+	X  			fprintf(stderr,
+	X  				"Sorry, you can't post from this machine.\n");
+	X  			exit(1);
+	X- 		} else {
+	X- 			close_server();
+	X- 		        fprintf(stderr, "Remote error: %s\n", line);
+	X- 			exit(1);
+	X  		}
+	X  	}
+	X  
+	X
+	X--- 123,128 -----
+	X  			fprintf(stderr,
+	X  				"Sorry, you can't post from this machine.\n");
+	X  			exit(1);
+	X  		}
+	X  #ifdef AUTH
+	X  		if (atoi(line) == ERR_NOAUTH) {
+	X***************
+	X*** 96,101
+	X  		        fprintf(stderr, "Remote error: %s\n", line);
+	X  			exit(1);
+	X  		}
+	X  	}
+	X  
+	X  	in_header = 1;
+	X
+	X--- 124,138 -----
+	X  				"Sorry, you can't post from this machine.\n");
+	X  			exit(1);
+	X  		}
+	X+ #ifdef AUTH
+	X+ 		if (atoi(line) == ERR_NOAUTH) {
+	X+ 			postauth(server);
+	X+ 			goto again;
+	X+ 		}
+	X+ #endif
+	X+ 		close_server();
+	X+ 		fprintf(stderr, "Remote error: %s\n", line);
+	X+ 		exit(1);
+	X  	}
+	X  
+	X  	in_header = 1;
+	X***************
+	X*** 109,114
+	X  	                seen_header = 1;
+	X  			seen_fromline = 1;
+	X  		}
+	X  		if (in_header && s[0] == '\0') {
+	X  	                if (seen_header) {
+	X  		                in_header = 0;
+	X
+	X--- 146,155 -----
+	X  	                seen_header = 1;
+	X  			seen_fromline = 1;
+	X  		}
+	X+ 		if (in_header && strneql(s, "Path:", sizeof("Path:")-1)) {
+	X+ 	                seen_header = 1;
+	X+ 			seen_pathline = 1;
+	X+ 		}
+	X  		if (in_header && s[0] == '\0') {
+	X  	                if (seen_header) {
+	X  		                in_header = 0;
+	X***************
+	X*** 112,119
+	X  		if (in_header && s[0] == '\0') {
+	X  	                if (seen_header) {
+	X  		                in_header = 0;
+	X! 			        if (!seen_fromline)
+	X! 				        gen_frompath();
+	X  			} else {
+	X  			        continue;
+	X  			}
+	X
+	X--- 153,164 -----
+	X  		if (in_header && s[0] == '\0') {
+	X  	                if (seen_header) {
+	X  		                in_header = 0;
+	X! 				if (!seen_pathline)
+	X! 					gen_frompath(PATH);
+	X! 				if (!seen_fromline)
+	X! 					gen_frompath(FROM);
+	X! 				else
+	X! fprintf(ser_wr_fp, "Originator: %s@%s\r\n", passwd->pw_name, host_name);
+	X  			} else {
+	X  			        continue;
+	X  			}
+	X***************
+	X*** 125,131
+	X  		}
+	X  		fprintf(ser_wr_fp, "%s\r\n", s);
+	X  	}
+	X! 
+	X  	append_signature();
+	X  
+	X  	fprintf(ser_wr_fp, ".\r\n");
+	X
+	X--- 170,176 -----
+	X  		}
+	X  		fprintf(ser_wr_fp, "%s\r\n", s);
+	X  	}
+	X!   
+	X  	append_signature();
+	X  
+	X  	fprintf(ser_wr_fp, ".\r\n");
+	X***************
+	X*** 205,211
+	X    fprintf(stderr,"sigfile opened OK\n");
+	X  #endif
+	X  
+	X! 	fprintf(ser_wr_fp, "--\r\n");
+	X  	while (fgets(line, sizeof (line), fp)) {
+	X  		count++;
+	X  		if (count > MAX_SIGNATURE) {
+	X
+	X--- 250,256 -----
+	X    fprintf(stderr,"sigfile opened OK\n");
+	X  #endif
+	X  
+	X! 	fprintf(ser_wr_fp, "-- \r\n");
+	X  	while (fgets(line, sizeof (line), fp)) {
+	X  		count++;
+	X  		if (count > MAX_SIGNATURE) {
+	X***************
+	X*** 238,244
+	X   * a From: line in it.
+	X   */
+	X  
+	X! gen_frompath()
+	X  {
+	X  	char	*full_name;
+	X  	char	*cp;
+	X
+	X--- 283,290 -----
+	X   * a From: line in it.
+	X   */
+	X  
+	X! gen_frompath(which)
+	X! int which;
+	X  {
+	X  	char	*full_name;
+	X  	char	*cp;
+	X***************
+	X*** 254,259
+	X  			*cp = '\0';
+	X  	}
+	X  
+	X  #ifdef DOMAIN
+	X  #ifdef HIDDENNET
+	X  		fprintf(ser_wr_fp, "From: %s@%s (",
+	X
+	X--- 300,306 -----
+	X  			*cp = '\0';
+	X  	}
+	X  
+	X+ 	if (which == FROM){
+	X  #ifdef DOMAIN
+	X  #ifdef HIDDENNET
+	X  			fprintf(ser_wr_fp, "From: %s@%s (",
+	X***************
+	X*** 256,264
+	X  
+	X  #ifdef DOMAIN
+	X  #ifdef HIDDENNET
+	X! 		fprintf(ser_wr_fp, "From: %s@%s (",
+	X! 			passwd->pw_name,
+	X! 			DOMAIN);
+	X  #else /* HIDDENNET */
+	X  
+	X  	/* A heuristic to see if we should tack on a domain */
+	X
+	X--- 303,311 -----
+	X  	if (which == FROM){
+	X  #ifdef DOMAIN
+	X  #ifdef HIDDENNET
+	X! 			fprintf(ser_wr_fp, "From: %s@%s (",
+	X! 				passwd->pw_name,
+	X! 				DOMAIN);
+	X  #else /* HIDDENNET */
+	X  
+	X  		/* A heuristic to see if we should tack on a domain */
+	X***************
+	X*** 261,267
+	X  			DOMAIN);
+	X  #else /* HIDDENNET */
+	X  
+	X! 	/* A heuristic to see if we should tack on a domain */
+	X  
+	X  	cp = index(host_name, '.');
+	X  	if (cp)
+	X
+	X--- 308,314 -----
+	X  				DOMAIN);
+	X  #else /* HIDDENNET */
+	X  
+	X! 		/* A heuristic to see if we should tack on a domain */
+	X  
+	X  		cp = index(host_name, '.');
+	X  		if (cp)
+	X***************
+	X*** 263,270
+	X  
+	X  	/* A heuristic to see if we should tack on a domain */
+	X  
+	X! 	cp = index(host_name, '.');
+	X! 	if (cp)
+	X  		fprintf(ser_wr_fp, "From: %s@%s (",
+	X  			passwd->pw_name,
+	X  			host_name);
+	X
+	X--- 310,327 -----
+	X  
+	X  		/* A heuristic to see if we should tack on a domain */
+	X  
+	X! 		cp = index(host_name, '.');
+	X! 		if (cp)
+	X! 			fprintf(ser_wr_fp, "From: %s@%s (",
+	X! 				passwd->pw_name,
+	X! 				host_name);
+	X! 		else
+	X! 			fprintf(ser_wr_fp, "From: %s@%s.%s (",
+	X! 				passwd->pw_name,
+	X! 				host_name,
+	X! 				DOMAIN);
+	X! #endif /* HIDDENNET */
+	X! #else
+	X  		fprintf(ser_wr_fp, "From: %s@%s (",
+	X  			passwd->pw_name,
+	X  			host_name);
+	X***************
+	X*** 268,283
+	X  		fprintf(ser_wr_fp, "From: %s@%s (",
+	X  			passwd->pw_name,
+	X  			host_name);
+	X- 	else
+	X- 		fprintf(ser_wr_fp, "From: %s@%s.%s (",
+	X- 			passwd->pw_name,
+	X- 			host_name,
+	X- 			DOMAIN);
+	X- #endif /* HIDDENNET */
+	X- #else
+	X- 	fprintf(ser_wr_fp, "From: %s@%s (",
+	X- 		passwd->pw_name,
+	X- 		host_name);
+	X  #endif
+	X  
+	X  	for (cp = full_name; *cp != '\0'; ++cp)
+	X
+	X--- 325,330 -----
+	X  		fprintf(ser_wr_fp, "From: %s@%s (",
+	X  			passwd->pw_name,
+	X  			host_name);
+	X  #endif
+	X  
+	X  		for (cp = full_name; *cp != '\0'; ++cp)
+	X***************
+	X*** 280,295
+	X  		host_name);
+	X  #endif
+	X  
+	X! 	for (cp = full_name; *cp != '\0'; ++cp)
+	X! 		if (*cp != '&')
+	X! 			putc(*cp, ser_wr_fp);
+	X! 		else {		/* Stupid & hack.  God damn it. */
+	X! 			putc(toupper(passwd->pw_name[0]), ser_wr_fp);
+	X! 			fprintf(ser_wr_fp, passwd->pw_name+1);
+	X! 		}
+	X! 
+	X! 	fprintf(ser_wr_fp, ")\r\n");
+	X! 
+	X  #ifdef HIDDENNET
+	X  	/* Only the login name - nntp server will add uucp name */
+	X  	fprintf(ser_wr_fp, "Path: %s\r\n", passwd->pw_name);
+	X
+	X--- 327,342 -----
+	X  			host_name);
+	X  #endif
+	X  
+	X! 		for (cp = full_name; *cp != '\0'; ++cp)
+	X! 			if (*cp != '&')
+	X! 				putc(*cp, ser_wr_fp);
+	X! 			else {		/* Stupid & hack.  God damn it. */
+	X! 				putc(toupper(passwd->pw_name[0]), ser_wr_fp);
+	X! 				fprintf(ser_wr_fp, passwd->pw_name+1);
+	X! 			}
+	X! 		fprintf(ser_wr_fp, ")\r\n");
+	X! 	}
+	X! 	if (which == PATH){
+	X  #ifdef HIDDENNET
+	X  	/* Only the login name - nntp server will add uucp name */
+	X  		fprintf(ser_wr_fp, "Path: %s\r\n", passwd->pw_name);
+	X***************
+	X*** 292,298
+	X  
+	X  #ifdef HIDDENNET
+	X  	/* Only the login name - nntp server will add uucp name */
+	X! 	fprintf(ser_wr_fp, "Path: %s\r\n", passwd->pw_name);
+	X  #else /* HIDDENNET */
+	X  	fprintf(ser_wr_fp, "Path: %s!%s\r\n", host_name, passwd->pw_name);
+	X  #endif /* HIDDENNET */
+	X
+	X--- 339,345 -----
+	X  	if (which == PATH){
+	X  #ifdef HIDDENNET
+	X  	/* Only the login name - nntp server will add uucp name */
+	X! 		fprintf(ser_wr_fp, "Path: %s\r\n", passwd->pw_name);
+	X  #else /* HIDDENNET */
+	X  		fprintf(ser_wr_fp, "Path: %s!%s\r\n", host_name,
+	X  			passwd->pw_name);
+	X***************
+	X*** 294,300
+	X  	/* Only the login name - nntp server will add uucp name */
+	X  	fprintf(ser_wr_fp, "Path: %s\r\n", passwd->pw_name);
+	X  #else /* HIDDENNET */
+	X! 	fprintf(ser_wr_fp, "Path: %s!%s\r\n", host_name, passwd->pw_name);
+	X  #endif /* HIDDENNET */
+	X  }
+	X  
+	X
+	X--- 341,348 -----
+	X  	/* Only the login name - nntp server will add uucp name */
+	X  		fprintf(ser_wr_fp, "Path: %s\r\n", passwd->pw_name);
+	X  #else /* HIDDENNET */
+	X! 		fprintf(ser_wr_fp, "Path: %s!%s\r\n", host_name,
+	X! 			passwd->pw_name);
+	X  #endif /* HIDDENNET */
+	X  	}
+	X  }
+	X***************
+	X*** 296,301
+	X  #else /* HIDDENNET */
+	X  	fprintf(ser_wr_fp, "Path: %s!%s\r\n", host_name, passwd->pw_name);
+	X  #endif /* HIDDENNET */
+	X  }
+	X  
+	X  
+	X
+	X--- 344,350 -----
+	X  		fprintf(ser_wr_fp, "Path: %s!%s\r\n", host_name,
+	X  			passwd->pw_name);
+	X  #endif /* HIDDENNET */
+	X+ 	}
+	X  }
+	X  
+	X  
+SHAR_EOF
+if test 12508 -ne "`wc -c < 'inews.diff'`"
+then
+	echo shar: error transmitting "'inews.diff'" '(should have been 12508 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'inews'"
+cd ..
+if test ! -d 'xfer'
+then
+	echo shar: creating directory "'xfer'"
+	mkdir 'xfer'
+fi
+echo shar: entering directory "'xfer'"
+cd 'xfer'
+echo shar: extracting "'xfer.diff'" '(1652 characters)'
+if test -f 'xfer.diff'
+then
+	echo shar: will not over-write existing file "'xfer.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'xfer.diff'
+	XIndex: nntpxfer.c
+	XPrereq: 1.5
+	X*** nntpxfer.c	Tue Jan 16 01:18:59 1990
+	X--- ../../nntp/xfer/nntpxfer.c	Thu Jul  5 02:04:38 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char * scsid = "@(#)$Header: nntpxfer.c,v 1.5 90/01/16 01:18:32 sob Exp $";
+	X  #endif
+	X  /*
+	X   * nntpxfer
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char * scsid = "@(#)$Header: nntpxfer.c,v 1.6 90/07/05 02:04:28 sob Exp $";
+	X  #endif
+	X  /*
+	X   * nntpxfer
+	X***************
+	X*** 60,67
+	X  #endif
+	X  
+	X  #ifdef DBM
+	X! #include <dbm.h>
+	X! #endif
+	X  
+	X  #ifdef NDBM
+	X  #include <ndbm.h>
+	X
+	X--- 60,70 -----
+	X  #endif
+	X  
+	X  #ifdef DBM
+	X! # undef NULL
+	X! # include <dbm.h>
+	X! # undef NULL
+	X! # define NULL	0
+	X! #endif DBM
+	X  
+	X  #ifdef NDBM
+	X  #include <ndbm.h>
+	X***************
+	X*** 435,443
+	X  	if (setjmp(SFGstack)) {
+	X  		(void) alarm(0);	/* reset alarm clock */
+	X  		(void) signal(SIGALRM, SIG_DFL);
+	X- #ifdef apollo
+	X- 		rd_fp->_flag |= _SIERR;
+	X- #else
+	X  		rd_fp->_flag |= _IOERR;	/* set stdio error */
+	X  #endif
+	X  #ifndef ETIMEDOUT
+	X
+	X--- 438,443 -----
+	X  	if (setjmp(SFGstack)) {
+	X  		(void) alarm(0);	/* reset alarm clock */
+	X  		(void) signal(SIGALRM, SIG_DFL);
+	X  		rd_fp->_flag |= _IOERR;	/* set stdio error */
+	X  #ifndef ETIMEDOUT
+	X  		errno = EPIPE;		/* USG doesn't have ETIMEDOUT */
+	X***************
+	X*** 439,445
+	X  		rd_fp->_flag |= _SIERR;
+	X  #else
+	X  		rd_fp->_flag |= _IOERR;	/* set stdio error */
+	X- #endif
+	X  #ifndef ETIMEDOUT
+	X  		errno = EPIPE;		/* USG doesn't have ETIMEDOUT */
+	X  #else
+	X
+	X--- 439,444 -----
+	X  		(void) alarm(0);	/* reset alarm clock */
+	X  		(void) signal(SIGALRM, SIG_DFL);
+	X  		rd_fp->_flag |= _IOERR;	/* set stdio error */
+	X  #ifndef ETIMEDOUT
+	X  		errno = EPIPE;		/* USG doesn't have ETIMEDOUT */
+	X  #else
+SHAR_EOF
+if test 1652 -ne "`wc -c < 'xfer.diff'`"
+then
+	echo shar: error transmitting "'xfer.diff'" '(should have been 1652 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'xfer'"
+cd ..
+if test ! -d 'xmit'
+then
+	echo shar: creating directory "'xmit'"
+	mkdir 'xmit'
+fi
+echo shar: entering directory "'xmit'"
+cd 'xmit'
+echo shar: extracting "'xmitauth.c'" '(1269 characters)'
+if test -f 'xmitauth.c'
+then
+	echo shar: will not over-write existing file "'xmitauth.c'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'xmitauth.c'
+	X#ifndef lint
+	Xstatic char *rcsid = "$Header: xmitauth.c,v 1.2 90/07/08 01:03:23 sob Exp $";
+	X#endif
+	X#include <stdio.h>
+	X#include "../common/conf.h"
+	X#include "../common/nntp.h"
+	X#include "nntpxmit.h"
+	X
+	X#ifdef AUTH
+	X
+	Xextern char Debug;
+	Xextern int converse();
+	X
+	XFILE *sys;
+	X
+	Xxmitauth(host)
+	Xchar *host;
+	X	{
+	X	char remote[64], user[16], pass[16];
+	X	char buf[1024];
+	X	int i;
+	X	char savedebug;
+	X
+	X	sys = fopen(PASSFILE, "r");
+	X	if (sys == NULL)
+	X		{
+	X		exit(1);
+	X		}
+	X	
+	X	while(fgets(buf, sizeof(buf), sys))
+	X		{
+	X		if (buf[0] == '#')
+	X			continue;
+	X		
+	X		i = sscanf(buf,"%s %s %s", remote, user, pass);
+	X		/* malformed entry? */
+	X		if (i != 3)
+	X			{
+	X			log(L_NOTICE,"malformed entry in nntp.sys");
+	X			continue;
+	X			}
+	X		
+	X		/* right host? */
+	X		if (!strcasecmp(remote,host))
+	X			break;
+	X		}
+	X	if (feof(sys))
+	X		{
+	X		sprintf(buf,"host %s authinfo not in nntp.sys", host);
+	X		log(L_NOTICE, buf);
+	X		exit(1);
+	X		}
+	X	
+	X	sprintf(buf,"authinfo user %s", user);
+	X	if (converse(buf, sizeof(buf)) != NEED_AUTHDATA)
+	X		{
+	X		log(L_NOTICE, buf);
+	X		exit(1);
+	X		}
+	X	
+	X	/* don't display the password even if debug is on */
+	X	savedebug = Debug;
+	X	Debug = FALSE;
+	X
+	X	sprintf(buf,"authinfo pass %s", pass);
+	X	if (converse(buf, sizeof(buf)) != OK_AUTH)
+	X		{
+	X		log(L_NOTICE, buf);
+	X		exit(1);
+	X		}
+	X	
+	X	Debug = savedebug;
+	X
+	X	fclose(sys);
+	X	}
+	X
+	X#endif AUTH
+	X
+SHAR_EOF
+if test 1269 -ne "`wc -c < 'xmitauth.c'`"
+then
+	echo shar: error transmitting "'xmitauth.c'" '(should have been 1269 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'xmit.diff'" '(2822 characters)'
+if test -f 'xmit.diff'
+then
+	echo shar: will not over-write existing file "'xmit.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'xmit.diff'
+	XIndex: Makefile
+	X*** Makefile	Mon Jan 15 02:03:11 1990
+	X--- ../../nntp/xmit/Makefile	Sun Jul  8 01:10:57 1990
+	X***************
+	X*** 2,8
+	X  # Makefile for nntpxmit
+	X  #
+	X  
+	X! SRVRSRC = nntpxmit.c remote.c llist.c get_tcp_conn.c ../server/fakesyslog.c
+	X  
+	X  SRVROBJ = nntpxmit.o remote.o llist.o get_tcp_conn.o fakesyslog.o
+	X  
+	X
+	X--- 2,8 -----
+	X  # Makefile for nntpxmit
+	X  #
+	X  
+	X! SRVRSRC = nntpxmit.c remote.c llist.c get_tcp_conn.c xmitauth.c ../server/fakesyslog.c ../server/strcasecmp.c
+	X  
+	X  SRVROBJ = nntpxmit.o remote.o llist.o get_tcp_conn.o xmitauth.o fakesyslog.o strcasecmp.o
+	X  
+	X***************
+	X*** 4,10
+	X  
+	X  SRVRSRC = nntpxmit.c remote.c llist.c get_tcp_conn.c ../server/fakesyslog.c
+	X  
+	X! SRVROBJ = nntpxmit.o remote.o llist.o get_tcp_conn.o fakesyslog.o
+	X  
+	X  SRVRINC = ../common/conf.h ../common/nntp.h nntpxmit.h get_tcp_conn.h \
+	X  	llist.h sysexits.h ../common/nntp.h ../server/fakesyslog.h
+	X
+	X--- 4,10 -----
+	X  
+	X  SRVRSRC = nntpxmit.c remote.c llist.c get_tcp_conn.c xmitauth.c ../server/fakesyslog.c ../server/strcasecmp.c
+	X  
+	X! SRVROBJ = nntpxmit.o remote.o llist.o get_tcp_conn.o xmitauth.o fakesyslog.o strcasecmp.o
+	X  
+	X  SRVRINC = ../common/conf.h ../common/nntp.h nntpxmit.h get_tcp_conn.h \
+	X  	llist.h sysexits.h ../common/nntp.h ../server/fakesyslog.h
+	X***************
+	X*** 53,58
+	X  
+	X  fakesyslog.o: ../server/fakesyslog.c ../server/fakesyslog.h
+	X  	${CC} ${CFLAGS} -c ../server/fakesyslog.c
+	X  
+	X  nntpxmit.o: nntpxmit.c nntpxmit.h llist.h ../common/conf.h
+	X  
+	X
+	X--- 53,61 -----
+	X  
+	X  fakesyslog.o: ../server/fakesyslog.c ../server/fakesyslog.h
+	X  	${CC} ${CFLAGS} -c ../server/fakesyslog.c
+	X+ 
+	X+ strcasecmp.o: ../server/strcasecmp.c 
+	X+ 	${CC} ${CFLAGS} -c ../server/strcasecmp.c
+	X  
+	X  nntpxmit.o: nntpxmit.c nntpxmit.h llist.h ../common/conf.h
+	X
+	XIndex: nntpxmit.c  
+	XPrereq: 1.2
+	X*** nntpxmit.c	Mon Jan 15 02:24:09 1990
+	X--- ../../nntp/xmit/nntpxmit.c	Sun Jul  8 01:18:10 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char * rcsid = "@(#)$Header: nntpxmit.c,v 1.2 90/01/15 01:36:48 sob Exp $";
+	X  #endif
+	X  /* nntpxmit - transmit netnews articles across the internet with nntp
+	X  **
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char * rcsid = "@(#)$Header: nntpxmit.c,v 1.3 90/07/08 01:17:56 sob Exp $";
+	X  #endif
+	X  /* nntpxmit - transmit netnews articles across the internet with nntp
+	X  **
+	X***************
+	X*** 745,750
+	X  		return(ERR_GOTIT);
+	X  	}
+	X  
+	X  	sprintf(buf, "IHAVE %s", id);
+	X  	Stats.offered++;
+	X  
+	X
+	X--- 745,751 -----
+	X  		return(ERR_GOTIT);
+	X  	}
+	X  
+	X+ again:
+	X  	sprintf(buf, "IHAVE %s", id);
+	X  	Stats.offered++;
+	X  
+	X***************
+	X*** 756,761
+	X  	case ERR_GOTIT:
+	X  		Stats.rejected++;
+	X  		return(code);
+	X  	default:
+	X  		return(code);
+	X  	}
+	X
+	X--- 757,767 -----
+	X  	case ERR_GOTIT:
+	X  		Stats.rejected++;
+	X  		return(code);
+	X+ #ifdef AUTH
+	X+ 	case ERR_NOAUTH:
+	X+ 		xmitauth(Host);
+	X+ 		goto again;
+	X+ #endif
+	X  	default:
+	X  		return(code);
+	X  	}
+SHAR_EOF
+if test 2822 -ne "`wc -c < 'xmit.diff'`"
+then
+	echo shar: error transmitting "'xmit.diff'" '(should have been 2822 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'xmit'"
+cd ..
+#	End of shell archive
+exit 0

@@ -1,0 +1,2522 @@
+#! /bin/sh
+# This is a shell archive.  Remove anything before this line, then unpack
+# it by saving it into a file and typing "sh file".  To overwrite existing
+# files, type "sh file -c".  You can also feed this as standard input via
+# unshar, or by typing "sh <file", e.g..  If this archive is complete, you
+# will see the following message at the end:
+#		"End of shell archive."
+# Contents:  common inews server support xfer xmit README README.1.5.7
+#   CHANGES.diff common/common.diff inews/inews.diff
+#   server/server.diff support/support.diff xfer/xfer.diff
+#   xmit/xmit.diff
+# Wrapped by sob@watson on Mon Nov 13 23:48:28 1989
+PATH=/bin:/usr/bin:/usr/ucb ; export PATH
+if test ! -d 'common' ; then
+    echo shar: Creating directory \"'common'\"
+    mkdir 'common'
+fi
+if test ! -d 'inews' ; then
+    echo shar: Creating directory \"'inews'\"
+    mkdir 'inews'
+fi
+if test ! -d 'server' ; then
+    echo shar: Creating directory \"'server'\"
+    mkdir 'server'
+fi
+if test ! -d 'support' ; then
+    echo shar: Creating directory \"'support'\"
+    mkdir 'support'
+fi
+if test ! -d 'xfer' ; then
+    echo shar: Creating directory \"'xfer'\"
+    mkdir 'xfer'
+fi
+if test ! -d 'xmit' ; then
+    echo shar: Creating directory \"'xmit'\"
+    mkdir 'xmit'
+fi
+echo shar: Extracting \"'README'\" \(4790 characters\)
+sed "s/^X//" >'README' <<'END_OF_FILE'
+XNNTP README		November 10, 1989   For version 1.5.7 of NNTP
+X
+X[See the file CHANGES to see differences between this version and
+Xolder versions.]
+X
+XINTRODUCTION
+X
+X     This package contains everything (well, most of it, I hope) that
+Xyou'll need to implement a remote news server running the NNTP protocol.
+X
+X     A brief tour of the directories and their programs:
+X
+X	server		Source for the NNTP news server daemon.
+X
+X	inews		A "mini-inews" written by Steven Grady
+X			<grady@postgres.berkeley.edu> which allows
+X		 	remote posting without changing much else.
+X
+X	xmit		An active transmission client for transferring
+X			news, written by Erik Fair; see note below.
+X
+X	common		Common stuff (response codes, configuration info,
+X			and some client library routines) for the
+X			the news server and the clients.  The "conf.h"
+X			file here needs to be edited to reflect
+X			the peculiarities of your system.
+X
+X	support		Some support files and scripts.
+X
+X	doc		Documentation on the server, including manual
+X			pages.
+X
+X	xfer		A passive reception client which uses the
+X			NEWNEWS command to retrieve news from a remote
+X			server.  Written by Brian Kantor, this software
+X			is UNSUPPORTED.
+X
+X     Each directory has associated with it a README file.
+XThis file will try to give enough information for you to get things
+Xrunning and installed, but the README in each directory has more
+Xdetails for each subset of the NNTP package.  You may also want to print
+Xa copy of doc/rfc977, which describes the NNTP protocol.
+X
+XINTRODUCTION TO NNTP INSTALLATION
+X
+X     First, figure out what you are trying to do (this is good
+Xadvice under most circumstances, and it is especially apropos here).
+XNNTP can be used for two things:  (1) Remote news reading, where news
+Xis stored on one machine and read from remote machines across a
+Xhigh-speed local area network such as Ethernet, and (2) News transfer,
+Xwhere news is transmitted to NNTP servers on remote machines over
+Xeither local or long-haul networks.
+X
+X     NNTP "server" machines are machines that have a full installation
+Xof USENET news on them.  An NNTP process, the "server", allows remote
+Xsites to connect to the server machine and read or transfer news.
+XThe server machine DOES NOT NEED "reader client" software such as
+X"rrn".  It MAY NEED "transmission client" software such as "nntpxmit"
+Xif you want to use NNTP to transfer news.
+X
+X     NNTP "client" machines do not have a full installation of USENET
+Xnews on them.  They get their news from an NNTP server machine across
+Xthe network.  They DO have NNTP "reader clients" such as "rrn" installed
+Xon them.
+X
+X     In summary,
+X
+X	>>> A full client installation of NNTP requires the following
+X	    files (suitable for rdist, assuming standard directories):
+X
+XNEWS = ( /usr/local/{Pnews,Rnmail,inews,rn,rrn,newsetup,newsgroups,lib/rn}
+X	/usr/man/catl/{Pnews,Rnmail,rn,newsetup,newsgroups}.1 )
+X
+X	    You DO NOT need any of the normal news junk (e.g.,
+X	    /usr/lib/news, postnews, checknews, readnews) on CLIENT
+X	    systems.
+X
+X	    You DO need these on SERVER systems.
+X
+X     An important note:
+X
+X	The NNTP server assumes that the history file format
+X	is 2.11 or 2.10.3 or CNEWS; therefore you need 2.11 news or CNEWS
+X	on your	server machine.
+X
+X	>>>>> Get 2.11 news or CNEWS if you don't have it.
+X
+XGENERAL INSTALLATION
+X
+X     Time for a general and cohesive Plan:
+X
+X     Regardless of whether you are making a server or a client NNTP
+Xsetup, you will have to edit common/conf.h to reflect your system's
+Xsetup.  So,
+X
+X     1. Look at common/README.  This will explain the stuff
+X	needs to be tailored for your system in common/conf.h.
+X	Make the necessary changes to reflect your system.
+X
+X	If you are running with System V or Excelan TCP/IP,
+X	please read the instructions in common/README.SYSV
+X
+X	If you have an HPUX machine, please read common/README.HPUX
+X
+X     Now, at this point, what you do depends on whether you are
+Xinstalling a server system or a client system.
+X
+XSERVER INSTALLATION
+X
+X     2. Type "make server" in this directory.
+X
+X     3. Type "make install_server" in this directory.
+X
+XCLIENT INSTALLATION
+X
+X     2. Type "make client" in this directory.
+X
+X     3. Type "make install_client" in this directory.
+X
+X     4. Get some client newsreaders (like rrn or the NNTP version of vnews)
+X        and install them on your client systems.
+X
+XIF YOU HAVE PROBLEMS
+X
+X     You can get to me via electronic mail at the following addresses:
+X
+X	Internet:		sob@bcm.tmc.edu
+X	UUCP:			...!bcm!sob
+X	Telephone (work):	(713) 798-6042
+X
+X     I'm very interested in learning what hacks need to be made to
+Xnntpd to get it to work on various systems, and certainly, if there are
+Xoutright bugs, please let me know.  Bug reports and fixes for nntp are
+Xposted to the newsgroup "news.software.nntp".  Announcements of new
+Xversions of nntp software are posted there too.
+X
+END_OF_FILE
+if test 4790 -ne `wc -c <'README'`; then
+    echo shar: \"'README'\" unpacked with wrong size!
+fi
+if test -f 'README.1.5.7' -a "${1}" != "-c" ; then 
+  echo shar: Will not clobber existing file \"'README.1.5.7'\"
+else
+echo shar: Extracting \"'README.1.5.7'\" \(3239 characters\)
+sed "s/^X//" >'README.1.5.7' <<'END_OF_FILE'
+XWelcome to patch number 7 for NNTP 1.5.
+X
+X	If you have not installed the first six patches, you must do so
+X	before proceeding. You can get those patches (and this one) from
+X	anoymous ftp on bcm.tmc.edu [128.249.2.1] or by sending a message
+X	to the archive-server@bcm.tmc.edu with the following text:
+X	send public nntp.patch.1
+X	send public nntp.patch.2
+X	send public nntp.patch.3
+X	send public nntp.patch.4.shar
+X	send public nntp.patch.5.shar
+X	send public nntp.patch.6.shar
+X
+X	If you have all six patches installed, you are ready to install
+X	this set of patches. These patches are packaged as a shell archive.
+X	They are as follows:
+X	CHANGES.diff  -- This will patch the CHANGES file in the root
+X	of the nntp distrbution to reflect changes since the release of 1.5.
+X	To install, just type patch < CHANGES.diff
+X	server.diff -- This patch is for the files in the server subdirectory.
+X	To install, change directory to the server directory and type
+X	patch < server.diff.
+X	common.diff -- This patch is for the files in the common subdirectory.
+X	To install, change directory to the common directory and type
+X	patch < common.diff
+X	support.diff -- This is a patch for nntp_awk in the support directory.
+X	To install, change directory to the support directory and type
+X	patch < support.diff.
+X	xfer.diff -- This is a patch for nntpxfer.c in the xfer directory.
+X	To install, change directory to the xfer directory and type
+X	patch < xfer.diff.
+X	xmit.diff -- This is a patch for nntpxmit.h and nntpxmit.c in the xfer
+X	directory. To install, change directory to the xmit directory and type
+X	patch < xmit.diff.
+X	inews.diff -- This patch is for the files in the inews subdirectory.
+X	To install, change directory to the inews directory and type
+X	patch < inews.diff.
+X	
+XPlease read the CHANGES file (following application of the patch) for
+Xa list of new features/bug fixes. This is mostly a bug fix release.
+X
+XBug reports and enhancements welcome,
+XStan Barber
+Xsob@bcm.tmc.edu
+X
+XP.S. This patched version of NNTP has been compiled on the following systems:
+X
+XVax 3600 running Ultrix 2.2 (BNEWS 2.11.19)
+XUnisys 5000/40 running System V release 2 (BNEWS 2.11.17)
+X
+XIt has also been tested by the fine folks at the University of Toronto to
+Xtest compatibility with CNEWS. Special thanks to Sandra Smith.
+X
+XP.P.S. 1.5.8 will be out sometime around Christmas/New Year's. It will have
+Xsome new features that came in too late for me to test them for this patch.
+XLook for an announcement about 1.5.8 in news.software.nntp around Thanksgiving.
+XThose include patches to nntpxmit to use Message-IDs in the batch file versus
+Xfilenames, inode checking in addition to space checking, and better heuristics
+Xfor rejecting news articles that have already been seen and expired.
+X
+XP.P.P.S. Brian Kantor has already started a discussion on new protocol features
+Xfor NNTP. Please drop me a line so I can track the ideas. Hopefully we can
+Xstart some prototype testing in the Spring.
+X
+XP.P.P.P.S. [getting ridiculous, eh?] I will be posting a revised collection
+Xof patches for RN that will replace the ones in the 1.5 distibution. These
+Xpatches will allow RN and RRN to be built from the same sources. I am in the
+Xprocess of working with Larry Wall to determine if these will be offical or
+Xnot.
+X
+END_OF_FILE
+if test 3239 -ne `wc -c <'README.1.5.7'`; then
+    echo shar: \"'README.1.5.7'\" unpacked with wrong size!
+fi
+# end of 'README.1.5.7'
+fi
+if test -f 'CHANGES.diff' -a "${1}" != "-c" ; then 
+  echo shar: Will not clobber existing file \"'CHANGES.diff'\"
+else
+echo shar: Extracting \"'CHANGES.diff'\" \(2963 characters\)
+sed "s/^X//" >'CHANGES.diff' <<'END_OF_FILE'
+X*** CHANGES	Mon Nov 13 23:03:12 1989
+X--- ../nntp.local/CHANGES	Mon Nov 13 03:29:52 1989
+X***************
+X*** 1,6 ****
+X      This file describes the changes which have been made in NNTP
+X! since the initial release.  Individuals who either reported or
+X! inspired the bug/bug fix are in square brackets.
+X  
+X  1.5.6
+X   	Added support for Cnews [geoff@utstat.toronto.edu]
+X--- 1,45 ----
+X      This file describes the changes which have been made in NNTP
+X! since the initial release.  Individuals who either reported the bug or
+X! inspired the bug fix are in square brackets.
+X! 
+X! 1.5.7
+X! 	Typo in batch.c left the CNEWS BATCH_FILE undefined. [ Joe Weening
+X! 	<weening@neon.stanford.edu> ]
+X! 	Malformed history line messages were being logged when this was not
+X! 	the case. [fletcher@cs.utexas.edu (Fletcher Mattox)]
+X! 	Corrected MACH space call to correctly reflect that it only works
+X! 	with the CMU MACH and not NeXT. NeXT is also supported, but it
+X! 	uses a statfs call that is similiar to Sun. [Tom.Lane@zog.cs.cmu.edu]
+X! 	Added support for the REUSEADDR socket option to make it easier
+X! 	to deal with multiple copies of the daemon running. [rick@uunet.uu.net]
+X! 	Fixed a bug in nntp_awk so that the connection count from unknown
+X! 	explorers is correct. [Samuel Lam <skl@wimsey.bc.ca>]
+X! 	Fixed getword() subroutine in newnews.c so that it will work with 
+X! 	history files from B News 2.11 patch 17 and before and patch 18 and
+X! 	beyond and with CNEWS.[Rein Tollevik <rein@ifi.uio.no>]
+X! 	Corrected a bug in seekuntil() that caused the NEWNEWS command to
+X! 	never work correctly. [Rein Tollevik <rein@ifi.uio.no>,Dan Oscarsson
+X! 	<Dan@dna.lth.se>]
+X! 	Getting the .signature file from DOTDIR (in fakeinews) was inconsistent
+X! 	with real "inews"'s. It is now conditional. Define DO_DOTDIR if you
+X! 	want to have it use this environmental variable. [ Mark Davies
+X! 	<mark@comp.vuw.ac.nz>
+X! 	Added support for the CNEWS active.times file. If you run CNEWS, you
+X! 	won't need mkgrdates to get NEWGROUP to work as it should.
+X! 	[Felix Lee <flee@shire.cs.psu.edu>]
+X! 	Minor changes to nntpxmit so that it will get some information from
+X! 	common/conf.h like everything else does. [Michael A. Cooper
+X! 	<mcooper%acamar.usc.edu@usc.edu>]
+X! 	Bug fix to clientlib.c to allow systems that don't know about the new
+X! 	hostent structure to work. [Edwin Kremer <edwin@praxis.cs.ruu.nl>]
+X! 	UMASK support added so that CNEWS will not create world writeable 
+X! 	batches.[ Mark Nagel <nagel@wintermute.ics.uci.edu>]
+X! 	Updated nntpxfer to use get_tcp_conn.c from nntpxmit. This make it
+X! 	work on System V. nntpxfer is still largely unsupported, but we'll
+X! 	keep working to get it into shape. [Stan Barber <sob@bcm.tmc.edu>]
+X! 	Fixed access.c so that comma seperated lists of newsgroups in the
+X! 	nntp access file will be interpreted correctly. [mta@tut.fi]
+X! 	New version of shlock.c for nntpxmit. [fair@apple.com]
+X  
+X  1.5.6
+X   	Added support for Cnews [geoff@utstat.toronto.edu]
+END_OF_FILE
+if test 2963 -ne `wc -c <'CHANGES.diff'`; then
+    echo shar: \"'CHANGES.diff'\" unpacked with wrong size!
+fi
+# end of 'CHANGES.diff'
+fi
+if test -f 'common/common.diff' -a "${1}" != "-c" ; then 
+  echo shar: Will not clobber existing file \"'common/common.diff'\"
+else
+echo shar: Extracting \"'common/common.diff'\" \(16129 characters\)
+sed "s/^X//" >'common/common.diff' <<'END_OF_FILE'
+X*** README	Mon Nov 13 23:03:20 1989
+X--- ../../nntp.local/common/README	Sat Nov 11 01:42:19 1989
+X***************
+X*** 6,11 ****
+X--- 6,13 ----
+X      >>> Also, you should see README.SYSV if you are compiling this on
+X      >>> a System V machine, as there is some extra stuff you need to do.
+X  
+X+      FIRST, copy conf.h.dist to conf.h and alter ONLY conf.h.
+X+ 
+X       This is sort of a walk through conf.h so you can get some idea of
+X  what parameters need to be changed.  You should probably print this
+X  file out (or keep it in a separate window if you're on a workstation)
+X***************
+X*** 44,51 ****
+X  DBM (below).  If, somehow, you already have ndbm, then you should
+X  kill the lines which auto-define it.
+X  
+X! MACH		(undefined)
+X!      Define if you are running CMU's MACH.
+X  
+X  USG		(undefined)
+X  
+X--- 46,54 ----
+X  DBM (below).  If, somehow, you already have ndbm, then you should
+X  kill the lines which auto-define it.
+X  
+X! CMU_MACH	(undefined)
+X!      Define if you are running CMU's MACH. NeXT is handled as a BSD_43
+X!      machine.
+X  
+X  USG		(undefined)
+X  
+X***************
+X*** 73,78 ****
+X--- 76,85 ----
+X  you use the USG-style history file format.  IF YOU DO NOT DEFINE EITHER
+X  DBM OR NDBM ABOVE, THIS IS THE DEFAULT.
+X  
+X+ CNEWS	    (undefined)
+X+         If you're running CNEWS instead of BNEWS define this. NNTP will not
+X+ work with CNEWS if you don't define this.
+X+ 
+X  BATCHED_INPUT	(undefined)
+X  	If this is defined, then the CNews-style batched input is used
+X  to collect incoming articled into a file which periodically is sent to the
+X***************
+X*** 108,113 ****
+X--- 115,126 ----
+X  
+X  If you DO have vfork, be sure that this remains undefined.
+X  
+X+ UMASK		(undefined)
+X+      This should be defined if you are running CNEWS and are concerned
+X+ that batch files may be created that can be altered by anyone. Defining
+X+ this as 022 should work safely for most systems, but experiment to be
+X+ sure.
+X+ 
+X  FAKESYSLOG	(undefined)
+X  
+X       This is useful if your system doesn't support syslog, but you'd
+X***************
+X*** 149,163 ****
+X  provided in ../support to produce statistics on your NNTP server if
+X  you run with LOG.
+X  
+X- FAKESYSLOG	(undefined)
+X- 
+X-      This is useful if your system doesn't support syslog, but you'd
+X- like logging none the less.  By defining FAKESYSLOG to be the name of
+X- a file, e.g., "/usr/lib/news/nntplog", you can have all nntp messages
+X- logged to that file, ala syslog.  If you define FAKESYSLOG, you must
+X- define LOG and SYSLOG, below.  The code for the fake syslog routines
+X- are in ../server/fakesyslog.c, and are largely joe-code.
+X- 
+X  IHAVE_DEBUG	(undefined)
+X  
+X       Enables logging of each message-id as it is offered via the IHAVE
+X--- 162,167 ----
+X***************
+X*** 174,180 ****
+X  this command foists off work on the server, it may be better to leave this
+X  undefined if your server machine is heavily loaded.
+X  
+X! SUBNET		(undefined)
+X  
+X       If you are running 4.3 BSD or have support for subnets on
+X  your local net, this will include subnet support for the access
+X--- 178,184 ----
+X  this command foists off work on the server, it may be better to leave this
+X  undefined if your server machine is heavily loaded.
+X  
+X! SUBNET		(defined)
+X  
+X       If you are running 4.3 BSD or have support for subnets on
+X  your local net, this will include subnet support for the access
+X***************
+X*** 228,233 ****
+X--- 232,243 ----
+X  file. Specifications for domains are of the form *.domain.name and can be
+X  used instead of individually naming hosts or networks.
+X  
+X+ DO_DOTDIR	(defined)
+X+      If defined, mini-inews will look in the environment of the user for
+X+ DOTDIR and use $DOTDIR/.signature as the signature if it exists. If undefined
+X+ or $DOTDIR/.signature does not exist, $HOME/.signature will be used instead.
+X+ This is similiar to the behavior of rn.
+X+ 
+X  FCNTL		(defined if SYSV is defined)
+X  
+X  	Some systems define things like O_RDONLY, etc. in <fcntl.h>.
+X***************
+X*** 301,306 ****
+X--- 311,338 ----
+X  either undefine this, or define it to be a user which exists but
+X  is not used -- the setuid will fail in any event.
+X  
+X+ STAT_FILE	("/usr/lib/news/mgdstats")
+X+ 
+X+      NOTE: THIS IS NOT USED, BUT REMAINS FOR COMPATABILITY.
+X+      When the support program "mkgrdates" is run, it keep stats
+X+      in a file to tell whether or not to rebuild its database
+X+      the next time it is run; this is the file the stats are kept
+X+      in.  Needless to say, it must be writable by whatever user-id
+X+      runs "mkgrdates".  See the manual entry "mkgrdates.8c" for
+X+      more info.
+X+ 
+X+ NGDATE_FILE	("/usr/lib/news/groupdates")
+X+ 
+X+      NOTE: THIS IS NOT USED, BUT REMAINS FOR COMPATABILITY.
+X+      Specifies the location of the newsgroup creation date file.
+X+      See the manual entry for both nntpd.8c and mkgrdates.8c for
+X+      more info.
+X+ 
+X+ ACTIVE_TIMES_FILE ("/usr/lib/news/active.times")
+X+      This needs to be defined if you defined CNEWS. It is a CNEWS-maintained
+X+ version of the NGDATE_FILE. Since it is supported by CNEWS itself, it means
+X+ the NEWGROUPS will actually work. Hurrah!
+X+ 
+X  Next, we have some common files:
+X  
+X  ACTIVE_FILE	("/usr/lib/news/active")
+X***************
+X*** 309,369 ****
+X  
+X  ACCESS_FILE	("/usr/lib/news/nntp_access")
+X  
+X!      Specifies the location of the remote access file.
+X!      See the manual entry, nntpd.8c, for a better explanation.
+X!      A sample access file is in ../support/access_file.
+X  
+X  HISTORY_FILE	("/usr/lib/news/history")
+X  
+X!      Specifies the location of the "history" file.
+X!      This is used with NEWNEWS and ARTICLE/HEAD/BODY/STAT when
+X!      given an message-id argument.
+X  
+X  INEWS		("/usr/lib/news/inews")
+X  
+X!      Specifies the location of inews, for posting.  Note that this
+X!      is NOT the same as the mini-inews in the inews directory
+X!      supplied with the NNTP distribution, which should only
+X!      be installed on client machines.  INEWS should be the pathname
+X!      of real, live, honest-to-God inews.  Your inews may be
+X!      in a different place, such as /usr/bin/inews.
+X! 
+X! SPOOLDIR	("/usr/spool/news/")
+X  
+X!      This is the directory where news is stored.  Note that
+X!      the trailing / is important.
+X  
+X! RNEWS		("/usr/bin/rnews")
+X! 
+X!      Specifies the location of the rnews program which is used
+X!      for dealing with news received from other systems via the
+X!      IHAVE command; it is often a link to inews.
+X! 
+X! STAT_FILE	("/usr/lib/news/mgdstats")
+X! 
+X!      NOTE: THIS IS NOT USED, BUT REMAINS FOR COMPATABILITY.
+X!      When the support program "mkgrdates" is run, it keep stats
+X!      in a file to tell whether or not to rebuild its database
+X!      the next time it is run; this is the file the stats are kept
+X!      in.  Needless to say, it must be writable by whatever user-id
+X!      runs "mkgrdates".  See the manual entry "mkgrdates.8c" for
+X!      more info.
+X  
+X! NGDATE_FILE	("/usr/lib/news/groupdates")
+X  
+X!      NOTE: THIS IS NOT USED, BUT REMAINS FOR COMPATABILITY.
+X!      Specifies the location of the newsgroup creation date file.
+X!      See the manual entry for both nntpd.8c and mkgrdates.8c for
+X!      more info.
+X  
+X  READINTVL	(600 seconds)
+X  
+X       If the server is compiled with FASTFORK and ALONE, then this number
+X!      tells how often to check if the active file has changed (and to
+X!      read it in if it has changed since the last time).  See README
+X!      in the "server" directory of the NNTP distribution.  If you are
+X!      not compiled with FASTFORK and ALONE (hint: you're not going to),
+X!      don't worry about this.
+X  
+X  ---- The following variables apply only if you are using C News batching. ----
+X  
+X--- 341,393 ----
+X  
+X  ACCESS_FILE	("/usr/lib/news/nntp_access")
+X  
+X!      Specifies the location of the remote access file. See the manual entry,
+X! nntpd.8c, for a better explanation. A sample access file is in
+X! ../support/access_file.
+X! 
+X! DISTRIBUTIONS_FILE  ("/usr/lib/news/distributions")
+X!      Specifies the location of the file that defines valid distributions for
+X! this site. The format of the file is usually the name of the distribution
+X! (e.g. "tx" for the state of Texas), some spaces or a tab, and a short descrip-
+X! tion of the area that the distribution covers (e.g. "The State of Texas"). This
+X! is used by the "LIST DISTRIBUTIONS" command.
+X! 
+X! NEWSGROUPS_FILE  ("/usr/lib/news/newsgroups")
+X!      Specifies the location of the file that contains newsgroup descriptions.
+X! The format of the file is usually the name of the newsgroup, a tab, and a short
+X! description of the newsgroup (usually from the checkgroups control message).
+X! This file is used by the "LIST NEWSGROUPS" command.
+X  
+X  HISTORY_FILE	("/usr/lib/news/history")
+X  
+X!      Specifies the location of the "history" file. This is used with NEWNEWS
+X! and ARTICLE/HEAD/BODY/STAT when given an message-id argument.
+X  
+X  INEWS		("/usr/lib/news/inews")
+X  
+X!      Specifies the location of inews, for posting.  Note that this is NOT the
+X! same as the mini-inews in the inews directory supplied with the NNTP
+X! distribution, which should only be installed on client machines.  INEWS should
+X! be the pathname of real, live, honest-to-God inews.  Your inews may be
+X! in a different place, such as /usr/bin/inews.
+X  
+X! SPOOLDIR	("/usr/spool/news")
+X  
+X!      This is the directory where news is stored.
+X  
+X! RNEWS		("/usr/bin/rnews")
+X  
+X!      Specifies the location of the rnews program which is used for dealing with
+X! news received from other systems via the IHAVE command; it is often a link to
+X! inews.
+X  
+X  READINTVL	(600 seconds)
+X  
+X       If the server is compiled with FASTFORK and ALONE, then this number
+X! tells how often to check if the active file has changed (and to read it in if
+X! it has changed since the last time).  See README in the "server" directory of
+X! the NNTP distribution.  If you are not compiled with FASTFORK and ALONE
+X! (hint: you're not going to), don't worry about this.
+X  
+X  ---- The following variables apply only if you are using C News batching. ----
+X  
+X*** README.LIB	Thu Feb 25 22:01:43 1988
+X--- ../../nntp.local/common/README.LIB	Sat Nov 11 01:44:02 1989
+X***************
+X*** 1,9 ****
+X       This directory contains lotsa good stuff common to both
+X  the news server, support, and client programs.  The short of it is:
+X  
+X! conf.h		Configuration information for NNTP server,
+X  		support, and client programs.  Described in detail
+X! 		in README in this directory.
+X  
+X  nntp.h		These are the #define's of the numeric response
+X  		codes (and other stuff) in NNTP as defined by RFC 977.
+X--- 1,10 ----
+X       This directory contains lotsa good stuff common to both
+X  the news server, support, and client programs.  The short of it is:
+X  
+X! conf.h.dist	Configuration information for NNTP server,
+X  		support, and client programs.  Described in detail
+X! 		in README in this directory. Use this to create your
+X! 		own version of conf.h.
+X  
+X  nntp.h		These are the #define's of the numeric response
+X  		codes (and other stuff) in NNTP as defined by RFC 977.
+X*** README.SYSV	Sun Jan 24 01:21:12 1988
+X--- ../../nntp.local/common/README.SYSV	Sat Nov 11 01:45:33 1989
+X***************
+X*** 1,9 ****
+X! [This is from Stan Barber, <sob@tmc.edu>.  Thanks, Stan. --Phil]
+X  
+X- To make nntp run on SYSV, do the following:
+X- 
+X  1. Get the Berkeley Directory Library emulation package. You can get it
+X! from your nearest comp.sources.unix archive. This is the so-called NDIR 
+X  package. Install it. (If you don't know if you have it, look for the
+X  file ndir.h in /usr/include. If it is there, you have the NDIR library
+X  and can move on the step 2.)
+X--- 1,7 ----
+X! To make NNTP run on SYSV, do the following:
+X  
+X  1. Get the Berkeley Directory Library emulation package. You can get it
+X! from archive-server@bcm.tmc.edu. This is the so-called NDIR 
+X  package. Install it. (If you don't know if you have it, look for the
+X  file ndir.h in /usr/include. If it is there, you have the NDIR library
+X  and can move on the step 2.)
+X*** clientlib.c	Mon Nov 13 23:03:21 1989
+X--- ../../nntp.local/common/clientlib.c	Mon Oct 30 01:08:51 1989
+X***************
+X*** 1,5 ****
+X  #ifndef lint
+X! static char	*sccsid = "@(#)clientlib.c	1.10	(Berkeley) 8/27/89";
+X  #endif
+X  
+X  /*
+X--- 1,5 ----
+X  #ifndef lint
+X! static char	*sccsid = "@(#)clientlib.c	1.11	(Berkeley) 10/27/89";
+X  #endif
+X  
+X  /*
+X***************
+X*** 200,206 ****
+X--- 200,208 ----
+X                 if( defaddr.s_addr != -1 ) {
+X                         strcpy( namebuf, machine );
+X                         def.h_name = namebuf;
+X+ #ifdef h_addr
+X                         def.h_addr_list = alist;
+X+ #endif
+X                         def.h_addr = (char *)&defaddr;
+X                         def.h_length = sizeof( struct in_addr );
+X                         def.h_addrtype = AF_INET;
+X*** conf.h.dist	Mon Nov 13 23:02:54 1989
+X--- ../../nntp.local/common/conf.h.dist	Sat Nov 11 01:42:19 1989
+X***************
+X*** 16,22 ****
+X  #undef	BSD_42		/* 4.2 compatability code -- if this is defined, */
+X  			/* DBM probably wants to be defined as well. */
+X  
+X! #undef MACH		/* Use MACH ioctl(FIOCFSPARAM) for dfree() */
+X  
+X  #undef	USG		/* System V support */
+X  
+X--- 16,22 ----
+X  #undef	BSD_42		/* 4.2 compatability code -- if this is defined, */
+X  			/* DBM probably wants to be defined as well. */
+X  
+X! #undef CMU_MACH		/* Use CMU's MACH ioctl(FIOCFSPARAM) for dfree(). */
+X  
+X  #undef	USG		/* System V support */
+X  
+X***************
+X*** 51,56 ****
+X--- 51,64 ----
+X  /* #define	vfork fork */
+X  
+X  /*
+X+  * If you want CNEWS batch files created that are not world writable,
+X+  * remove the comments from the UMASK line below. This does not apply
+X+  * if you are running BNEWS. At least, not yet. :-)
+X+  */
+X+ 
+X+ /* #define UMASK 022 */
+X+ 
+X+ /*
+X   * If you have the syslog library routine, define SYSLOG to
+X   * be the syslog facility name under which stats should be
+X   * logged.  Newer 4.3 systems might choose LOG_NEWS;
+X***************
+X*** 85,93 ****
+X  #   endif not DBM
+X  #   ifndef sun		/* not a sun */
+X  #       ifndef ultrix   /* not ultrix */
+X! #           ifndef MACH /* not Mach */
+X! #               ifndef READ_SUPER
+X! #                   define READ_SUPER	/* read super block for space() */
+X  #               endif
+X  #           endif
+X  #       endif
+X--- 93,103 ----
+X  #   endif not DBM
+X  #   ifndef sun		/* not a sun */
+X  #       ifndef ultrix   /* not ultrix */
+X! #           ifndef CMU_MACH /* not CMU's Mach */
+X! #		ifndef NeXT /* not a NeXT */
+X! #                  ifndef READ_SUPER
+X! #	                define READ_SUPER /* read super block for space() */
+X! #		    endif
+X  #               endif
+X  #           endif
+X  #       endif
+X***************
+X*** 102,108 ****
+X  
+X  #ifndef USG
+X  #    ifndef BSD_42
+X! #        ifndef MACH
+X  #            ifndef BSD_43
+X  #                define BSD_43
+X  #            endif
+X--- 112,118 ----
+X  
+X  #ifndef USG
+X  #    ifndef BSD_42
+X! #        ifndef CMU_MACH
+X  #            ifndef BSD_43
+X  #                define BSD_43
+X  #            endif
+X***************
+X*** 148,153 ****
+X--- 158,167 ----
+X  			/* access list instead of just hostnames. */
+X  			/* See README for more information */
+X  
+X+ #define DO_DOTDIR	/* the mini-inews will get the .signature file from */
+X+ 			/* this directory ifdefined in the environment. */
+X+ 			/* This is like rn. Undefine it and it will only */
+X+ 			/* look in the user's home directory. */
+X  /*
+X   * System V compatability
+X   */
+X***************
+X*** 237,242 ****
+X--- 251,265 ----
+X  
+X  #define STAT_FILE	"/usr/lib/news/mgdstats"
+X  #define NGDATE_FILE	"/usr/lib/news/groupdates"
+X+ 
+X+ /*
+X+  * But if you have C News, you can define ACTIVE_TIMES_FILE instead of
+X+  * STAT_FILE and NGDATE_FILE, and you won't have to run "mkgrdates".
+X+  */
+X+ 
+X+ #ifdef CNEWS
+X+ # define ACTIVE_TIMES_FILE	"/usr/lib/news/active.times"
+X+ #endif
+X  
+X  /*
+X   * Some commonly used programs and files.
+X*** version.c	Mon Nov 13 23:03:22 1989
+X--- ../../nntp.local/common/version.c	Sat Nov 11 01:14:24 1989
+X***************
+X*** 2,5 ****
+X   * Provide the version number of this release.
+X   */
+X  
+X! char	nntp_version[] = "1.5.6 (27 August 89)";
+X--- 2,5 ----
+X   * Provide the version number of this release.
+X   */
+X  
+X! char	nntp_version[] = "1.5.7 (10 November 89)";
+END_OF_FILE
+if test 16129 -ne `wc -c <'common/common.diff'`; then
+    echo shar: \"'common/common.diff'\" unpacked with wrong size!
+fi
+# end of 'common/common.diff'
+fi
+if test -f 'inews/inews.diff' -a "${1}" != "-c" ; then 
+  echo shar: Will not clobber existing file \"'inews/inews.diff'\"
+else
+echo shar: Extracting \"'inews/inews.diff'\" \(482 characters\)
+sed "s/^X//" >'inews/inews.diff' <<'END_OF_FILE'
+X*** inews.c	Mon Nov 13 23:03:30 1989
+X--- ../../nntp.local/inews/inews.c	Sun Oct 29 23:57:43 1989
+X***************
+X*** 177,183 ****
+X  	passwd = getpwuid(getuid());
+X  	if (passwd == NULL)
+X  	  return;
+X! 	if ((dotdir = getenv("DOTDIR")) == NULL) {
+X  	  dotdir = passwd->pw_dir;
+X  	}
+X  
+X--- 177,186 ----
+X  	passwd = getpwuid(getuid());
+X  	if (passwd == NULL)
+X  	  return;
+X! #ifdef DO_DOTDIR
+X! 	if ((dotdir = getenv("DOTDIR")) == NULL)
+X! #endif
+X! 	{
+X  	  dotdir = passwd->pw_dir;
+X  	}
+X  
+END_OF_FILE
+if test 482 -ne `wc -c <'inews/inews.diff'`; then
+    echo shar: \"'inews/inews.diff'\" unpacked with wrong size!
+fi
+# end of 'inews/inews.diff'
+fi
+if test -f 'server/server.diff' -a "${1}" != "-c" ; then 
+  echo shar: Will not clobber existing file \"'server/server.diff'\"
+else
+echo shar: Extracting \"'server/server.diff'\" \(16224 characters\)
+sed "s/^X//" >'server/server.diff' <<'END_OF_FILE'
+X*** access.c	Mon Nov 13 23:03:48 1989
+X--- ../../nntp.local/server/access.c	Sun Nov  5 15:43:26 1989
+X***************
+X*** 1,5 ****
+X  #ifndef lint
+X! static char	*sccsid = "@(#)access.c	1.20	(Berkeley) 5/11/89";
+X  #endif
+X  
+X  #include "common.h"
+X--- 1,5 ----
+X  #ifndef lint
+X! static char	*sccsid = "@(#)access.c	1.21	(Berkeley) 11/04/89";
+X  #endif
+X  
+X  #include "common.h"
+X***************
+X*** 205,211 ****
+X  			(void) strcpy(gdlist, groups);
+X  		}
+X  	}
+X! 
+X  	(void) fclose(acs_fp);
+X  }
+X  #ifdef DOMAINMATCH
+X--- 205,224 ----
+X  			(void) strcpy(gdlist, groups);
+X  		}
+X  	}
+X! /*
+X!  * The access check is expects there to be spaces between the group names.
+X!  * In the access file, there are commas between the groupnames.
+X!  * Here, we change the commas to spaces.
+X!  */
+X!          {
+X!  	  char *pointer=gdlist;
+X!  	  
+X!  	  while (*pointer)
+X!  	    {
+X!  	      if (*pointer == ',') *pointer=' ';
+X!  	      pointer++;
+X!  	    }
+X!  	}
+X  	(void) fclose(acs_fp);
+X  }
+X  #ifdef DOMAINMATCH
+X*** batch.c	Mon Nov 13 23:03:02 1989
+X--- ../../nntp.local/server/batch.c	Sat Nov 11 13:31:20 1989
+X***************
+X*** 1,5 ****
+X  #ifndef lint
+X! static	char	*sccsid = "@(#)batch.c	1.0	(sob) 8/12/89";
+X  #endif
+X  /*
+X   * Batch subroutine for Cnews.
+X--- 1,5 ----
+X  #ifndef lint
+X! static	char	*rcsid = "@(#)$Header: batch.c,v 1.3 89/11/11 13:31:05 sob Locked $";
+X  #endif
+X  /*
+X   * Batch subroutine for Cnews.
+X***************
+X*** 74,85 ****
+X  	signal(SIGHUP, SIG_IGN);
+X  
+X  	if (btch.name == NULL) {
+X! 		/* BATCHFILE may trigger unprivileged() */
+X! 		btch.name = mktemp(strsave(BATCHFILE));
+X  	}
+X  	if (btch.name == NULL)
+X  		return 0;
+X  	tempfile[0] = '\0';
+X  	if (!cpstdin(cont_code, err_code, errbuf)) /* may create tempfile */
+X  		return 0;
+X  #ifdef POSTER
+X--- 74,88 ----
+X  	signal(SIGHUP, SIG_IGN);
+X  
+X  	if (btch.name == NULL) {
+X! 		/* BATCH_FILE may trigger unprivileged() */
+X! 		btch.name = mktemp(strsave(BATCH_FILE));
+X  	}
+X  	if (btch.name == NULL)
+X  		return 0;
+X  	tempfile[0] = '\0';
+X+ #ifdef UMASK
+X+ 	(void) umask(UMASK);
+X+ #endif
+X  	if (!cpstdin(cont_code, err_code, errbuf)) /* may create tempfile */
+X  		return 0;
+X  #ifdef POSTER
+X***************
+X*** 195,200 ****
+X--- 198,204 ----
+X  	if (line[0] != '.' && line[1] != '\0') {
+X  		if (tempfile[0] != '\0')
+X  			(void) unlink(tempfile);
+X+ #ifdef SYSLOG
+X  #ifdef LOG
+X  		syslog(LOG_ERR, "%s spawn: EOF before period on line by itself",
+X  			hostname);
+X***************
+X*** 201,206 ****
+X--- 205,211 ----
+X  #else
+X  		syslog(LOG_ERR, "spawn: EOF before period on line by itself");
+X  #endif
+X+ #endif
+X  		return 0;
+X  	}
+X  	return 1;
+X***************
+X*** 219,227 ****
+X--- 224,234 ----
+X  	printf("%d timeout after %d seconds, closing connection.\r\n",
+X  		ERR_FAULT, XFER_TIMEOUT);
+X  	fflush(stdout);
+X+ #ifdef SYSLOG
+X  #ifdef LOG
+X  	syslog(LOG_ERR, "%s transfer_timeout", hostname);
+X  #endif LOG
+X+ #endif
+X  	(void) unlink(tempfile);
+X  	exit(1);
+X  #endif XFER_TIMEOUT
+X***************
+X*** 370,376 ****
+X  	}
+X  	if (unlink(btch.name) < 0)
+X  #ifdef SYSLOG
+X! 		syslog(LOG_ERR, "cannot find %s", s);
+X  #else
+X  		;
+X  #endif
+X--- 377,383 ----
+X  	}
+X  	if (unlink(btch.name) < 0)
+X  #ifdef SYSLOG
+X! 		syslog(LOG_ERR, "cannot find %s", btch.name);
+X  #else
+X  		;
+X  #endif
+X*** common.h	Mon Nov 13 22:59:18 1989
+X--- ../../nntp.local/server/common.h	Sat Nov 11 00:41:48 1989
+X***************
+X*** 1,7 ****
+X  /*
+X   * Common declarations, includes, and other goodies.
+X   *
+X!  * @(#)common.h	1.27	(Berkeley) 5/11/89
+X   */
+X  
+X  
+X--- 1,7 ----
+X  /*
+X   * Common declarations, includes, and other goodies.
+X   *
+X!  * @(#)common.h	1.28	(Berkeley) 11/10/89
+X   */
+X  
+X  
+X***************
+X*** 50,55 ****
+X--- 50,56 ----
+X  
+X  #ifdef ultrix
+X  extern char * index();
+X+ extern char * rindex();
+X  #endif
+X  
+X  /*
+X*** globals.c	Mon Nov 13 22:59:21 1989
+X--- ../../nntp.local/server/globals.c	Sun Oct 29 23:57:19 1989
+X***************
+X*** 18,24 ****
+X--- 18,28 ----
+X  char	distributionsfile[] = DISTRIBUTIONS_FILE;
+X  char	newsgroupsfile[] = NEWSGROUPS_FILE;
+X  char	historyfile[] = HISTORY_FILE;
+X+ #ifdef ACTIVE_TIMES_FILE
+X+ char	ngdatefile[] = ACTIVE_TIMES_FILE;
+X+ #else
+X  char	ngdatefile[] = NGDATE_FILE;
+X+ #endif
+X  char	inews[] = INEWS;
+X  char	rnews[] = RNEWS;
+X  
+X*** misc.c	Mon Nov 13 23:03:45 1989
+X--- ../../nntp.local/server/misc.c	Sat Nov 11 01:49:51 1989
+X***************
+X*** 1,5 ****
+X  #ifndef lint
+X! static char	*sccsid = "@(#)misc.c	1.27	(Berkeley) 8/27/89";
+X  #endif
+X  
+X  #include "common.h"
+X--- 1,5 ----
+X  #ifndef lint
+X! static char	*sccsid = "@(#)misc.c	1.29	(Berkeley) 11/10/89";
+X  #endif
+X  
+X  #include "common.h"
+X***************
+X*** 80,86 ****
+X   *
+X   *	Side effects:	opens dbm database
+X   *			(only once, keeps it open after that).
+X!  *			Converts "msg_id" to lower case if not running Cnews.
+X   */
+X  
+X  #ifndef NDBM
+X--- 80,88 ----
+X   *
+X   *	Side effects:	opens dbm database
+X   *			(only once, keeps it open after that).
+X!  *			If running Bnews, converts "msg_id" to lower case.
+X!  *			If running Cnews, converts "msg_id" per rfc822.
+X!  *			
+X   */
+X  
+X  #ifndef NDBM
+X***************
+X*** 114,126 ****
+X  #endif USGHIST
+X  	static FILE	*hfp = NULL;	/* history file, text version */
+X  
+X! #ifndef CNEWS
+X! 	for (cp = msg_id; *cp != '\0'; ++cp)
+X  		if (isupper(*cp))
+X  			*cp = tolower(*cp);
+X! 
+X! #endif
+X! 
+X  #ifdef USGHIST
+X  	hfp = fopen(histfile(msg_id), "r");
+X  	if (hfp == NULL) {
+X--- 116,133 ----
+X  #endif USGHIST
+X  	static FILE	*hfp = NULL;	/* history file, text version */
+X  
+X! #ifdef CNEWS
+X! 	cp = rindex(msg_id,'@');	/* look for @ in message id */
+X! 	if( cp != NULL)
+X! 	{	
+X! 	    for(;*cp != '\0';++cp)
+X! #else
+X! 	{
+X! 	    for (cp = msg_id; *cp != '\0'; ++cp)
+X! #endif
+X  		if (isupper(*cp))
+X  			*cp = tolower(*cp);
+X! 	}
+X  #ifdef USGHIST
+X  	hfp = fopen(histfile(msg_id), "r");
+X  	if (hfp == NULL) {
+X***************
+X*** 205,218 ****
+X  	cp = index(line, '\t');
+X  	if (cp != NULL)
+X  		cp = index(cp+1, '\t');
+X- 	if (cp == NULL) {
+X  #ifdef SYSLOG
+X! 		syslog(LOG_ERR,
+X  		"message: malformed line in history file at %ld bytes, id %s",
+X  			ltmp, msg_id);
+X  #endif SYSLOG
+X! 		return (NULL);
+X! 	}
+X  	tmp = cp+1;
+X  
+X  	if ((cp = index(tmp, ' ')) != NULL)
+X--- 212,224 ----
+X  	cp = index(line, '\t');
+X  	if (cp != NULL)
+X  		cp = index(cp+1, '\t');
+X  #ifdef SYSLOG
+X! 	else
+X! 	    syslog(LOG_ERR,
+X  		"message: malformed line in history file at %ld bytes, id %s",
+X  			ltmp, msg_id);
+X  #endif SYSLOG
+X! 	if (cp == NULL) return(NULL); /* this article has expired */
+X  	tmp = cp+1;
+X  
+X  	if ((cp = index(tmp, ' ')) != NULL)
+X***************
+X*** 669,675 ****
+X   */
+X  
+X  #ifndef READ_SUPER
+X! #ifdef sun
+X  #include <sys/vfs.h>
+X  #define statfilesys	statfs		/* routine to call when trying to  */
+X  					/* stat a file system to get the # */
+X--- 675,681 ----
+X   */
+X  
+X  #ifndef READ_SUPER
+X! #if defined(sun) || defined(hpux) || defined(pyr) || defined(hp300) || defined(NeXT)
+X  #include <sys/vfs.h>
+X  #define statfilesys	statfs		/* routine to call when trying to  */
+X  					/* stat a file system to get the # */
+X***************
+X*** 694,706 ****
+X  #define blkavail(fs)	((fs).fd_req.bfreen)
+X  #endif 
+X  
+X! #ifdef USG
+X  #include <ustat.h>
+X  typedef struct ustat statfs_type;
+X  /*
+X   * You've got to make calls to 2 functions to get
+X   * free blocks on a USG system, so statfilesys can't just be a macro.
+X-  * This code is copied from the patch 3 to nntp1.5
+X   * written by Stan Barber <sob@watson.bcm.tmc.edu>
+X   */
+X  int
+X--- 700,711 ----
+X  #define blkavail(fs)	((fs).fd_req.bfreen)
+X  #endif 
+X  
+X! #if defined(USG) && !defined(hpux)
+X  #include <ustat.h>
+X  typedef struct ustat statfs_type;
+X  /*
+X   * You've got to make calls to 2 functions to get
+X   * free blocks on a USG system, so statfilesys can't just be a macro.
+X   * written by Stan Barber <sob@watson.bcm.tmc.edu>
+X   */
+X  int
+X***************
+X*** 718,724 ****
+X  #define blkavail(fs)	((fs).f_tfree)	/* USG doesn't reserve blocks for root */
+X  #endif USG
+X  
+X! #ifdef MACH
+X  /* This code supplied by Tom Lane <tgl@cs.cmu.edu> */
+X  #include <sys/ioctl.h>
+X  typedef struct fsparam statfs_type;
+X--- 723,729 ----
+X  #define blkavail(fs)	((fs).f_tfree)	/* USG doesn't reserve blocks for root */
+X  #endif USG
+X  
+X! #ifdef CMU_MACH
+X  /* This code supplied by Tom Lane <tgl@cs.cmu.edu> */
+X  #include <sys/ioctl.h>
+X  typedef struct fsparam statfs_type;
+X***************
+X*** 867,873 ****
+X  getla()
+X  {
+X  	static int kmem = -1;
+X! # ifdef sun
+X  	long avenrun[3];
+X  # else
+X  	double avenrun[3];
+X--- 872,878 ----
+X  getla()
+X  {
+X  	static int kmem = -1;
+X! # ifdef FSCALE
+X  	long avenrun[3];
+X  # else
+X  	double avenrun[3];
+X***************
+X*** 890,896 ****
+X  		/* thank you Ian */
+X  		return (-1);
+X  	}
+X! # ifdef sun
+X  	return ((int) (avenrun[0] + FSCALE/2) >> FSHIFT);
+X  # else
+X  	return ((int) (avenrun[0] + 0.5));
+X--- 895,901 ----
+X  		/* thank you Ian */
+X  		return (-1);
+X  	}
+X! # ifdef FSCALE
+X  	return ((int) (avenrun[0] + FSCALE/2) >> FSHIFT);
+X  # else
+X  	return ((int) (avenrun[0] + 0.5));
+X*** netaux.c	Thu Feb 25 21:53:55 1988
+X--- ../../nntp.local/server/netaux.c	Sat Nov  4 20:34:24 1989
+X***************
+X*** 100,105 ****
+X--- 100,106 ----
+X  	struct sockaddr_in	sin;
+X  #ifndef EXCELAN
+X  	struct servent		*sp;
+X+ 	int on = 1;
+X  
+X  	sp = getservbyname("nntp", "tcp");
+X  	if (sp == NULL) {
+X***************
+X*** 134,141 ****
+X  		exit(1);
+X  #endif not EXCELAN
+X  	}
+X- 
+X  #ifndef EXCELAN
+X  	if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+X  #ifdef SYSLOG
+X  		syslog(LOG_ERR, "get_socket: bind: %m");
+X--- 135,146 ----
+X  		exit(1);
+X  #endif not EXCELAN
+X  	}
+X  #ifndef EXCELAN
+X+ #ifdef SO_REUSEADDR
+X+ 	if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
+X+ 	    (char *) &on, sizeof (on)) < 0)
+X+ 		perror("setsockopt - SO_REUSEADDR");
+X+ #endif /* SO_REUSEADDR */
+X  	if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+X  #ifdef SYSLOG
+X  		syslog(LOG_ERR, "get_socket: bind: %m");
+X*** newgroups.c	Sat Feb  6 19:29:05 1988
+X--- ../../nntp.local/server/newgroups.c	Sun Oct 29 23:57:20 1989
+X***************
+X*** 87,99 ****
+X--- 87,112 ----
+X  			*cp = '\0';
+X  		if ((cp = index(line, ' ')) != NULL)
+X  			*cp = '\0';
+X+ #ifdef ACTIVE_TIMES_FILE
+X+ 		if (atoi(cp + 1) < date)
+X+ 			continue;
+X+ #else
+X  		if (atoi(line) < date)
+X  			break;
+X+ #endif
+X  
+X  		if (distcount == 0) {
+X+ #ifdef ACTIVE_TIMES_FILE
+X+ 			putline(line);
+X+ #else
+X  			putline(cp + 1);
+X+ #endif
+X  		} else {
+X+ #ifdef ACTIVE_TIMES_FILE
+X+ 			temp = line;
+X+ #else
+X  			temp = cp + 1;
+X+ #endif
+X  			cp = index(temp, '.');
+X  			if (cp == NULL)
+X  				continue;
+X*** newnews.c	Mon Nov 13 23:03:51 1989
+X--- ../../nntp.local/server/newnews.c	Sat Nov  4 20:28:51 1989
+X***************
+X*** 1,5 ****
+X  #ifndef lint
+X! static char	*sccsid = "@(#)newnews.c	1.21	(Berkeley) 8/27/89";
+X  #endif
+X  
+X  #include "common.h"
+X--- 1,5 ----
+X  #ifndef lint
+X! static char	*sccsid = "@(#)newnews.c	1.22	(Berkeley) 10/27/89";
+X  #endif
+X  
+X  #include "common.h"
+X***************
+X*** 102,112 ****
+X  	/* now we convert from local to GMT since this is what history */
+X  	/* file in News 2.11 expects */
+X  	date = local_to_gmt(date);
+X! 	key = ltod(date);	
+X! 	/* So, key now points to the GMT time, but we need to zap secs */
+X! 
+X! 	key[10] = '\0';
+X! 
+X  	distcount = 0;
+X  	if (argc > 0) {
+X  		distcount = get_distlist(&distlist, *argv);
+X--- 102,108 ----
+X  	/* now we convert from local to GMT since this is what history */
+X  	/* file in News 2.11 expects */
+X  	date = local_to_gmt(date);
+X! 	strcpy(datebuf,ltod(date));	
+X  	distcount = 0;
+X  	if (argc > 0) {
+X  		distcount = get_distlist(&distlist, *argv);
+X***************
+X*** 225,231 ****
+X      printf("%d New news by message id follows\r\n", OK_NEWNEWS);
+X      rewind(tmplst);
+X      while (fgets(line, sizeof(line), tmplst) != NULL)
+X!             putline(line);
+X      putchar('.');
+X      putchar('\r');
+X      putchar('\n');
+X--- 221,227 ----
+X      printf("%d New news by message id follows\r\n", OK_NEWNEWS);
+X      rewind(tmplst);
+X      while (fgets(line, sizeof(line), tmplst) != NULL)
+X!             if (line[0] == '<') putline(line);
+X      putchar('.');
+X      putchar('\r');
+X      putchar('\n');
+X***************
+X*** 238,247 ****
+X  
+X  /*
+X   * seekuntil -- seek through the history file looking for
+X!  * a line with date "key".  Get that line, and return.
+X   *
+X   *	Parameters:	"fp" is the active file.
+X!  *			"key" is the date, in form YYMMDDHHMM (no SS)
+X   *			"line" is storage for the first line we find.
+X   *
+X   *	Returns:	-1 on error, 0 otherwise.
+X--- 234,243 ----
+X  
+X  /*
+X   * seekuntil -- seek through the history file looking for
+X!  * a line with date later than "akey".  Get that line, and return.
+X   *
+X   *	Parameters:	"fp" is the active file.
+X!  *			"akey" is the date, in form YYMMDDHHMMSS
+X   *			"line" is storage for the first line we find.
+X   *
+X   *	Returns:	-1 on error, 0 otherwise.
+X***************
+X*** 258,267 ****
+X  	char		datetime[32];
+X  	register int	c;
+X  	register long	top, bot, mid;
+X- 	extern long dtol();
+X- 	char key[30];
+X  
+X- 	(void) sprintf(key, "%ld", dtol(akey));	/* akey -> time_t in ascii */
+X  	bot = 0;
+X  	(void) fseek(fp, 0L, 2);
+X  	top = ftell(fp);
+X--- 254,260 ----
+X***************
+X*** 275,281 ****
+X  		if (!getword(fp, datetime, line, linesize)) {
+X  			return (-1);
+X  		}
+X! 		switch (compare(key, datetime)) {
+X  		case -2:
+X  		case -1:
+X  		case 0:
+X--- 268,274 ----
+X  		if (!getword(fp, datetime, line, linesize)) {
+X  			return (-1);
+X  		}
+X! 		switch (compare(akey, datetime)) {
+X  		case -2:
+X  		case -1:
+X  		case 0:
+X***************
+X*** 295,301 ****
+X  		if (!getword(fp, datetime, line, linesize)) {
+X  			return (-1);
+X  		}
+X! 		switch(compare(key, datetime)) {
+X  		case -2:
+X  		case -1:
+X  		case 0:
+X--- 288,294 ----
+X  		if (!getword(fp, datetime, line, linesize)) {
+X  			return (-1);
+X  		}
+X! 		switch(compare(akey, datetime)) {
+X  		case -2:
+X  		case -1:
+X  		case 0:
+X***************
+X*** 323,331 ****
+X  		2);
+X  }
+X  
+X- 
+X  /*
+X!  * C news version of getword.
+X   */
+X  getword(fp, w, line, linesize)
+X  	FILE		*fp;
+X--- 316,323 ----
+X  		2);
+X  }
+X  
+X  /*
+X!  * Combined B and C news version of getword.
+X   */
+X  getword(fp, w, line, linesize)
+X  	FILE		*fp;
+X***************
+X*** 335,359 ****
+X  {
+X  	register char	*cp;
+X  	extern char *index();
+X- 
+X  	if (fgets(line, linesize, fp) == NULL)
+X  		return (0);
+X  	w[0] = '\0';				/* in case of bad format */
+X! 	if (cp = index(line, '\t')) {		/* find 2nd field */
+X  		register char *endp;
+X! 
+X! 		*cp++ = '\0';
+X  		endp = index(cp, '~');		/* end of date-received */
+X  		if (endp == NULL)
+X  			endp = index(cp, '\t');	/* end of expiry */
+X! 		if (endp != NULL) {
+X! 			(void) strncpy(w, cp, endp - cp);
+X! 			w[endp - cp] = '\0';
+X  		}
+X  	}
+X  	return (1);
+X  }
+X- 
+X  
+X  /*
+X   * distmatch -- see if a file matches a set of distributions.
+X--- 327,382 ----
+X  {
+X  	register char	*cp;
+X  	extern char *index();
+X  	if (fgets(line, linesize, fp) == NULL)
+X  		return (0);
+X  	w[0] = '\0';				/* in case of bad format */
+X! 	if ((cp = index(line, '\t')) != NULL) {	/* find 2nd field */
+X  		register char *endp;
+X! 		while (*cp == ' ' || *cp == '\t') cp++;	
+X! 				/* skip any leading spaces or tabs */
+X  		endp = index(cp, '~');		/* end of date-received */
+X+ 						/* This will fail for B news */
+X  		if (endp == NULL)
+X  			endp = index(cp, '\t');	/* end of expiry */
+X!  						/* This will fail if article */
+X! 						/* has expired */
+X! 		if (endp == NULL) return(1);	/* nothing is returned */
+X! 		
+X! 		(void) strncpy(w, cp, endp - cp);
+X! 		w[endp - cp] = '\0';
+X! 		if (index(w,'/') != NULL){  /* old B news format */
+X! /*
+X!  * The following gross hack is present because the old history file date
+X!  * format is braindamaged.  They like "mm/dd/yy hh:mm", which is useless
+X!  * for relative comparisons of dates using something like atoi() or
+X!  * strcmp.  So, this changes their format into yymmddhhmm.  Sigh.
+X!  *
+X!  * 01234567890123	("x" for cp[x])
+X!  * mm/dd/yy hh:mm 	(their lousy representation)
+X!  * yymmddhhmm		(our good one)
+X!  * 0123456789		("x" for w[x])
+X!  */
+X! 		    w[0] = cp[6];		/* Years */
+X! 		    w[1] = cp[7];
+X! 		    w[2] = cp[0];		/* Months */
+X! 		    w[3] = cp[1];
+X! 		    w[4] = cp[3];		/* Days */
+X! 		    w[5] = cp[4];
+X! 		    w[6] = cp[9];		/* Hours */
+X! 		    w[7] = cp[10];
+X! 		    w[8] = cp[12];		/* Minutes */
+X! 		    w[9] = cp[13];
+X! 		    w[10] = '\0';
+X! 		}
+X! 	    else	/* convert new format to yymmddhhmmss */
+X! 		{
+X! 		    long qz;
+X! 		    qz =atol(w);
+X! 		    strcpy(w,ltod(qz));
+X  		}
+X  	}
+X  	return (1);
+X  }
+X  
+X  /*
+X   * distmatch -- see if a file matches a set of distributions.
+END_OF_FILE
+if test 16224 -ne `wc -c <'server/server.diff'`; then
+    echo shar: \"'server/server.diff'\" unpacked with wrong size!
+fi
+# end of 'server/server.diff'
+fi
+if test -f 'support/support.diff' -a "${1}" != "-c" ; then 
+  echo shar: Will not clobber existing file \"'support/support.diff'\"
+else
+echo shar: Extracting \"'support/support.diff'\" \(730 characters\)
+sed "s/^X//" >'support/support.diff' <<'END_OF_FILE'
+X*** nntp_awk	Wed Jan  6 00:26:20 1988
+X--- ../../nntp.local/support/nntp_awk	Sat Nov 11 01:56:41 1989
+X***************
+X*** 27,32 ****
+X--- 27,35 ----
+X  # Add nntpxmit connection attempt counting/reporting - December 7, 1987
+X  # Erik E. Fair <fair@ucbarpa.berkeley.edu>
+X  #
+X+ # Fixed bug in explorers couting - November 7, 1989
+X+ # Stan Barber <sob@bcm.tmc.edu>
+X+ #
+X  BEGIN{
+X  	readers = 0;
+X  	transmit = 0;
+X***************
+X*** 153,159 ****
+X  	next;
+X  }
+X  $7 == "unrecognized" {
+X! 	unknown[host] = 1;
+X  	curious = 1;
+X  }
+X  ### Print anything that we don't recognize in the report
+X--- 156,162 ----
+X  	next;
+X  }
+X  $7 == "unrecognized" {
+X! 	unknown[host]++;
+X  	curious = 1;
+X  }
+X  ### Print anything that we don't recognize in the report
+END_OF_FILE
+if test 730 -ne `wc -c <'support/support.diff'`; then
+    echo shar: \"'support/support.diff'\" unpacked with wrong size!
+fi
+# end of 'support/support.diff'
+fi
+if test -f 'xfer/xfer.diff' -a "${1}" != "-c" ; then 
+  echo shar: Will not clobber existing file \"'xfer/xfer.diff'\"
+else
+echo shar: Extracting \"'xfer/xfer.diff'\" \(11039 characters\)
+sed "s/^X//" >'xfer/xfer.diff' <<'END_OF_FILE'
+X*** nntpxfer.c	Thu Oct 15 20:51:15 1987
+X--- ../../nntp.local/xfer/nntpxfer.c	Sat Nov 11 01:58:45 1989
+X***************
+X*** 13,63 ****
+X   *
+X   *	Brian Kantor, UCSD 1986
+X   * (some bug fixes by ambar@athena.mit.edu)
+X   */
+X  
+X! #define DEBUG
+X  
+X- /* you'd think that 4096 articles at one go is enough.... */
+X- #define MAXARTS	4096
+X- 
+X  #include <sys/types.h>
+X  #include <sys/dir.h>
+X! #include <sys/socket.h>
+X! #include <sys/stat.h>
+X! #include <sys/ioctl.h>
+X! #include <sys/file.h>
+X  #include <sys/time.h>
+X! #include <sys/wait.h>
+X! #include <sys/resource.h>
+X! 
+X! #include <net/if.h>
+X! #include <netinet/in.h>
+X  
+X  #include <stdio.h>
+X  #include <errno.h>
+X  #include <ctype.h>
+X  #include <netdb.h>
+X  #include <signal.h>
+X- #include <dbm.h>
+X  
+X! #define INEWS	"/usr/lib/news/inews -p"
+X! #define HIST	"/usr/lib/news/history"
+X  
+X  char	*malloc();
+X  char	*strcpy();
+X  char	*strcat();
+X  long	time();
+X  u_long	inet_addr();
+X  
+X  extern int errno;
+X! char *artlist[MAXARTS];
+X  int server;			/* stream socket to the nntp server */
+X  int newart, dupart, misart;
+X  
+X  main(argc, argv)
+X  int argc;
+X  char *argv[];
+X! 	{
+X  	FILE *dtfile;		/* where last xfer date/time stored */
+X  	char buf[BUFSIZ];
+X  	char lastdate[16];
+X--- 13,67 ----
+X   *
+X   *	Brian Kantor, UCSD 1986
+X   * (some bug fixes by ambar@athena.mit.edu)
+X+  * Modified to use NNTP distribution conf.h file and nntpxmit's get_tcp_conn.c
+X+  * subroutines so that nntpxfer could be used on more systems.
+X+  * Stan Barber, November 7, 1989 <sob@bcm.tmc.edu>
+X+  *
+X   */
+X  
+X! #include "../common/conf.h"
+X  
+X  #include <sys/types.h>
+X+ #ifdef NDIR
+X+ #include <ndir.h>
+X+ #else
+X  #include <sys/dir.h>
+X! #endif
+X! #ifdef USG
+X! #include <time.h>
+X! #else
+X  #include <sys/time.h>
+X! #endif
+X  
+X  #include <stdio.h>
+X  #include <errno.h>
+X  #include <ctype.h>
+X+ #ifndef NONETDB
+X  #include <netdb.h>
+X+ #endif
+X  #include <signal.h>
+X  
+X! #ifdef DBM
+X! #include <dbm.h>
+X! #endif
+X  
+X  char	*malloc();
+X  char	*strcpy();
+X  char	*strcat();
+X+ char	*rindex();
+X  long	time();
+X  u_long	inet_addr();
+X  
+X  extern int errno;
+X! char *artlist[MAX_ARTICLES];
+X  int server;			/* stream socket to the nntp server */
+X  int newart, dupart, misart;
+X+ char * Pname;
+X  
+X  main(argc, argv)
+X  int argc;
+X  char *argv[];
+X! {
+X  	FILE *dtfile;		/* where last xfer date/time stored */
+X  	char buf[BUFSIZ];
+X  	char lastdate[16];
+X***************
+X*** 70,80 ****
+X  	int omitupdate = 0;		/* 1 = don't update datetime */
+X  	long clock;
+X  	long newdate, newtime;
+X- 	struct hostent *hp;
+X- 	struct servent *sp;
+X- 	struct sockaddr_in sin;
+X  	struct tm *now;
+X! 
+X  	/* OPTIONS
+X  		argv[1] MUST be the host name
+X  		argv[2-4] MAY be "newsgroups YYMMDD HHMMSS"
+X--- 74,81 ----
+X  	int omitupdate = 0;		/* 1 = don't update datetime */
+X  	long clock;
+X  	long newdate, newtime;
+X  	struct tm *now;
+X! 	Pname = ((Pname = rindex(argv[0], '/')) ? Pname + 1 : argv[0]);
+X  	/* OPTIONS
+X  		argv[1] MUST be the host name
+X  		argv[2-4] MAY be "newsgroups YYMMDD HHMMSS"
+X***************
+X*** 144,215 ****
+X  	(void) printf("now is = %06d %06d\n", newdate, newtime);
+X  #endif
+X  
+X! 	if (dbminit(HIST) < 0)
+X  		{
+X  		perror("couldn't open history file");
+X  		exit(1);
+X  		}
+X! 
+X! 	sin.sin_addr.s_addr = inet_addr(argv[1]);
+X! 	if (sin.sin_addr.s_addr != -1) 
+X! 		{
+X! 		sin.sin_family = AF_INET;
+X! 		}
+X! 	else 
+X! 		{
+X! 		hp = gethostbyname(argv[1]);
+X! 		if (hp == NULL) 
+X! 			{
+X! 			(void) printf("%s: unknown host\n", argv[1]);
+X! 			exit(1);
+X! 			}
+X! 
+X! 		sin.sin_family = hp->h_addrtype;
+X! #ifdef	BSD43
+X! 		bcopy(hp->h_addr_list[0], (caddr_t)&sin.sin_addr,
+X! 			hp->h_length);
+X! #else	BSD43
+X! 		bcopy(hp->h_addr, (caddr_t)&sin.sin_addr,
+X! 			hp->h_length);
+X! #endif	BSD43
+X! 		}
+X! 	
+X! 	sp = getservbyname("nntp", "tcp");
+X! 	if (sp == NULL)
+X  		{
+X! 		perror("nntp/tcp");
+X  		exit(1);
+X  		}
+X  
+X- 	sin.sin_port = sp->s_port;
+X- 
+X- 	do	{
+X- 		server = socket(AF_INET, SOCK_STREAM, 0);
+X- 		if (server < 0) 
+X- 			{
+X- 			perror("nntpxfer: socket");
+X- 			exit(1);
+X- 			}
+X- 
+X- 		if (connect(server, (struct sockaddr *)&sin, sizeof (sin)) < 0) 
+X- 			{
+X- #ifdef	BSD43
+X- 			if (hp && hp->h_addr_list[1]) 
+X- 				{
+X- 				hp->h_addr_list++;
+X- 				bcopy(hp->h_addr_list[0],
+X- 				    (caddr_t)&sin.sin_addr, hp->h_length);
+X- 				(void) close(server);
+X- 				continue;
+X- 				}
+X- #endif	BSD43
+X- 			perror("nntpxfer: connect");
+X- 			exit(1);
+X- 			}
+X- 		connected++;
+X- 		}
+X- 	while (connected == 0);
+X- 
+X  #ifdef DEBUG
+X  	(void) printf("connected to nntp server at %s\n", argv[1]);
+X  #endif
+X--- 145,163 ----
+X  	(void) printf("now is = %06d %06d\n", newdate, newtime);
+X  #endif
+X  
+X! #ifdef DBM
+X! 	if (dbminit(HISTORY_FILE) < 0)
+X  		{
+X  		perror("couldn't open history file");
+X  		exit(1);
+X  		}
+X! #endif
+X! 	if ((server = get_tcp_conn(argv[1],"nntp")) < 0) 
+X  		{
+X! 		perror("could not open socket");
+X  		exit(1);
+X  		}
+X  
+X  #ifdef DEBUG
+X  	(void) printf("connected to nntp server at %s\n", argv[1]);
+X  #endif
+X***************
+X*** 266,271 ****
+X--- 214,220 ----
+X  #ifdef DEBUG
+X  	(void) printf("data\n");
+X  #endif
+X+ 	dupart = newart = 0;
+X  	while (1)
+X  		{
+X  		(void) sockread(buf);
+X***************
+X*** 273,279 ****
+X  			break;
+X  		if (wewant(buf))
+X  			{
+X! 			if (newart > MAXARTS)
+X  				{
+X  				omitupdate++;
+X  				continue;
+X--- 222,228 ----
+X  			break;
+X  		if (wewant(buf))
+X  			{
+X! 			if (newart > MAX_ARTICLES)
+X  				{
+X  				omitupdate++;
+X  				continue;
+X***************
+X*** 290,296 ****
+X  #endif
+X  
+X  	/* now that we know which articles we want, retrieve them */
+X! 	for (i=1; i < newart; i++)
+X  		(void) artfetch(artlist[i]);
+X  
+X  #ifdef DEBUG
+X--- 239,245 ----
+X  #endif
+X  
+X  	/* now that we know which articles we want, retrieve them */
+X! 	for (i=0; i < newart; i++)
+X  		(void) artfetch(artlist[i]);
+X  
+X  #ifdef DEBUG
+X***************
+X*** 357,367 ****
+X  		exit(1);
+X  		}
+X  #ifdef DEBUG
+X! 	(void) printf("command: %s\n", INEWS);
+X  #endif
+X! 	if ( (inews = popen(INEWS, "w")) == NULL)
+X  		{
+X! 		perror(INEWS);
+X  		exit(1);
+X  		}
+X  
+X--- 306,316 ----
+X  		exit(1);
+X  		}
+X  #ifdef DEBUG
+X! 	(void) printf("command: %s\n", RNEWS);
+X  #endif
+X! 	if ( (inews = popen(RNEWS, "w")) == NULL)
+X  		{
+X! 		perror(RNEWS);
+X  		exit(1);
+X  		}
+X  
+X***************
+X*** 398,419 ****
+X  #else BSD43
+X  	int rf;
+X  #endif BSD43
+X  	struct timeval tv;
+X  	int r;
+X  	char *p = buf;
+X  
+X  	while ( 1 )
+X  		{
+X  		tv.tv_sec = 1800;	/* 15 minutes */
+X  		tv.tv_usec = 0L;
+X  #ifdef BSD43
+X  		FD_ZERO(&rf);
+X  		FD_SET(server, &rf);
+X! #else BSD43
+X  		rf = 1 << server;
+X  #endif BSD43
+X! 		r = select(20, (fd_set *)&rf, (fd_set *)0, (fd_set *)&rf, &tv);
+X! 
+X  		if (r < 0)
+X  			{
+X  			if (errno == EINTR)
+X--- 347,374 ----
+X  #else BSD43
+X  	int rf;
+X  #endif BSD43
+X+ #ifndef EXCELAN
+X  	struct timeval tv;
+X+ #endif
+X  	int r;
+X  	char *p = buf;
+X  
+X  	while ( 1 )
+X  		{
+X+ #ifndef EXCELAN
+X  		tv.tv_sec = 1800;	/* 15 minutes */
+X  		tv.tv_usec = 0L;
+X  #ifdef BSD43
+X  		FD_ZERO(&rf);
+X  		FD_SET(server, &rf);
+X! 		r = select(20, (fd_set *)&rf, (fd_set *)0, (fd_set *)&rf, &tv);#else BSD43
+X  		rf = 1 << server;
+X+ 		r = select(20, (int *)&rf, (int *)0, (int *)&rf, &tv);
+X  #endif BSD43
+X! #else
+X! 		rf = 1 << server;
+X! 		r = select(20, (long *)&rf, (long *)0, 110000L);
+X! #endif
+X  		if (r < 0)
+X  			{
+X  			if (errno == EINTR)
+X***************
+X*** 426,433 ****
+X  			printf("read timed out.\n");
+X  			exit(1);
+X  			}
+X! 
+X! 		if (read(server, &c, 1) <= 0)
+X  			break;
+X  
+X  		/* mask off any chance parity bits */
+X--- 381,387 ----
+X  			printf("read timed out.\n");
+X  			exit(1);
+X  			}
+X! 		if (read (server,&c,1) <= 0)
+X  			break;
+X  
+X  		/* mask off any chance parity bits */
+X***************
+X*** 473,479 ****
+X--- 427,441 ----
+X  wewant(articleid)
+X  char *articleid;
+X  	{
+X+ #ifdef DBM
+X  	datum k, d;
+X+ #else
+X+ 	FILE *k;
+X+ 	char *histfile();
+X+ 	FILE *histfp;		/* USG history file */
+X+ 	char line[BUFSIZ];
+X+ 	int len;
+X+ #endif
+X  	char id[BUFSIZ];
+X  	char *p;
+X  
+X***************
+X*** 480,485 ****
+X--- 442,448 ----
+X  	/* remove any case sensitivity */
+X  	(void) strcpy(id, articleid);
+X  	p = id;
+X+ #ifndef CNEWS
+X  	while (*p)
+X  		{
+X  		if (isupper(*p))
+X***************
+X*** 486,492 ****
+X  			*p = tolower(*p);
+X  		p++;
+X  		}
+X! 
+X  	k.dptr = id;
+X  	k.dsize = strlen(articleid) + 1;
+X  
+X--- 449,456 ----
+X  			*p = tolower(*p);
+X  		p++;
+X  		}
+X! #endif
+X! #ifdef DBM
+X  	k.dptr = id;
+X  	k.dsize = strlen(articleid) + 1;
+X  
+X***************
+X*** 499,507 ****
+X  #endif
+X  		return(0);
+X  		}
+X- 
+X  #ifdef DEBUG
+X  	(void) printf("new: '%s'\n", articleid);
+X  #endif
+X  	return(1);
+X  	}
+X--- 463,540 ----
+X  #endif
+X  		return(0);
+X  		}
+X  #ifdef DEBUG
+X  	(void) printf("new: '%s'\n", articleid);
+X  #endif
+X  	return(1);
+X+ #else
+X+ 	histfp = fopen(histfile(articleid), "r");
+X+ 	if (histfp == NULL) 
+X+ 		{
+X+ #ifdef DEBUG
+X+ 		(void) printf("new: '%s'\n", articleid);
+X+ #endif
+X+ 		return(1);
+X+ 		}
+X+ 	len = strlen(articleid);
+X+ 	while (fgets(line, sizeof (line), histfp))
+X+ 		if (!strncmp(articleid, line, len))
+X+ 			break;
+X+ 
+X+ 	if (feof(histfp)) {
+X+ 		(void) fclose(histfp);
+X+ #ifdef DEBUG
+X+ 		(void) printf("new: '%s'\n", articleid);
+X+ #endif
+X+ 		return (1);
+X  	}
+X+ 	(void) fclose(histfp);
+X+ #ifdef DEBUG
+X+ 	(void) printf("dup: '%s' %s\n", articleid,line);
+X+ #endif
+X+ 	return(0);
+X+ #endif
+X+ }
+X+ 
+X+ char *
+X+ errmsg(n)
+X+ register int	n;
+X+ {
+X+ 	extern	int	sys_nerr;
+X+ 	extern 	char	*sys_errlist[];
+X+ 
+X+ 	return((n >= 0 && n < sys_nerr) ? sys_errlist[n] : "unknown error");
+X+ }
+X+ 
+X+ #ifndef DBM
+X+ /*
+X+ ** Generate the appropriate history subfile name
+X+ */
+X+ char *
+X+ histfile(hline)
+X+ char *hline;
+X+ {
+X+ 	char chr;	/* least significant digit of article number */
+X+ 	static char subfile[BUFSIZ];
+X+ 
+X+ 	chr = findhfdigit(hline);
+X+ 	sprintf(subfile, "%s.d/%c", HISTORY_FILE, chr);
+X+ 	return subfile;
+X+ }
+X+ 
+X+ findhfdigit(fn)
+X+ char *fn;
+X+ {
+X+ 	register char *p;
+X+ 	register int chr;
+X+ 
+X+ 	p = index(fn, '@');
+X+ 	if (p != NULL && p > fn)
+X+ 		chr = *(p - 1);
+X+ 	else
+X+ 		chr = '0';
+X+ 	if (!isdigit(chr))
+X+ 		chr = '0';
+X+ 	return chr;
+X+ }
+X+ #endif
+X*** README	Thu Oct 15 20:50:48 1987
+X--- ../../nntp.local/xfer/README	Sat Nov 11 02:00:28 1989
+X***************
+X*** 2,9 ****
+X  other servers for news with NEWNEWS and gets it via the article
+X  command.
+X  
+X! No docs, sorry.  It's unsupported (like the rest of the stuff is???).
+X! Read the source code.
+X  
+X! Originally written by Brian Kantor <brian@sdcsvax.ucsd.edu>, with some
+X! bug fixes by Ambar <ambar@athena.mit.edu>.
+X--- 2,11 ----
+X  other servers for news with NEWNEWS and gets it via the article
+X  command.
+X  
+X! This program still remains largely undocuemented and experimental.
+X! PLEASE READ THE SOURCE for the best information. This will be more
+X! integrated into the NNTP distribution, but it is a slow process.
+X  
+X! Thanks.
+X! 
+X! Originally written by Brian Kantor.
+X*** Makefile	Sun Feb  7 01:37:00 1988
+X--- ../../nntp.local/xfer/Makefile	Tue Oct 10 01:47:45 1989
+X***************
+X*** 1,3 ****
+X--- 1,14 ----
+X+ LIBS=-lresolv -ldbm
+X+ CFLAGS= -g 
+X+ DEFS=-DBSD4_2
+X+ 
+X+ nntpxfer: nntpxfer.o get_tcp_conn.o
+X+ 	$(CC) $(LDFLAGS) nntpxfer.o get_tcp_conn.o -o nntpxfer $(LIBS)
+X+ 
+X+ get_tcp_conn.o: ../xmit/get_tcp_conn.c ../xmit/get_tcp_conn.h
+X+ 	$(CC) $(CFLAGS) $(DEFS) -I../xmit -c ../xmit/get_tcp_conn.c
+X+ 
+X+ nntpxfer.o: nntpxfer.c
+X  
+X  clean:
+X  	-rm -f *.o nntpxfer make*.out
+END_OF_FILE
+if test 11039 -ne `wc -c <'xfer/xfer.diff'`; then
+    echo shar: \"'xfer/xfer.diff'\" unpacked with wrong size!
+fi
+# end of 'xfer/xfer.diff'
+fi
+if test -f 'xmit/xmit.diff' -a "${1}" != "-c" ; then 
+  echo shar: Will not clobber existing file \"'xmit/xmit.diff'\"
+else
+echo shar: Extracting \"'xmit/xmit.diff'\" \(9289 characters\)
+sed "s/^X//" >'xmit/xmit.diff' <<'END_OF_FILE'
+X*** nntpxmit.c	Mon Nov 13 23:01:46 1989
+X--- ../../nntp.local/xmit/nntpxmit.c	Mon Oct 30 01:15:09 1989
+X***************
+X*** 59,64 ****
+X--- 59,65 ----
+X  ** Erik E. Fair <fair@ucbarpa.berkeley.edu>, Dec 4, 1987
+X  */
+X  
+X+ #include "../common/conf.h"
+X  #include "nntpxmit.h"
+X  #include <stdio.h>
+X  #include <errno.h>
+X***************
+X*** 187,197 ****
+X  
+X  #ifdef	SYSLOG
+X  	/* 4.2 BSD openlog has only two args */
+X! #ifdef	LOG_LOCAL7
+X! 	(void) openlog(Pname, LOG_PID, LOG_LOCAL7);
+X! #else
+X  	(void) openlog(Pname, LOG_PID);
+X! #endif	LOG_LOCAL_7
+X  #endif	SYSLOG
+X  #ifdef	USELOG
+X  	if ((Logfp = fopen(NNTPlog, amode)) == (FILE *)NULL) {
+X--- 188,198 ----
+X  
+X  #ifdef	SYSLOG
+X  	/* 4.2 BSD openlog has only two args */
+X! #ifdef	BSD_42
+X  	(void) openlog(Pname, LOG_PID);
+X! #else
+X! 	(void) openlog(Pname, LOG_PID, SYSLOG);
+X! #endif	BSD_42
+X  #endif	SYSLOG
+X  #ifdef	USELOG
+X  	if ((Logfp = fopen(NNTPlog, amode)) == (FILE *)NULL) {
+X*** nntpxmit.h	Mon Nov 13 23:04:13 1989
+X--- ../../nntp.local/xmit/nntpxmit.h	Sun Oct 29 23:58:32 1989
+X***************
+X*** 6,19 ****
+X  ** to your liking, look them over carefully.
+X  */
+X  
+X  #define SIGRET void	/* Newfangled signal() returns void, old returns int */
+X  
+X- 
+X  typedef	SIGRET	(*ifunp)();	/* pointer to function that returns */
+X  				/* whatever signal() returns */
+X  
+X  #define	dprintf	if (Debug) fprintf
+X  
+X  #define	TIMEOUT	3600		/* seconds to read timeout in sfgets */
+X  
+X  #ifndef	TRUE
+X--- 6,24 ----
+X  ** to your liking, look them over carefully.
+X  */
+X  
+X+ #ifdef SIGRET
+X+ #undef SIGRET
+X+ #endif
+X  #define SIGRET void	/* Newfangled signal() returns void, old returns int */
+X  
+X  typedef	SIGRET	(*ifunp)();	/* pointer to function that returns */
+X  				/* whatever signal() returns */
+X  
+X  #define	dprintf	if (Debug) fprintf
+X  
+X+ #ifdef TIMEOUT
+X+ #undef TIMEOUT
+X+ #endif
+X  #define	TIMEOUT	3600		/* seconds to read timeout in sfgets */
+X  
+X  #ifndef	TRUE
+X***************
+X*** 66,72 ****
+X  
+X  #ifdef	BSD4_2			/* look at all these goodies we get! */
+X  #define	FTRUNCATE
+X! #define	SYSLOG
+X  #define	RELSIG
+X  #endif	BSD4_2
+X  
+X--- 71,79 ----
+X  
+X  #ifdef	BSD4_2			/* look at all these goodies we get! */
+X  #define	FTRUNCATE
+X! #ifndef SYSLOG
+X! #define	SYSLOG LOG_LOCAL6
+X! #endif
+X  #define	RELSIG
+X  #endif	BSD4_2
+X  
+X*** shlock.c	Thu Dec 17 19:08:20 1987
+X--- ../../nntp.local/xmit/shlock.c	Mon Nov 13 03:25:20 1989
+X***************
+X*** 17,22 ****
+X--- 17,28 ----
+X  **	this program, only 4.3 BSD has ftruncate(2).
+X  **
+X  ** Erik E. Fair <fair@ucbarpa.berkeley.edu>, November 8, 1987
+X+ **
+X+ ** Extensions for UUCP style locks (i.e. pid is an int in the file,
+X+ ** rather than an ASCII string). Also fix long standing bug with
+X+ ** full file systems and temporary files.
+X+ **
+X+ ** Erik E. Fair <fair@apple.com>, November 12, 1989
+X  */
+X  
+X  #include <stdio.h>
+X***************
+X*** 40,46 ****
+X  
+X  int	Debug = FALSE;
+X  char	*Pname;
+X! char	*USAGE = "%s: USAGE: shlock -f file -p pid [-d]\n";
+X  char	*errmsg();
+X  char	*xtmpfile();
+X  
+X--- 46,55 ----
+X  
+X  int	Debug = FALSE;
+X  char	*Pname;
+X! char	*USAGE = "%s: USAGE: shlock -f file -p pid [-d][-u]\n";
+X! char	*E_unlk = "%s: unlink(%s): %s\n";
+X! char	*E_open = "%s: open(%s): %s\n";
+X! 
+X  char	*errmsg();
+X  char	*xtmpfile();
+X  
+X***************
+X*** 58,63 ****
+X--- 67,73 ----
+X  	register int	x;
+X  	char	*file;
+X  	int	pid;
+X+ 	int	uucpstyle = FALSE;	/* indicating UUCP style locks */
+X  
+X  	Pname = ((Pname = rindex(av[0], '/')) ? Pname + 1 : av[0]);
+X  
+X***************
+X*** 64,69 ****
+X--- 74,82 ----
+X  	for(x = 1; x < ac; x++) {
+X  		if (av[x][0] == '-') {
+X  			switch(av[x][1]) {
+X+ 			case 'u':
+X+ 				uucpstyle = TRUE;
+X+ 				break;
+X  			case 'd':
+X  				Debug = TRUE;
+X  				break;
+X***************
+X*** 92,98 ****
+X  		exit(LOCK_FAIL);
+X  	}
+X  
+X! 	exit(mklock(file, pid) ? LOCK_SET : LOCK_FAIL);
+X  }
+X  
+X  char *
+X--- 105,111 ----
+X  		exit(LOCK_FAIL);
+X  	}
+X  
+X! 	exit(mklock(file, pid, uucpstyle) ? LOCK_SET : LOCK_FAIL);
+X  }
+X  
+X  char *
+X***************
+X*** 105,120 ****
+X  	return((n >= 0 && n < sys_nerr) ? sys_errlist[n] : "unknown error");
+X  }
+X  
+X! mklock(file, pid)
+X  char	*file;
+X  int	pid;
+X  {
+X  	register char	*tmp;
+X  	register int	retcode = FALSE;
+X- 	char	*e_unlk = "%s: unlink(%s): %s\n";
+X  
+X  	dprintf("%s: trying lock <%s> for process %d\n", Pname, file, pid);
+X! 	if ((tmp = xtmpfile(file, pid)) == (char *)NULL)
+X  		return(FALSE);
+X  
+X  linkloop:
+X--- 118,132 ----
+X  	return((n >= 0 && n < sys_nerr) ? sys_errlist[n] : "unknown error");
+X  }
+X  
+X! mklock(file, pid, uucpstyle)
+X  char	*file;
+X  int	pid;
+X  {
+X  	register char	*tmp;
+X  	register int	retcode = FALSE;
+X  
+X  	dprintf("%s: trying lock <%s> for process %d\n", Pname, file, pid);
+X! 	if ((tmp = xtmpfile(file, pid, uucpstyle)) == (char *)NULL)
+X  		return(FALSE);
+X  
+X  linkloop:
+X***************
+X*** 122,128 ****
+X  		switch(errno) {
+X  		case EEXIST:
+X  			dprintf("%s: lock <%s> already exists\n", Pname, file);
+X! 			if (cklock(file)) {
+X  				dprintf("%s: extant lock is valid\n", Pname);
+X  				break;
+X  			} else {
+X--- 134,140 ----
+X  		switch(errno) {
+X  		case EEXIST:
+X  			dprintf("%s: lock <%s> already exists\n", Pname, file);
+X! 			if (cklock(file, uucpstyle)) {
+X  				dprintf("%s: extant lock is valid\n", Pname);
+X  				break;
+X  			} else {
+X***************
+X*** 129,135 ****
+X  				dprintf("%s: lock is invalid, removing\n",
+X  					Pname);
+X  				if (unlink(file) < 0) {
+X! 					fprintf(stderr, e_unlk,
+X  						Pname, file, errmsg(errno));
+X  					break;
+X  				}
+X--- 141,147 ----
+X  				dprintf("%s: lock is invalid, removing\n",
+X  					Pname);
+X  				if (unlink(file) < 0) {
+X! 					fprintf(stderr, E_unlk,
+X  						Pname, file, errmsg(errno));
+X  					break;
+X  				}
+X***************
+X*** 149,155 ****
+X  		retcode = TRUE;
+X  	}
+X  	if (unlink(tmp) < 0) {
+X! 		fprintf(stderr, e_unlk, Pname, tmp, errmsg(errno));
+X  	}
+X  	return(retcode);
+X  }
+X--- 161,167 ----
+X  		retcode = TRUE;
+X  	}
+X  	if (unlink(tmp) < 0) {
+X! 		fprintf(stderr, E_unlk, Pname, tmp, errmsg(errno));
+X  	}
+X  	return(retcode);
+X  }
+X***************
+X*** 199,218 ****
+X  **
+X  */
+X  
+X! cklock(file)
+X  char	*file;
+X  {
+X  	register int	fd = open(file, O_RDONLY);
+X  	register int	len;
+X  	char	buf[BUFSIZ];
+X  
+X  	dprintf("%s: checking extant lock <%s>\n", Pname, file);
+X  	if (fd < 0) {
+X! 		fprintf(stderr,"%s: open(%s): %s\n", Pname, file, errmsg(errno));
+X  		return(TRUE);	/* might or might not; conservatism */
+X  	}
+X  
+X! 	if ((len = read(fd, buf, sizeof(buf))) <= 0) {
+X  		close(fd);
+X  		dprintf("%s: lock file format error\n", Pname);
+X  		return(FALSE);
+X--- 211,235 ----
+X  **
+X  */
+X  
+X! cklock(file, uucpstyle)
+X  char	*file;
+X+ int	uucpstyle;
+X  {
+X  	register int	fd = open(file, O_RDONLY);
+X  	register int	len;
+X+ 	int	pid;
+X  	char	buf[BUFSIZ];
+X  
+X  	dprintf("%s: checking extant lock <%s>\n", Pname, file);
+X  	if (fd < 0) {
+X! 		fprintf(stderr, E_open, Pname, file, errmsg(errno));
+X  		return(TRUE);	/* might or might not; conservatism */
+X  	}
+X  
+X! 	if (uucpstyle ?
+X! 		((len = read(fd, &pid, sizeof(pid))) != sizeof(pid)) :
+X! 		((len = read(fd, buf, sizeof(buf))) <= 0))
+X! 	{
+X  		close(fd);
+X  		dprintf("%s: lock file format error\n", Pname);
+X  		return(FALSE);
+X***************
+X*** 219,225 ****
+X  	}
+X  	close(fd);
+X  	buf[len + 1] = '\0';
+X! 	return(p_exists(atoi(buf)));
+X  }
+X  
+X  /*
+X--- 236,242 ----
+X  	}
+X  	close(fd);
+X  	buf[len + 1] = '\0';
+X! 	return(p_exists(uucpstyle ? pid : atoi(buf)));
+X  }
+X  
+X  /*
+X***************
+X*** 229,237 ****
+X  ** which might not be in the same filesystem.
+X  */
+X  char *
+X! xtmpfile(file, pid)
+X  char	*file;
+X! int	pid;
+X  {
+X  	register int	fd;
+X  	register int	len;
+X--- 246,254 ----
+X  ** which might not be in the same filesystem.
+X  */
+X  char *
+X! xtmpfile(file, pid, uucpstyle)
+X  char	*file;
+X! int	pid, uucpstyle;
+X  {
+X  	register int	fd;
+X  	register int	len;
+X***************
+X*** 255,261 ****
+X  			dprintf("%s: file %s exists already.\n",
+X  				Pname, tempname);
+X  			if (unlink(tempname) < 0) {
+X! 				fprintf(stderr, "%s: unlink(%s): %s\n",
+X  					Pname, tempname, errmsg(errno));
+X  				return((char *)NULL);
+X  			}
+X--- 272,278 ----
+X  			dprintf("%s: file %s exists already.\n",
+X  				Pname, tempname);
+X  			if (unlink(tempname) < 0) {
+X! 				fprintf(stderr, E_unlk,
+X  					Pname, tempname, errmsg(errno));
+X  				return((char *)NULL);
+X  			}
+X***************
+X*** 264,270 ****
+X  			*/
+X  			goto openloop;
+X  		default:
+X! 			fprintf(stderr, "%s: open(%s): %s\n",
+X  				Pname, tempname, errmsg(errno));
+X  			return((char *)NULL);
+X  		}
+X--- 281,287 ----
+X  			*/
+X  			goto openloop;
+X  		default:
+X! 			fprintf(stderr, E_open,
+X  				Pname, tempname, errmsg(errno));
+X  			return((char *)NULL);
+X  		}
+X***************
+X*** 275,284 ****
+X  	** to the actual lock file. That way we have a valid lock the instant
+X  	** the link succeeds.
+X  	*/
+X! 	if (write(fd, buf, len) < 0) {
+X  		fprintf(stderr, "%s: write(%s,%d): %s\n",
+X  			Pname, tempname, pid, errmsg(errno));
+X  		(void) close(fd);
+X  		return((char *)NULL);
+X  	}
+X  	(void) close(fd);
+X--- 292,308 ----
+X  	** to the actual lock file. That way we have a valid lock the instant
+X  	** the link succeeds.
+X  	*/
+X! 	if (uucpstyle ?
+X! 		(write(fd, &pid, sizeof(pid)) != sizeof(pid)) :
+X! 		(write(fd, buf, len) < 0))
+X! 	{
+X  		fprintf(stderr, "%s: write(%s,%d): %s\n",
+X  			Pname, tempname, pid, errmsg(errno));
+X  		(void) close(fd);
+X+ 		if (unlink(tempname) < 0) {
+X+ 			fprintf(stderr, E_unlk,
+X+ 				Pname, tempname, errmsg(errno));
+X+ 		}
+X  		return((char *)NULL);
+X  	}
+X  	(void) close(fd);
+END_OF_FILE
+if test 9289 -ne `wc -c <'xmit/xmit.diff'`; then
+    echo shar: \"'xmit/xmit.diff'\" unpacked with wrong size!
+fi
+# end of 'xmit/xmit.diff'
+fi
+echo shar: End of shell archive.
+exit 0

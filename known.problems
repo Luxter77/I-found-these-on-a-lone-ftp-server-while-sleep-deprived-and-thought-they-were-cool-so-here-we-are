@@ -1,0 +1,89 @@
+1This one-line change to relay/control.c will avoid creating $NEWSARTS/fake:
+113c113
+< 	art->a_status |= synccaches();
+---
+> 	art->a_status |= actsync();
+
+
+Failure of the exploder regression test is a known problem (some tars
+don't make empty directories).  The fix should be as follows:
+
+#! /bin/sh
+cd explode/regress
+mkdir master/out.going master/out.going/bar master/out.going/baz 2>/dev/null
+mkdir master/out.going/foo out/out.going out/out.going/bar 2>/dev/null
+mkdir out/out.going/baz out/out.going/foo 2>/dev/null
+>>master/out.going/bar/togo
+>>master/out.going/baz/togo
+>>master/out.going/foo/togo
+>>out/out.going/bar/togo
+>>out/out.going/baz/togo
+>>out/out.going/foo/togo
+
+
+Empty Expires: headers (such as produced by Pnews) are not just quietly
+deleted by inews.  The fix is to misc/canonhdr.c:
+
+122c122,123
+< 		    STREQN(nhdr, expiresnm, STRLEN(expiresnm))) {
+---
+> 		    STREQN(nhdr, expiresnm, STRLEN(expiresnm)) &&
+> 		    nonnull(nhdr+STRLEN(expiresnm))) {
+139a141,149
+> }
+> 
+> int
+> nonnull(s)
+> char *s;
+> {
+> 	register char *nwp = skipsp(s);
+> 
+> 	return *nwp != '\n' && *nwp != '\0';
+
+
+Sites with the SysV tr need to execute this before building C News:
+
+rm inject/stripinvis
+
+
+The UCB passwd file GCOS field "&" hack in inject/fullname.c contains a
+bug; here's the fix:
+
+50c50
+< 		(void) strcat(newgcos, cap);
+---
+> 		(void) strcpy(newgcos + (delim - gcos), cap);
+
+
+inject/pnews refers to a command named "ersh", which we didn't ship.
+Change "ersh" to "rsh" for now.
+
+
+relay/ctl/alternate is obsolete and interferes with installation; the fix is
+
+rm -rf relay/ctl/alternate
+
+
+The clever dicks on the POSIX committees gratuitously changed the return
+types of a bunch of "standard" functions, in the grand ANSI C tradition
+("preserve existing correct code"?  just say no).  A particularly
+annoying one is that umask now returns a mode_t, not an int.  If you
+can't compile C News because your system has been posixiated, the quick
+fix is:
+
+(echo 'g/umask/d'; echo w) | ed h/libc.h
+
+
+inject/actflag quits early if it encounters a group that is not known
+locally.  This diff to inject/actflag.c fixes it:
+
+77,79c77
+< 		if (actent == NULL)		/* group not known locally? */
+< 			continue;		/* keep trying */
+< 
+---
+> 		if (actent != NULL) {		/* group known locally? */
+113c111
+< 
+---
+> 		}

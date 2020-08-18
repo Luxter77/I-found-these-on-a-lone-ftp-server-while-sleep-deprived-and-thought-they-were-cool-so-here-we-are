@@ -1,0 +1,298 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 7-Sep-1990
+
+This cleans up the exceedingly obscure relaying bug in the 1-Sep patch,
+and beefs up the relaynews regression test considerably.  (It also adds
+an item in notebook/problems that just happened to come along last week.)
+
+start of patch 7-Sep-1990
+(suggested archive name: `pch7Sep90.Z')
+this should be run with   patch -p0 <thisfile
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+*** PATCHDATES.old	Fri Sep  7 13:53:29 1990
+--- PATCHDATES	Fri Sep  7 13:53:29 1990
+***************
+*** 1,17 ****
+--- 1,18 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
++ 7-Sep-1990
+
+Changed files, if any:
+
+*** cnpatch/old/libcnews/string.c	Wed Sep  5 15:46:32 1990
+--- libcnews/string.c	Thu Sep  6 19:00:29 1990
+***************
+*** 272,276 ****
+  		if (nxpathp == NULL)
+  			return NULL;		/* path exhausted */
+! 		if (STREQN(pathp, host, hostlen) == 0 &&
+  		    (pathp == path || nothostchar(pathp[-1])) &&
+  		    nothostchar(pathp[hostlen]))
+--- 272,277 ----
+  		if (nxpathp == NULL)
+  			return NULL;		/* path exhausted */
+! 		pathp = nxpathp;
+! 		if (STREQN(pathp, host, hostlen) &&
+  		    (pathp == path || nothostchar(pathp[-1])) &&
+  		    nothostchar(pathp[hostlen]))
+
+*** cnpatch/old/notebook/problems	Wed Sep  5 15:46:34 1990
+--- notebook/problems	Fri Sep  7 13:32:35 1990
+***************
+*** 520,521 ****
+--- 520,537 ----
+  .DE
+  This command should output nothing.
++ .SH
++ Values of Logical Operators
++ .PP
++ There seem to
++ be compilers, e.g. the Ultrix one on DEC's new RISC workstations,
++ that go into convulsions when they see something like
++ .DS
++ *p++ = isascii(c) && isalnum(c);
++ .DE
++ because they don't know how to generate a numeric value for `&&'.
++ One or two places in C News use constructs like this.
++ If you run into this, you might
++ want to try replacing the
++ right-hand side
++ with something like ``(...)\ ?\ 1\ :\ 0'' to get the
++ troublesome operator back into a conditional context.
+
+*** cnpatch/old/relay/regress/master/art1	Tue Jun 20 19:00:40 1989
+--- relay/regress/master/art1	Thu Sep  6 18:51:13 1990
+***************
+*** 1,3 ****
+! Path: host!user
+  From: user@host
+  Message-ID: <#1@host>
+--- 1,3 ----
+! Path: host!foo!user
+  From: user@host
+  Message-ID: <#1@host>
+***************
+*** 4,6 ****
+  Newsgroups: test.a
+  
+! ## This should appear in test/a/1
+--- 4,6 ----
+  Newsgroups: test.a
+  
+! ## This should appear in test/a/1 and not be sent to foo
+
+*** cnpatch/old/relay/regress/master/batch	Tue Jun 20 19:00:42 1989
+--- relay/regress/master/batch	Thu Sep  6 19:03:41 1990
+***************
+*** 1,4 ****
+! #! rnews 108
+! Path: host!user
+  From: user@host
+  Message-ID: <#1@host>
+--- 1,4 ----
+! #! rnews 135
+! Path: host!foo!user
+  From: user@host
+  Message-ID: <#1@host>
+***************
+*** 5,9 ****
+  Newsgroups: test.a
+  
+! ## This should appear in test/a/1
+  #! rnews 108
+  Path: host!user
+--- 5,9 ----
+  Newsgroups: test.a
+  
+! ## This should appear in test/a/1 and not be sent to foo
+  #! rnews 108
+  Path: host!user
+
+*** cnpatch/old/relay/regress/master/sys	Tue Jun 20 19:00:45 1989
+--- relay/regress/master/sys	Thu Sep  6 18:50:14 1990
+***************
+*** 1,2 ****
+--- 1,4 ----
+  ME:all
+  foo:all:f:/dev/null
++ bar:all:f:/dev/null
++ baz:all:f:/dev/null
+
+*** cnpatch/old/relay/regress/out/art1	Tue Jun 20 19:00:29 1989
+--- relay/regress/out/art1	Thu Sep  6 19:03:41 1990
+***************
+*** 1,3 ****
+! Path: host!user
+  From: user@host
+  Message-ID: <#1@host>
+--- 1,3 ----
+! Path: host!foo!user
+  From: user@host
+  Message-ID: <#1@host>
+***************
+*** 4,6 ****
+  Newsgroups: test.a
+  
+! ## This should appear in test/a/1
+--- 4,6 ----
+  Newsgroups: test.a
+  
+! ## This should appear in test/a/1 and not be sent to foo
+
+*** cnpatch/old/relay/regress/out/batch	Tue Jun 20 19:00:31 1989
+--- relay/regress/out/batch	Thu Sep  6 19:03:42 1990
+***************
+*** 1,4 ****
+! #! rnews 108
+! Path: host!user
+  From: user@host
+  Message-ID: <#1@host>
+--- 1,4 ----
+! #! rnews 135
+! Path: host!foo!user
+  From: user@host
+  Message-ID: <#1@host>
+***************
+*** 5,9 ****
+  Newsgroups: test.a
+  
+! ## This should appear in test/a/1
+  #! rnews 108
+  Path: host!user
+--- 5,9 ----
+  Newsgroups: test.a
+  
+! ## This should appear in test/a/1 and not be sent to foo
+  #! rnews 108
+  Path: host!user
+
+*** cnpatch/old/relay/regress/out/log	Tue Jun 20 19:00:33 1989
+--- relay/regress/out/log	Fri Sep  7 04:01:13 1990
+***************
+*** 1,5 ****
+! TIME host + <#1@host> foo
+! TIME host + <#2@host> foo
+! TIME host + <#3@host> foo
+! TIME host + <#4@host> foo
+! TIME host + <#5@host> foo
+--- 1,5 ----
+! TIME host + <#1@host> bar baz
+! TIME host + <#2@host> foo bar baz
+! TIME host + <#3@host> foo bar baz
+! TIME host + <#4@host> foo bar baz
+! TIME host + <#5@host> foo bar baz
+
+*** cnpatch/old/relay/regress/out/sys	Tue Jun 20 19:00:34 1989
+--- relay/regress/out/sys	Thu Sep  6 18:53:13 1990
+***************
+*** 1,2 ****
+--- 1,4 ----
+  ME:all
+  foo:all:f:/dev/null
++ bar:all:f:/dev/null
++ baz:all:f:/dev/null
+
+*** cnpatch/old/relay/regress/out/test/a/1	Tue Jun 20 19:00:36 1989
+--- relay/regress/out/test/a/1	Thu Sep  6 19:05:23 1990
+***************
+*** 1,3 ****
+! Path: hostb!host!user
+  From: user@host
+  Message-ID: <#1@host>
+--- 1,3 ----
+! Path: hostb!host!foo!user
+  From: user@host
+  Message-ID: <#1@host>
+***************
+*** 4,6 ****
+  Newsgroups: test.a
+  
+! ## This should appear in test/a/1
+--- 4,6 ----
+  Newsgroups: test.a
+  
+! ## This should appear in test/a/1 and not be sent to foo
+
+*** cnpatch/old/relay/transmit.c	Wed Sep  5 15:46:36 1990
+--- relay/transmit.c	Thu Sep  6 19:14:47 1990
+***************
+*** 92,95 ****
+--- 92,99 ----
+  		nnfree(&canpath);
+  		canpath = canonpath(art->h.h_path, art->h.h_approved, art->h.h_sender);
++ #ifdef notdef			/* DEBUG */
++ 		fprintf(stderr, "path=%s canonpath=%s\n", art->h.h_path,
++ 			canpath);
++ #endif
+  	}
+  	path = canpath;
+
+Files that are new:
+
+new relay/regress/master/mkbatch (patch can't create, so diff against null):
+Index: relay/regress/master/mkbatch
+*** cnpatch/old/relay/regress/master/mkbatch	Fri Sep  7 13:58:02 1990
+--- relay/regress/master/mkbatch	Thu Sep  6 19:03:30 1990
+***************
+*** 0 ****
+--- 1,7 ----
++ #! /bin/sh
++ for art
++ do
++ 	bytes=`wc -c <$art`
++ 	echo "#! rnews `echo $bytes`"
++ 	cat $art
++ done
+
+new relay/regress/out/mkbatch (patch can't create, so diff against null):
+Index: relay/regress/out/mkbatch
+*** cnpatch/old/relay/regress/out/mkbatch	Fri Sep  7 13:58:03 1990
+--- relay/regress/out/mkbatch	Fri Sep  7 04:00:57 1990
+***************
+*** 0 ****
+--- 1,7 ----
++ #! /bin/sh
++ for art
++ do
++ 	bytes=`wc -c <$art`
++ 	echo "#! rnews `echo $bytes`"
++ 	cat $art
++ done
+
+
+end of patch 7-Sep-1990

@@ -1,0 +1,759 @@
+#! /bin/sh
+# This is a shell archive, meaning:
+# 1. Remove everything above the #! /bin/sh line.
+# 2. Save the resulting text in a file.
+# 3. Execute the file with /bin/sh (not csh) to create:
+#	README.1.5.5
+#	CHANGES.diff
+#	common/common.diff
+#	server/server.diff
+#	support/support.diff
+#	xmit/xmit.diff
+# This archive created: Mon Jun  5 02:39:52 1989
+export PATH; PATH=/bin:/usr/bin:$PATH
+echo shar: "extracting 'README.1.5.5'" '(1495 characters)'
+if test -f 'README.1.5.5'
+then
+	echo shar: "will not over-write existing file 'README.1.5.5'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'README.1.5.5'
+	XWelcome to patch number 5 for NNTP 1.5.
+	X
+	X	If you have not installed the first four patches, you must do so
+	X	before proceeding. You can get those patches (and this one) from
+	X	anoymous ftp on bcm.tmc.edu [128.249.2.1] or by sending a message
+	X	to the archive-server@bcm.tmc.edu with the following text:
+	X	send public nntp.patch.1
+	X	send public nntp.patch.2
+	X	send public nntp.patch.3
+	X	send public nntp.patch.4.shar
+	X
+	X	If you have all four patches installed, you are ready to install
+	X	this set of patches. These patches are packaged as a shell archive.
+	X	They are as follows:
+	X	CHANGES.diff  -- This will patch the CHANGES file in the root
+	X	of the nntp distrbution to reflect changes since the release of 1.5.
+	X	server.diff -- This patch is for the files in the server subdirectory.
+	X	To install, change directory to the server directory and type
+	X	patch < server.diff.
+	X	common.diff -- This patch is for the files in the common sub-
+	X	directory. To install, change directory to the common directory
+	X	and type patch < common.diff
+	X	xmit.diff -- This is a patch for nntpxmit.c in the xmit directory.
+	X	To install, change directory to the xmit directory and type
+	X	patch < xmit.diff.
+	X	support.diff -- This patch is for the files in the support sub-
+	X	directory. To install, change directory to the support directory
+	X	and type patch < support.diff.
+	X
+	XPlease read the CHANGES file (following application of the patch) for
+	Xa list of new features.
+	X
+	XBug reports and enhancements welcome,
+	XStan Barber
+	X
+	Xsob@bcm.tmc.edu
+	X
+	X
+	X
+	X
+	X
+SHAR_EOF
+if test 1495 -ne "`wc -c < 'README.1.5.5'`"
+then
+	echo shar: "error transmitting 'README.1.5.5'" '(should have been 1495 characters)'
+fi
+fi
+echo shar: "extracting 'CHANGES.diff'" '(2755 characters)'
+sed 's/^	X//' << \SHAR_EOF > 'CHANGES.diff'
+	X*** CHANGES~	Mon Aug 28 00:52:50 1989
+	X--- CHANGES	Mon Aug 28 01:08:45 1989
+	X***************
+	X*** 1,8 ****
+	X- 
+	X      This file describes the changes which have been made in NNTP
+	X  since the initial release.  Individuals who either reported or
+	X  inspired the bug/bug fix are in square brackets.
+	X  
+	X  1.5.4	May 11, 1989
+	X  	README and documentation updated to reflect reality. [sob@bcm.tmc.edu]
+	X  	Added HIDDENNET support (like news 2.11.17) to nntp "fake-inews."
+	X--- 1,22 ----
+	X      This file describes the changes which have been made in NNTP
+	X  since the initial release.  Individuals who either reported or
+	X  inspired the bug/bug fix are in square brackets.
+	X  
+	X+ 1.5.5	June 5, 1989
+	X+ 	Bug fix to server.c which allows TIMEOUT to be included correctly.
+	X+ 	[ marcl@vax.SPD.3Com.COM (Marc Lavine) ]
+	X+ 	Bug fix to mkgrdates. [ Tom Kloos <tomk%leia.wv.tek.com@RELAY.CS.NET>]
+	X+ 	Conf.h altered to properly set READ_SUPER on BSD 4.3 systems.
+	X+ 	[grandi@noao.edu]
+	X+ 	Bug fix to newnews.c to support GMT time stamps in 2.11 history file
+	X+ 	correctly.[Tom.Lane@ZOG.CS.CMU.EDU]
+	X+ 	Speed up to newnews.c to keep from chewing up so much CPU time.
+	X+ 	[ Rein Tollevik <rein@ifi.uio.no> ]
+	X+ 	More documentation fixes. [sob@bcm.tmc.edu]
+	X+ 	Added changes to deal with DGUX more effectively. [gary@svx.sv.dg.com]
+	X+ 	Changed parsit.c to deal with 255 character words instead of 132
+	X+ 	character words. [ dp@chorus.fr ]
+	X+ 	
+	X  1.5.4	May 11, 1989
+	X  	README and documentation updated to reflect reality. [sob@bcm.tmc.edu]
+	X  	Added HIDDENNET support (like news 2.11.17) to nntp "fake-inews."
+	X***************
+	X*** 15,23 ****
+	X  	written by sob@bcm.tmc.edu] (NOTE: Support for the TMNN history file
+	X  	format IS NOT in this release.)
+	X  	Extended the nntp_access file to include domain name suffix support.
+	X! 	[someone whose original message I lost :-(]
+	X  	Replaced the 4.2-like fakesyslog with 4.3-like fakesyslog.
+	X! 	[another someone whose original message I lost :-(]
+	X  1.5.3	September 18, 1988
+	X  	Under the USGHIST option, the history file was not being closed
+	X  	before the next article coming in (via XFER) was processed. After
+	X--- 29,39 ----
+	X  	written by sob@bcm.tmc.edu] (NOTE: Support for the TMNN history file
+	X  	format IS NOT in this release.)
+	X  	Extended the nntp_access file to include domain name suffix support.
+	X!  	[esj@banana.cis.ufl.edu (Eric S. Johnson)]
+	X  	Replaced the 4.2-like fakesyslog with 4.3-like fakesyslog.
+	X!  	[John Robert LoVerso <loverso@xenna.encore.com>]
+	X!  	Bug fix to the newnews command to make it show the first article
+	X!  	posted since the specified time/date. [mg@ukc.ac.uk (M.W.Guy)]
+	X  1.5.3	September 18, 1988
+	X  	Under the USGHIST option, the history file was not being closed
+	X  	before the next article coming in (via XFER) was processed. After
+SHAR_EOF
+if test 2755 -ne "`wc -c < 'CHANGES.diff'`"
+then
+	echo shar: "error transmitting 'CHANGES.diff'" '(should have been 2755 characters)'
+fi
+if test -d common
+then
+echo shar: "entering 'common' directory"
+cd common
+echo shar: "extracting 'common.diff'" '(2319 characters)'
+sed 's/^	X//' << \SHAR_EOF > 'common.diff'
+	X*** version.c	Sat Jan 14 23:22:11 1989
+	X--- ../../nntp_patch/common/version.c	Sun Jun  4 20:46:17 1989
+	X***************
+	X*** 2,5 ****
+	X   * Provide the version number of this release.
+	X   */
+	X  
+	X! char	nntp_version[] = "1.5.4 (11 May 89)";
+	X--- 2,5 ----
+	X   * Provide the version number of this release.
+	X   */
+	X  
+	X! char	nntp_version[] = "1.5.5 (5 June 89)";
+	X*** conf.h	Sat Jan 14 23:22:10 1989
+	X--- ../../nntp_patch/common/conf.h	Sun Jun  4 20:45:59 1989
+	X***************
+	X*** 29,34 ****
+	X--- 29,35 ----
+	X  
+	X  #define MINFREE 4000	/* NNTP will not allow an XFER if there is less */
+	X  			/* than this much diskspace (in blocks) */
+	X+ #define POSTBUFFER 1000
+	X  /*
+	X   * If you DON'T have vfork, make this "#define vfork fork"
+	X   * vfork will speed up article transfer nntpds by about 2.5 times.
+	X***************
+	X*** 84,89 ****
+	X--- 85,99 ----
+	X  #   endif not USGHIST
+	X  #endif USG
+	X  
+	X+ #ifdef BSD_43		/* And now more assumptions! */
+	X+ #	ifndef READ_SUPER
+	X+ #		define READ_SUPER
+	X+ #	endif
+	X+ #	ifndef NDBM
+	X+ #		define NDBM
+	X+ #	endif
+	X+ #endif
+	X+ 
+	X  #undef	IHAVE_DEBUG	/* Copious debugging output from ihave */
+	X  
+	X  #define	XHDR		/* Optional XHDR command.  Defining this will */
+	X***************
+	X*** 91,97 ****
+	X  			/* the server more.  If your server is heavily */
+	X  			/* loaded already, defining this may be a bad idea */
+	X  
+	X! #undef	SUBNET		/* If you have 4.3 subnetting */
+	X  #undef	DAMAGED_NETMASK	/* If your subnet mask is not a multiple of */
+	X  			/* four bits (e.g., UCSD) */
+	X  
+	X--- 101,107 ----
+	X  			/* the server more.  If your server is heavily */
+	X  			/* loaded already, defining this may be a bad idea */
+	X  
+	X! #define	SUBNET		/* If you have 4.3 subnetting */
+	X  #undef	DAMAGED_NETMASK	/* If your subnet mask is not a multiple of */
+	X  			/* four bits (e.g., UCSD) */
+	X  
+	X***************
+	X*** 117,123 ****
+	X--- 127,137 ----
+	X  
+	X  #ifdef USG
+	X  # define	FCNTL			/* If O_etc is defined in <fcntl.h> */
+	X+ #ifdef dgux
+	X+ #define		FTRUNCATE
+	X+ #else
+	X  # define	NDIR			/* If you need ndir library support */
+	X+ #endif
+	X  # define	index	strchr
+	X  # define	rindex	strrchr
+	X  # ifdef U_LONG
+	X***************
+	X*** 170,176 ****
+	X   * e.g.  #define	DOMAIN		"berkeley.edu"
+	X   */
+	X  
+	X! #define	DOMAIN	"bcm.tmc.edu"
+	X  #undef HIDDENNET
+	X  
+	X  /*
+	X--- 184,190 ----
+	X   * e.g.  #define	DOMAIN		"berkeley.edu"
+	X   */
+	X  
+	X! #define	DOMAIN	"tmc.edu"
+	X  #undef HIDDENNET
+	X  
+	X  /*
+SHAR_EOF
+if test 2319 -ne "`wc -c < 'common.diff'`"
+then
+	echo shar: "error transmitting 'common.diff'" '(should have been 2319 characters)'
+fi
+echo shar: done with 'common' directory
+cd ..
+else
+echo shar: directory 'common' missing!
+echo shar: quiting
+exit 1
+fi
+if test -d server
+then
+echo shar: "entering 'server' directory"
+cd server
+echo shar: "extracting 'server.diff'" '(8083 characters)'
+sed 's/^	X//' << \SHAR_EOF > 'server.diff'
+	X*** access.c	Sat Feb  6 19:28:09 1988
+	X--- ../../nntp_patch/server/access.c	Mon May 29 00:53:09 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)access.c	1.19	(Berkeley) 2/6/88";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)access.c	1.20	(Berkeley) 5/11/89";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 173,180 ****
+	X  				continue;
+	X  			groups[0] = '\0';	/* No groups specified */
+	X  		}
+	X! 
+	X  		if (!strcasecmp(hostornet, host_name)) {
+	X  			*canread = (readperm[0] == 'r' || readperm[0] == 'R');
+	X  			*canxfer = (*canread || readperm[0] == 'X'
+	X  					     || readperm[0] == 'x');
+	X--- 173,183 ----
+	X  				continue;
+	X  			groups[0] = '\0';	/* No groups specified */
+	X  		}
+	X! #ifdef DOMAINMATCH
+	X!  		if (domainmatch(hostornet,host_name)) {
+	X! #else
+	X  		if (!strcasecmp(hostornet, host_name)) {
+	X+ #endif
+	X  			*canread = (readperm[0] == 'r' || readperm[0] == 'R');
+	X  			*canxfer = (*canread || readperm[0] == 'X'
+	X  					     || readperm[0] == 'x');
+	X***************
+	X*** 205,207 ****
+	X--- 208,245 ----
+	X  
+	X  	(void) fclose(acs_fp);
+	X  }
+	X+ #ifdef DOMAINMATCH
+	X+ 
+	X+ domainmatch(domainsuffix,hostname)
+	X+ char *domainsuffix,*hostname;
+	X+ {
+	X+  	char *i;
+	X+ 	int dlen;
+	X+ #ifdef LOG
+	X+ 	char * lineptr;
+	X+ 	lineptr = domainsuffix;
+	X+ #endif
+	X+ 
+	X+ 	if (!strcasecmp(domainsuffix,hostname)) 
+	X+ 		return (1);
+	X+ 
+	X+ 	if (*domainsuffix++ != '*')
+	X+ 		return (0);
+	X+ 
+	X+ 	if (*domainsuffix++ != '.' ){
+	X+ #ifdef SYSLOG
+	X+ 		syslog(LOG_ERR, "%s: no period following asterisk: %s",
+	X+ 			 accessfile, lineptr);
+	X+ #endif
+	X+ 		return (0);
+	X+ 	}
+	X+ 	dlen = strlen(domainsuffix);
+	X+ 
+	X+ 	hostname += (strlen(hostname)-strlen(domainsuffix));
+	X+ 
+	X+ 	if (!strcasecmp(domainsuffix,hostname)) 
+	X+ 		return (1);
+	X+ 
+	X+ 	return (0);
+	X+ }
+	X+ #endif DOMAINMATCH
+	X*** newnews.c	Sat Feb  6 19:29:07 1988
+	X--- ../../nntp_patch/server/newnews.c	Mon Jun  5 02:22:13 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)newnews.c	1.19	(Berkeley) 2/6/88";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)newnews.c	1.20	(Berkeley) 5/30/89";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 84,116 ****
+	X  	argc -= 4;
+	X  	argv += 4;
+	X  
+	X- 	/*
+	X- 	 * Flame on.  The history file is not stored in GMT, but
+	X- 	 * in local time.  So we have to convert GMT to local time
+	X- 	 * if we're given GMT, otherwise we need only chop off the
+	X- 	 * the seconds.  Such braindamage.
+	X- 	 */
+	X- 
+	X  	key = datebuf;		/* Unless they specify GMT */
+	X  
+	X  	if (argc > 0) {
+	X  		if (!strcasecmp(*argv, "GMT")) { /* Which we handle here */
+	X- 			date = dtol(datebuf);
+	X- 			if (date < 0) {
+	X- 				printf("%d Invalid date specification.\r\n",
+	X- 					ERR_CMDSYN);
+	X- 				(void) fflush(stdout);
+	X- 				return;
+	X- 			}
+	X  			date = gmt_to_local(date);
+	X- 			key = ltod(date);
+	X  			++argv;
+	X  			--argc;
+	X  		}
+	X  	}
+	X  
+	X- 	/* So, key now points to the local time, but we need to zap secs */
+	X- 
+	X  	key[10] = '\0';
+	X  
+	X  	distcount = 0;
+	X--- 84,110 ----
+	X  	argc -= 4;
+	X  	argv += 4;
+	X  
+	X  	key = datebuf;		/* Unless they specify GMT */
+	X+ 	date = dtol(datebuf);
+	X+ 	if (date < 0) {
+	X+ 		printf("%d Invalid date specification.\r\n",ERR_CMDSYN);
+	X+ 		(void) fflush(stdout);
+	X+ 		return;
+	X+ 	}
+	X  
+	X  	if (argc > 0) {
+	X  		if (!strcasecmp(*argv, "GMT")) { /* Which we handle here */
+	X  			date = gmt_to_local(date);
+	X  			++argv;
+	X  			--argc;
+	X  		}
+	X  	}
+	X+ 	/* now we convert from local to GMT since this is what history */
+	X+ 	/* file in News 2.11 expects */
+	X+ 	date = local_to_gmt(date);
+	X+ 	key = ltod(date);	
+	X+ 	/* So, key now points to the GMT time, but we need to zap secs */
+	X  
+	X  	key[10] = '\0';
+	X  
+	X  	distcount = 0;
+	X***************
+	X*** 151,157 ****
+	X  	}
+	X  
+	X  #ifndef USG
+	X! 	printf("%d New news by message id follows.\r\n", OK_NEWNEWS);
+	X  #endif not USG
+	X  
+	X  	if (seekuntil(fp, key, line, sizeof (line)) < 0) {
+	X--- 145,151 ----
+	X  	}
+	X  
+	X  #ifndef USG
+	X! 	printf("%d New news by message id follows\r\n", OK_NEWNEWS);
+	X  #endif not USG
+	X  
+	X  	if (seekuntil(fp, key, line, sizeof (line)) < 0) {
+	X***************
+	X*** 228,234 ****
+	X  	(void) fclose(fp);
+	X  #ifdef USG
+	X      }
+	X!     printf("%d New news by message id follows.\r\n", OK_NEWNEWS);
+	X      rewind(tmplst);
+	X      while (fgets(line, sizeof(line), tmplst) != NULL)
+	X              putline(line);
+	X--- 222,228 ----
+	X  	(void) fclose(fp);
+	X  #ifdef USG
+	X      }
+	X!     printf("%d New news by message id follows\r\n", OK_NEWNEWS);
+	X      rewind(tmplst);
+	X      while (fgets(line, sizeof(line), tmplst) != NULL)
+	X              putline(line);
+	X***************
+	X*** 470,489 ****
+	X   *	Returns:		Number of group specs found.
+	X   *
+	X   *	Side effects:		Changes static data area.
+	X   */
+	X  
+	X  get_histlist(array, list)
+	X  	char		***array;
+	X! 	char		*list;
+	X  {
+	X! 	register int	histcount;
+	X! 	register char	*cp;
+	X  	static	char	**hist_list = (char **) NULL;
+	X  
+	X! 	cp = index(list, '\n');
+	X! 	if (cp)
+	X! 		*cp-- = '\0';
+	X! 	histcount = parsit(list, &hist_list);
+	X  	*array = hist_list;
+	X  	return (histcount);
+	X  }
+	X--- 464,510 ----
+	X   *	Returns:		Number of group specs found.
+	X   *
+	X   *	Side effects:		Changes static data area.
+	X+  *				Also puts null bytes in "list"
+	X+  *
+	X   */
+	X  
+	X  get_histlist(array, list)
+	X  	char		***array;
+	X! 	register char	*list;
+	X  {
+	X! 	register int	histcount = 0;
+	X! 	static  int	nalloc = 0;
+	X  	static	char	**hist_list = (char **) NULL;
+	X  
+	X! 	if (nalloc == 0)
+	X! 		hist_list = (char **) malloc(((nalloc = 10) + 1)*
+	X! 					     sizeof(char *));
+	X! 
+	X! 	while (1) {
+	X! 		for (; *list == ' ' || *list == '\t'; list++);
+	X! 
+	X! 		if (*list == '\0' || *list == '\n') break;
+	X! 
+	X! 		if (histcount >= nalloc)
+	X! 			hist_list = (char **) realloc((char *) hist_list,
+	X! 						      ((nalloc += 10) + 1)*
+	X! 						      sizeof(char *));
+	X! 
+	X! 		if (hist_list == (char **) NULL) {
+	X! 			fprintf(stderr, "get_histlist: Out of memory!\n");
+	X! 			return(0);
+	X! 		}
+	X! 
+	X! 		hist_list[histcount++] = list;
+	X! 
+	X! 		for (; *list && *list != ' ' && *list != '\t' && *list != '\n';
+	X! 		     list++);
+	X! 
+	X! 		if (*list) *(list++) = '\0';
+	X! 	}
+	X! 
+	X! 	hist_list[histcount] = (char *) NULL;
+	X! 
+	X  	*array = hist_list;
+	X  	return (histcount);
+	X  }
+	X*** serve.c	Sat Jan 14 23:22:40 1989
+	X--- ../../nntp_patch/server/serve.c	Sun May 28 04:29:09 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)serve.c	1.30	(Berkeley) 5/11/89";
+	X  #endif
+	X  
+	X  /*
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)serve.c	1.31	(Berkeley) 5/28/89";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 81,86 ****
+	X--- 81,89 ----
+	X  #ifdef POSTER
+	X  	struct passwd	*pp;
+	X  #endif
+	X+ # ifdef TIMEOUT
+	X+ 	void		timeout();
+	X+ # endif
+	X  #ifdef LOG
+	X  # ifdef USG
+	X  	struct tms	cpu;
+	X***************
+	X*** 87,96 ****
+	X  # else not USG
+	X  	struct rusage	me, kids;
+	X  # endif not USG
+	X- # ifdef TIMEOUT
+	X- 	void		timeout();
+	X- # endif
+	X- 	
+	X  	grps_acsd = arts_acsd = 0;
+	X  #endif
+	X  
+	X--- 90,95 ----
+	X*** parsit.c	Mon Jan  4 19:29:05 1988
+	X--- ../../nntp_patch/server/parsit.c	Mon Jun  5 02:35:26 1989
+	X***************
+	X*** 1,6 ****
+	X  #ifndef lint
+	X! static char *osccsid = "@(#)parsit.c	1.1	(Berkeley) 12/5/84";
+	X! static char *sccsid = "@(#)parsit.c	1.2	(Berkeley) 10/15/87";
+	X  #endif
+	X  
+	X  /*
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char *sccsid = "@(#)parsit.c	1.3	(Berkeley) 5/30/89";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 41,47 ****
+	X  char ***array;
+	X  {
+	X  	char	**argv;
+	X! 	char	word[132];
+	X  	char	*linecp;
+	X  	int	i, j, num_words;
+	X  
+	X--- 40,46 ----
+	X  char ***array;
+	X  {
+	X  	char	**argv;
+	X! 	char	word[255];
+	X  	char	*linecp;
+	X  	int	i, j, num_words;
+	X  
+	X*** time.c	Sat Feb  6 17:45:11 1988
+	X--- ../../nntp_patch/server/time.c	Mon Jun  5 02:35:26 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)time.c	1.9	(Berkeley) 2/6/88";
+	X  #endif
+	X  
+	X  /*
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)time.c	1.10	(Berkeley) 5/30/89";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 167,173 ****
+	X--- 167,175 ----
+	X  	long	date;
+	X  {
+	X  #ifdef USG
+	X+ #ifndef dgux
+	X  	extern	int	timezone;
+	X+ #endif
+	X  	tzset();
+	X  	date += timezone;
+	X  #else not USG
+	X***************
+	X*** 200,206 ****
+	X--- 202,210 ----
+	X  	long	date;
+	X  {
+	X  #ifdef USG
+	X+ #ifndef dgux
+	X  	extern	int	timezone;
+	X+ #endif
+	X  	tzset();
+	X  	date -= timezone;
+	X  #else not USG
+SHAR_EOF
+if test 8083 -ne "`wc -c < 'server.diff'`"
+then
+	echo shar: "error transmitting 'server.diff'" '(should have been 8083 characters)'
+fi
+echo shar: done with 'server' directory
+cd ..
+else
+echo shar: directory 'server' missing!
+echo shar: quiting
+exit 1
+fi
+if test -d support
+then
+echo shar: "entering 'support' directory"
+cd support
+echo shar: "extracting 'support.diff'" '(549 characters)'
+sed 's/^	X//' << \SHAR_EOF > 'support.diff'
+	X*** mkgrdates.c	Sat Feb  6 17:46:32 1988
+	X--- ../../nntp_patch/support/mkgrdates.c	Sun May 28 14:48:28 1989
+	X***************
+	X*** 1,5 ****
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)mkgrdates.c	1.4	(Berkeley) 2/6/88";
+	X  #endif
+	X  
+	X  /*
+	X--- 1,5 ----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)mkgrdates.c	1.5	(Berkeley) 5/30/89";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 167,172 ****
+	X--- 167,173 ----
+	X  		*cp = '/';
+	X  
+	X  	(void) strcpy(tst, SPOOLDIR);
+	X+ 	(void) strcat(tst, "/");
+	X  	(void) strcat(tst, group);
+	X  	if (highart)
+	X  		(void) strcat(tst, "/1");
+SHAR_EOF
+if test 549 -ne "`wc -c < 'support.diff'`"
+then
+	echo shar: "error transmitting 'support.diff'" '(should have been 549 characters)'
+fi
+echo shar: done with 'support' directory
+cd ..
+else
+echo shar: "directory 'support' missing!"
+echo shar: quiting
+exit 1
+fi
+if test -d xmit
+then
+echo shar: "entering 'xmit' directory"
+cd xmit
+echo shar: "extracting 'xmit.diff'" '(1912 characters)'
+sed 's/^	X//' << \SHAR_EOF > 'xmit.diff'
+	X*** get_tcp_conn.h	Mon Dec  7 18:44:32 1987
+	X--- ../../nntp_patch/xmit/get_tcp_conn.h	Sun Jun  4 20:18:09 1989
+	X***************
+	X*** 12,19 ****
+	X--- 12,21 ----
+	X  #endif
+	X  
+	X  #ifdef USG	/* brain-dead USG compilers can't deal with typedef */
+	X+ #ifndef dgux
+	X  #define	u_long	unsigned long
+	X  #define	u_short	unsigned short
+	X+ #endif
+	X  #endif
+	X  
+	X  #ifdef	EXCELAN
+	X*** nntpxmit.c	Sat Jan 14 23:22:57 1989
+	X--- ../../nntp_patch/xmit/nntpxmit.c	Mon Jun  5 01:49:26 1989
+	X***************
+	X*** 51,57 ****
+	X  **
+	X  ** The other problem with polling is that a good client should keep track
+	X  ** of when it last successfully polled a server, so that it doesn't force
+	X! ** h server to dump its entire history file across the network, and this
+	X  ** involves more file locking and manipulations routines.
+	X  **
+	X  ** nntpxmit only implements active send, for now.
+	X--- 51,57 ----
+	X  **
+	X  ** The other problem with polling is that a good client should keep track
+	X  ** of when it last successfully polled a server, so that it doesn't force
+	X! ** the server to dump its entire history file across the network, and this
+	X  ** involves more file locking and manipulations routines.
+	X  **
+	X  ** nntpxmit only implements active send, for now.
+	X*** nntpxmit.h	Thu Dec 17 19:26:45 1987
+	X--- ../../nntp_patch/xmit/nntpxmit.h	Sun Jun  4 20:17:02 1989
+	X***************
+	X*** 52,61 ****
+	X--- 52,63 ----
+	X  #endif
+	X  
+	X  #ifdef	USG			/* USG pinheadedness */
+	X+ #ifndef dgux
+	X  #define	index	strchr
+	X  #define	rindex	strrchr
+	X  #define	u_long	unsigned long
+	X  #define	u_short	unsigned short
+	X+ #endif
+	X  #endif
+	X  
+	X  #ifdef	BSD4_2			/* look at all these goodies we get! */
+	X*** remote.c	Tue Jan 12 02:38:14 1988
+	X--- ../../nntp_patch/xmit/remote.c	Sun Jun  4 20:16:18 1989
+	X***************
+	X*** 36,41 ****
+	X--- 36,44 ----
+	X  #include <ctype.h>
+	X  #include <setjmp.h>
+	X  #include <signal.h>
+	X+ #ifdef dgux
+	X+ #define _IOERR  _IO_ERR
+	X+ #endif
+	X  #ifdef SYSLOG
+	X  #include <syslog.h>
+	X  #endif
+	X
+SHAR_EOF
+if test 1912 -ne "`wc -c < 'xmit.diff'`"
+then
+	echo shar: "error transmitting 'xmit.diff'" '(should have been 1912 characters)'
+fi
+echo shar: "done with 'xmit' directory"
+cd ..
+else
+echo shar: "directory 'xmit' missing!"
+echo shar: quiting
+exit 1
+fi
+exit 0
+#	End of shell archive

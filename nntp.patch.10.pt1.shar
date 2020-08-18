@@ -1,0 +1,1331 @@
+#! /bin/sh
+# This is a shell archive, meaning:
+# 1. Remove everything above the #! /bin/sh line.
+# 2. Save the resulting text in a file.
+# 3. Execute the file with /bin/sh (not csh) to create the files:
+#	AUTHORIZE.diff
+#	CHANGES.diff
+#	Makefile.diff
+#	README.1.5.10
+#	README.diff
+#	common
+#	xfer
+#	xmit
+#	inews
+# This archive created: Mon Sep  3 14:14:56 1990
+export PATH; PATH=/bin:$PATH
+echo shar: extracting "'AUTHORIZE.diff'" '(1119 characters)'
+if test -f 'AUTHORIZE.diff'
+then
+	echo shar: will not over-write existing file "'AUTHORIZE.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'AUTHORIZE.diff'
+	X*** AUTHORIZE	Sun Jul  8 03:23:10 1990
+	X--- ../nntp/AUTHORIZE	Sat Sep  1 22:07:26 1990
+	X***************
+	X*** 39,45
+	X  	is really the way to go for this sort of thing. We'd welcome code
+	X  	from someone who implements the version 2 spec using such a scheme.
+	X  	Comments about the spec	should be sent to brian@ucsd.edu. Code
+	X! 	should be sent to nntp@lib.tmc.edu.
+	X  
+	X  Enjoy,
+	X  
+	X
+	X--- 39,45 -----
+	X  	is really the way to go for this sort of thing. We'd welcome code
+	X  	from someone who implements the version 2 spec using such a scheme.
+	X  	Comments about the spec	should be sent to brian@ucsd.edu. Code
+	X! 	should be sent to nntp@tmc.edu.
+	X  
+	X  Enjoy,
+	X  
+	X***************
+	X*** 44,50
+	X  Enjoy,
+	X  
+	X   BRIAN KANTOR  &   STAN BARBER
+	X! brian@ucsd.edu   nntp@lib.tmc.edu
+	X  	
+	X  
+	X  $Revision: 1.1 $
+	X
+	X--- 44,50 -----
+	X  Enjoy,
+	X  
+	X   BRIAN KANTOR  &   STAN BARBER
+	X! brian@ucsd.edu   nntp@tmc.edu
+	X  	
+	X  
+	X  $Revision: 1.3 $
+	X***************
+	X*** 47,51
+	X  brian@ucsd.edu   nntp@lib.tmc.edu
+	X  	
+	X  
+	X! $Revision: 1.1 $
+	X! $Date: 90/07/05 01:49:55 $
+	X
+	X--- 47,51 -----
+	X  brian@ucsd.edu   nntp@tmc.edu
+	X  	
+	X  
+	X! $Revision: 1.3 $
+	X! $Date: 90/09/01 22:07:16 $
+SHAR_EOF
+if test 1119 -ne "`wc -c < 'AUTHORIZE.diff'`"
+then
+	echo shar: error transmitting "'AUTHORIZE.diff'" '(should have been 1119 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'CHANGES.diff'" '(1979 characters)'
+if test -f 'CHANGES.diff'
+then
+	echo shar: will not over-write existing file "'CHANGES.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'CHANGES.diff'
+	X*** CHANGES	Sun Jul  8 03:12:52 1990
+	X--- ../nntp/CHANGES	Sat Sep  1 22:03:56 1990
+	X***************
+	X*** 2,7
+	X  since the initial release.  Individuals who either reported the bug or
+	X  inspired the bug fix are in square brackets.
+	X  
+	X  1.5.9
+	X  	Incorporation of proposed NNTP version 2 authentication scheme.
+	X  	    This is a trial and can be disabled if necessary. [brian@ucsd.edu]
+	X
+	X--- 2,31 -----
+	X  since the initial release.  Individuals who either reported the bug or
+	X  inspired the bug fix are in square brackets.
+	X  
+	X+ 1.5.10
+	X+ 	Fixes to spawn.c to allow it to work correctly with CNEWS.
+	X+ 	[All CNEWS sites....Sorry, guys and gals!]
+	X+ 	Fixes to prevent mysterious chowning of directories by nntp.
+	X+ 	[dave@tis.com]
+	X+ 	Corrections to code in misc.c so that #undef SYSLOG will still
+	X+ 	compile. [rb@newton.physics.purdue.edu]
+	X+ 	Added more precision to time reports. [flee@shire.cs.psu.edu]
+	X+ 	Modified nntpsend.sh to use the correct test flag. 
+	X+ 	[zjat02@trc.amoco.com (Jon A. Tankersley)]
+	X+ 	Fixed a bug in check_ng that caused the server to close down
+	X+ 	and abort on occasion. [Jyrki Kuoppala <jkp@cs.hut.fi>]
+	X+ 	Fixed a bug in access.c that might cause the first line in the
+	X+ 	nntp_access file to be skipped. [Jari Helminen <hja@otax.tky.hut.fi>]
+	X+ 	Fix to mini-inews to insure that variables are being set before they
+	X+ 	are used. [muller@ucsd.edu]
+	X+ 	Fix so that SETPROCTITLE option will not destroy environmental and
+	X+ 	arguement vectors. [ken@hpsdlz.sdd.hp.com, leres@ftp.ee.lbl.gov]
+	X+ 	Support for mmap() system call in nntpxmit. [david@elroy.jpl.nasa.gov,
+	X+ 	stevo@elroy.jpl.nasa.gov]
+	X+ 	Changes for hpux so that SETPROCTITLE will work and flexnames can be
+	X+ 	used if supported. [pk@unidoct.chemietechnik.uni-dortmund.de,
+	X+ 	ken@hpdlz.sdd.hp.com]
+	X+ 	LOAD now supported when nntp is started by inetd. [mcooper@usc.edu]
+	X  1.5.9
+	X  	Incorporation of proposed NNTP version 2 authentication scheme.
+	X  	    This is a trial and can be disabled if necessary. [brian@ucsd.edu]
+SHAR_EOF
+if test 1979 -ne "`wc -c < 'CHANGES.diff'`"
+then
+	echo shar: error transmitting "'CHANGES.diff'" '(should have been 1979 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'Makefile.diff'" '(689 characters)'
+if test -f 'Makefile.diff'
+then
+	echo shar: will not over-write existing file "'Makefile.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'Makefile.diff'
+	X*** Makefile	Thu Jul  5 01:51:32 1990
+	X--- ../nntp/Makefile	Fri Aug 10 22:09:56 1990
+	X***************
+	X*** 1,6
+	X  #
+	X  # Makefile for NNTP intstallation
+	X! # $Header: Makefile,v 1.2 90/07/05 01:51:30 sob Exp $
+	X  # set CFLAGS to be -Ipath/to/special/includes if needed
+	X  CFLAGS= -O 
+	X  # set LIBS to be -lneededlibrary if needed
+	X
+	X--- 1,8 -----
+	X  #
+	X  # Makefile for NNTP intstallation
+	X! # $Header: /home/gazette/sob/src/hold/nntp/RCS/Makefile,v 1.3 90/08/04 20:31:45 sob Exp Locker: sob $
+	X! # The program that knows how to deal with makefiles. [Uncomment if needed.]
+	X! # MAKE=make
+	X  # set CFLAGS to be -Ipath/to/special/includes if needed
+	X  CFLAGS= -O 
+	X  # set LIBS to be -lneededlibrary if needed
+SHAR_EOF
+if test 689 -ne "`wc -c < 'Makefile.diff'`"
+then
+	echo shar: error transmitting "'Makefile.diff'" '(should have been 689 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'README.1.5.10'" '(3211 characters)'
+if test -f 'README.1.5.10'
+then
+	echo shar: will not over-write existing file "'README.1.5.10'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'README.1.5.10'
+	XWelcome to patch number 10 for NNTP 1.5.
+	X
+	X	If you have not installed the first nine patches, you must do so
+	X	before proceeding. You can get those patches (and this one) from
+	X	anoymous ftp on bcm.tmc.edu [128.249.2.1] or by sending a message
+	X	to the archive-server@bcm.tmc.edu with the following text:
+	X	send public nntp.patch.1
+	X	send public nntp.patch.2
+	X	send public nntp.patch.3
+	X	send public nntp.patch.4.shar
+	X	send public nntp.patch.5.shar
+	X	send public nntp.patch.6.shar
+	X	send public nntp.patch.7.shar
+	X	send public nntp.patch.8.pt1.shar
+	X	send public nntp.patch.8.pt2.shar
+	X	send public nntp.patch.9.pt1.shar
+	X	send public nntp.patch.9.pt2.shar
+	X	send public nntp.patch.9.pt3.shar
+	X
+	X	If you have all nine patches installed, you are ready to install
+	X	this set of patches. These patches are packaged as a shell archive.
+	X	They are as follows:
+	X	CHANGES.diff  -- This will patch the CHANGES file in the root
+	X	of the nntp distrbution to reflect changes since the release of 1.5.
+	X	To install, just type patch < CHANGES.diff
+	X	README.diff  -- This will patch the README file in the root
+	X	of the nntp distrbution to make it more accurate. 
+	X	To install, just type patch < README.diff
+	X	AUTHORIZE.diff  -- This will patch the AUTHORIZE file in the root
+	X	of the nntp distrbution to make it more accurate.
+	X	To install, just type patch < AUTHORIZE.diff
+	X	Makefile.diff  -- This will patch the Makefile file in the root
+	X	of the nntp distrbution to make it more useful.
+	X	To install, just type patch < Makefile.diff
+	X	server.diff -- This patch is for the files in the server subdirectory.
+	X	To install, change directory to the server directory and type
+	X	patch < server.diff.
+	X	common.diff -- This patch is for the files in the common subdirectory.
+	X	To install, change directory to the common directory and type
+	X	patch < common.diff
+	X	xfer.diff -- This is a patch for nntpxfer.c in the xfer directory.
+	X	To install, change directory to the xfer directory and type
+	X	patch < xfer.diff.
+	X	xmit.diff -- This is a patch for the files in the xmit directory.
+	X	To install, change directory to the xmit directory and type
+	X	patch < xmit.diff.
+	X	inews.diff -- This patch is for the files in the inews subdirectory.
+	X	To install, change directory to the inews directory and type
+	X	patch < inews.diff.
+	X
+	XBug reports and enhancements welcome,
+	XStan Barber
+	Xnntp@tmc.edu
+	X
+	XP.S. This patched version of NNTP has been compiled on the following systems:
+	X
+	XVax 3600 running Ultrix 3.1 (BNEWS 2.11.19)
+	XSolbourne Series 5/601 with OS/MP 4.0C (SunOS 4.0.3c compatible) (Same BNEWS)
+	XHP 9000/825 running HP-UX A.B3.00.5B
+	X
+	XP.P.S. The fully patched version is available via anonymous ftp from
+	Xlib.tmc.edu [129.106.5.1] and gazette.bcm.tmc.edu [128.249.2.2]. Look in
+	Xthe public directory for nntp.1.5.9.tar. A compressed version is also on line.
+	X
+	XP.P.P.S. This is the FINAL release of NNTP 1.5. The next release will
+	Xbe 1.6. There will be no patch kit. NNTP 1.6 will be a full release and
+	Xwill only be distributed in full source.
+	X
+	XP.P.P.P.S. Much thanks to all our beta testers: 
+	X	wisner@hayes.fai.alaska.edu (Bill Wisner)
+	X	leres@ftp.ee.lbl.gov (Craig Leres)
+	X	scs@hela.iti.org (Steve Simmons)
+	X	vixie@decwrl.dec.com (Paul Vixie)
+	X	sandra@csri.utoronto.exu (Sandra Smith)
+	X
+	X
+	X	
+	X
+	X
+	X
+	X
+SHAR_EOF
+if test 3211 -ne "`wc -c < 'README.1.5.10'`"
+then
+	echo shar: error transmitting "'README.1.5.10'" '(should have been 3211 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'README.diff'" '(2301 characters)'
+if test -f 'README.diff'
+then
+	echo shar: will not over-write existing file "'README.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'README.diff'
+	X*** README	Thu Jul  5 01:55:42 1990
+	X--- ../nntp/README	Sat Aug 18 17:11:09 1990
+	X***************
+	X*** 1,4
+	X! NNTP README		July 4, 1990  (NNTP 1.5.9)
+	X  
+	X  [See the file CHANGES to see differences between this version and
+	X  older versions.]
+	X
+	X--- 1,4 -----
+	X! NNTP README		July 4, 1990  (NNTP 1.5.10)
+	X  
+	X  [See the file CHANGES to see differences between this version and
+	X  older versions.]
+	X***************
+	X*** 81,87
+	X       An important note:
+	X  
+	X  	The NNTP server assumes that the history file format
+	X! 	is 2.11 or 2.10.3 or CNEWS; therefore you need 2.11 news or CNEWS
+	X  	on your	server machine.
+	X  
+	X  	>>>>> Get 2.11 news or CNEWS if you don't have it.
+	X
+	X--- 81,87 -----
+	X       An important note:
+	X  
+	X  	The NNTP server assumes that the history file format
+	X! 	is 2.11.19 BNEWS or CNEWS; therefore you need 2.11.19 BNEWS or CNEWS
+	X  	on your	server machine.
+	X  
+	X  	>>>>> Get 2.11.19 BNEWS or CNEWS if you don't have it.
+	X***************
+	X*** 84,90
+	X  	is 2.11 or 2.10.3 or CNEWS; therefore you need 2.11 news or CNEWS
+	X  	on your	server machine.
+	X  
+	X! 	>>>>> Get 2.11 news or CNEWS if you don't have it.
+	X  
+	X  GENERAL INSTALLATION
+	X  
+	X
+	X--- 84,90 -----
+	X  	is 2.11.19 BNEWS or CNEWS; therefore you need 2.11.19 BNEWS or CNEWS
+	X  	on your	server machine.
+	X  
+	X! 	>>>>> Get 2.11.19 BNEWS or CNEWS if you don't have it.
+	X  
+	X  GENERAL INSTALLATION
+	X  
+	X***************
+	X*** 123,129
+	X  
+	X       You can get to me via electronic mail at the following addresses:
+	X  
+	X! 	Internet:		nntp@lib.tmc.edu
+	X  	UUCP:			...!bcm!nntp
+	X  	Telephone (work):	(713) 798-6042
+	X  
+	X
+	X--- 123,129 -----
+	X  
+	X       You can get to me via electronic mail at the following addresses:
+	X  
+	X! 	Internet:		nntp@tmc.edu
+	X  	UUCP:			...!bcm!nntp
+	X  	Telephone (work):	(713) 798-6042
+	X  
+	X***************
+	X*** 131,135
+	X  nntpd to get it to work on various systems, and certainly, if there are
+	X  outright bugs, please let me know.  Bug reports and fixes for nntp are
+	X  posted to the newsgroup "news.software.nntp".  Announcements of new
+	X! versions of nntp software are posted there too.
+	X  
+	X
+	X--- 131,135 -----
+	X  nntpd to get it to work on various systems, and certainly, if there are
+	X  outright bugs, please let me know.  Bug reports and fixes for nntp are
+	X  posted to the newsgroup "news.software.nntp".  Announcements of new
+	X! versions of nntp software are posted there, too.
+	X  
+SHAR_EOF
+if test 2301 -ne "`wc -c < 'README.diff'`"
+then
+	echo shar: error transmitting "'README.diff'" '(should have been 2301 characters)'
+fi
+fi # end of overwriting check
+if test ! -d 'common'
+then
+	echo shar: creating directory "'common'"
+	mkdir 'common'
+fi
+echo shar: entering directory "'common'"
+cd 'common'
+echo shar: extracting "'common.diff'" '(8216 characters)'
+if test -f 'common.diff'
+then
+	echo shar: will not over-write existing file "'common.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'common.diff'
+	X*** README	Thu Jul  5 02:06:58 1990
+	X--- ../../nntp/common/README	Fri Aug 10 22:58:04 1990
+	X***************
+	X*** 51,60
+	X  it every READINTVL (below) seconds.  This should make forking off children
+	X  a little bit faster.
+	X  
+	X! LOAD	(defined as 5 if ALONE is defined)
+	X! 	If you are running NNTP standalone (not from inetd), then you can
+	X! have nntp findout the load average on a BSD-type machine (sun or ultrix)
+	X! and if the load average is higher than LOAD, the connection will be rejected.
+	X  
+	X  BSD_42		(undefined)
+	X  
+	X
+	X--- 51,60 -----
+	X  it every READINTVL (below) seconds.  This should make forking off children
+	X  a little bit faster.
+	X  
+	X! LOAD	(defined as 5)
+	X! 	You can have nntp findout the load average on a BSD-type machine
+	X! (sun or ultrix) and if the load average is higher than LOAD, the connection
+	X! will be rejected.
+	X  
+	X  BSD_42		(undefined)
+	X  
+	X***************
+	X*** 90,95
+	X  
+	X       Define if you have the 4.3BSD ndbm routines.
+	X  
+	X  USGHIST		(undefined)
+	X  
+	X       Define if you don't use dbm/ndbm for the history file, but instead
+	X
+	X--- 90,100 -----
+	X  
+	X       Define if you have the 4.3BSD ndbm routines.
+	X  
+	X+ DBZ		(undefined)
+	X+      Define this is you are using the DBZ libraries. If you DO define this,
+	X+ you will need to make alterations to makefile to insure that things will work.
+	X+ If you built your news software using DBZ, you MUST build NNTP with DBZ.
+	X+ 
+	X  USGHIST		(undefined)
+	X  
+	X       Define if you don't use dbm/ndbm for the history file, but instead
+	X***************
+	X*** 137,143
+	X  more files. If you define this, please be careful not to make it a large 
+	X  number. I recommend something around MINFREE/4.
+	X  
+	X! SETPROCTITLE	(defined)
+	X  	This will replace the process name with information about what nntp
+	X  is doing. This is known to work on BSD-flavored Unix, but may not work on
+	X  USG Unix.
+	X
+	X--- 142,148 -----
+	X  more files. If you define this, please be careful not to make it a large 
+	X  number. I recommend something around MINFREE/4.
+	X  
+	X! SETPROCTITLE	(undefined)
+	X  	This will replace the process name with information about what nntp
+	X  is doing. This is known to work on BSD-flavored Unix, but may not work on
+	X  USG Unix.
+	X***************
+	X*** 141,146
+	X  	This will replace the process name with information about what nntp
+	X  is doing. This is known to work on BSD-flavored Unix, but may not work on
+	X  USG Unix.
+	X  
+	X  vfork		(undefined)
+	X  
+	X
+	X--- 146,155 -----
+	X  	This will replace the process name with information about what nntp
+	X  is doing. This is known to work on BSD-flavored Unix, but may not work on
+	X  USG Unix.
+	X+ 
+	X+ MMAP		(undefined)
+	X+ 	Define this if you run on a version of Unix that has the mmap() system
+	X+ call. SunOS and Solbourne's OS/MP are two versions of Unix that do.
+	X  
+	X  vfork		(undefined)
+	X  
+	X*** conf.h.dist	Thu Jul  5 02:11:16 1990
+	X--- ../../nntp/common/conf.h.dist	Sat Aug 18 17:12:15 1990
+	X***************
+	X*** 1,4
+	X! /* $Header: conf.h.dist,v 1.1 90/07/05 02:11:14 sob Exp $
+	X   * Configuration information for use by NNTP server and support
+	X   * programs.  Change these as appropriate for your system.
+	X   */
+	X
+	X--- 1,4 -----
+	X! /* $Header: conf.h.dist,v 1.3 90/08/18 17:12:07 sob Exp $
+	X   * Configuration information for use by NNTP server and support
+	X   * programs.  Change these as appropriate for your system.
+	X   */
+	X***************
+	X*** 11,19
+	X  
+	X  #undef	ALONE		/* True if we're running without inetd */
+	X  #undef	FASTFORK	/* True if we don't want to read active file on start */
+	X! #ifdef	ALONE
+	X! #	define LOAD 5	/* Loadav above which server refuses connections */
+	X! #endif	ALONE
+	X  
+	X  #undef	BSD_42		/* 4.2 compatability code -- if this is defined, */
+	X  			/* DBM probably wants to be defined as well. */
+	X
+	X--- 11,17 -----
+	X  
+	X  #undef	ALONE		/* True if we're running without inetd */
+	X  #undef	FASTFORK	/* True if we don't want to read active file on start */
+	X! #define LOAD 5	/* Loadav above which server refuses connections */
+	X  
+	X  
+	X  #undef	BSD_42		/* 4.2 compatability code -- if this is defined, */
+	X***************
+	X*** 15,20
+	X  #	define LOAD 5	/* Loadav above which server refuses connections */
+	X  #endif	ALONE
+	X  
+	X  #undef	BSD_42		/* 4.2 compatability code -- if this is defined, */
+	X  			/* DBM probably wants to be defined as well. */
+	X  
+	X
+	X--- 13,19 -----
+	X  #undef	FASTFORK	/* True if we don't want to read active file on start */
+	X  #define LOAD 5	/* Loadav above which server refuses connections */
+	X  
+	X+ 
+	X  #undef	BSD_42		/* 4.2 compatability code -- if this is defined, */
+	X  			/* DBM probably wants to be defined as well. */
+	X  
+	X***************
+	X*** 28,33
+	X  			/* IF YOU DEFINE THIS, change CFLAGS in makefile to */
+	X  			/* be -ldbm */
+	X  
+	X  #undef	USGHIST		/* Use USG style history file (no DBM) */
+	X  			/* IF YOU DO NOT DEFINE NDBM or DBM, this is DEFAULT!*/
+	X  
+	X
+	X--- 27,36 -----
+	X  			/* IF YOU DEFINE THIS, change CFLAGS in makefile to */
+	X  			/* be -ldbm */
+	X  
+	X+ #undef	DBZ		/* True if we want to use dbz libraries */
+	X+ 			/* IF YOU DEFINE THIS, change CFLAGS in makefile to */
+	X+ 			/* be /usr/lib/dbz.o and install dbz.h */
+	X+ 
+	X  #undef	USGHIST		/* Use USG style history file (no DBM) */
+	X  			/* IF YOU DO NOT DEFINE NDBM or DBM, this is DEFAULT!*/
+	X  
+	X***************
+	X*** 49,55
+	X  #undef MINFILES  MINFREE/4
+	X  			/* NNTP will not allow an XFER if there is less */
+	X  			/* than this many inodes on the SPOOLDIR filesystem */
+	X! #define SETPROCTITLE	/* if you want status visable via ps */
+	X  /*
+	X   * If you DON'T have vfork, make this "#define vfork fork"
+	X   * vfork will speed up article transfer nntpds by about 2.5 times.
+	X
+	X--- 52,59 -----
+	X  #undef MINFILES  MINFREE/4
+	X  			/* NNTP will not allow an XFER if there is less */
+	X  			/* than this many inodes on the SPOOLDIR filesystem */
+	X! #undef SETPROCTITLE	/* if you want status visable via ps */
+	X! #undef MMAP		/* if your OS supports mmap() */
+	X  /*
+	X   * If you DON'T have vfork, make this "#define vfork fork"
+	X   * vfork will speed up article transfer nntpds by about 2.5 times.
+	X***************
+	X*** 127,134
+	X  #		define READ_SUPER
+	X  #	endif
+	X  #   endif
+	X! #	ifndef NDBM
+	X! #		define NDBM
+	X  #	endif
+	X  #endif
+	X  
+	X
+	X--- 131,140 -----
+	X  #		define READ_SUPER
+	X  #	endif
+	X  #   endif
+	X! #	ifndef DBZ
+	X! #		ifndef NDBM
+	X! #			define NDBM
+	X! #		endif
+	X  #	endif
+	X  #endif
+	X  
+	X***************
+	X*** 182,187
+	X  #define		FTRUNCATE
+	X  #else
+	X  # define	NDIR			/* If you  need ndir library support */
+	X  #endif
+	X  # define	index	strchr
+	X  # define	rindex	strrchr
+	X
+	X--- 188,195 -----
+	X  #define		FTRUNCATE
+	X  #else
+	X  # define	NDIR			/* If you  need ndir library support */
+	X+ #ifdef hpux
+	X+ #define		DIRSIZ_MACRO
+	X  #endif
+	X  #endif
+	X  # define	index	strchr
+	X***************
+	X*** 183,188
+	X  #else
+	X  # define	NDIR			/* If you  need ndir library support */
+	X  #endif
+	X  # define	index	strchr
+	X  # define	rindex	strrchr
+	X  # ifdef U_LONG
+	X
+	X--- 191,197 -----
+	X  #ifdef hpux
+	X  #define		DIRSIZ_MACRO
+	X  #endif
+	X+ #endif
+	X  # define	index	strchr
+	X  # define	rindex	strrchr
+	X  # ifdef U_LONG
+	X***************
+	X*** 196,204
+	X   * How long you want nntp servers to hang out without receiving
+	X   * commands before they close the connection with an error message.
+	X   *
+	X-  * You CANNOT have TIMEOUT while running in standalone (ALONE) mode,
+	X-  * as SIGALRM is used for different things.
+	X-  *
+	X   * If you don't want any timeout, #undef it, i.e.,
+	X   *
+	X   *	#undef	TIMEOUT
+	X
+	X--- 205,210 -----
+	X   * How long you want nntp servers to hang out without receiving
+	X   * commands before they close the connection with an error message.
+	X   *
+	X   * If you don't want any timeout, #undef it, i.e.,
+	X   *
+	X   *	#undef	TIMEOUT
+	X***************
+	X*** 207,215
+	X   * away from their terminal (e.g., at lunch) while reading news.
+	X   */
+	X  
+	X! #ifndef ALONE
+	X! #    define	TIMEOUT	(2 * 3600)
+	X! #endif ALONE
+	X  
+	X  /*
+	X   * How long you want nntp servers to wait without receiving data
+	X
+	X--- 213,220 -----
+	X   * away from their terminal (e.g., at lunch) while reading news.
+	X   */
+	X  
+	X! #define	TIMEOUT	(2 * 3600)
+	X! 
+	X  
+	X  /*
+	X   * How long you want nntp servers to wait without receiving data
+	X*** version.c	Thu Jul  5 02:11:49 1990
+	X--- ../../nntp/common/version.c	Sat Sep  1 22:12:39 1990
+	X***************
+	X*** 2,5
+	X   * Provide the version number of this release.
+	X   */
+	X  
+	X! char	nntp_version[] = "1.5.9 (4 July 1990)";
+	X
+	X--- 2,5 -----
+	X   * Provide the version number of this release.
+	X   */
+	X  
+	X! char	nntp_version[] = "1.5.10 (2 September 1990)";
+SHAR_EOF
+if test 8216 -ne "`wc -c < 'common.diff'`"
+then
+	echo shar: error transmitting "'common.diff'" '(should have been 8216 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'.emacs_67'" '(48 characters)'
+if test -f '.emacs_67'
+then
+	echo shar: will not over-write existing file "'.emacs_67'"
+else
+sed 's/^	X//' << \SHAR_EOF > '.emacs_67'
+	X/home/sob/src/nntp/diff/common/common.diff2727
+SHAR_EOF
+echo shar: 1 control character may be missing from "'.emacs_67'"
+if test 48 -ne "`wc -c < '.emacs_67'`"
+then
+	echo shar: error transmitting "'.emacs_67'" '(should have been 48 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'common'"
+cd ..
+if test ! -d 'xfer'
+then
+	echo shar: creating directory "'xfer'"
+	mkdir 'xfer'
+fi
+echo shar: entering directory "'xfer'"
+cd 'xfer'
+echo shar: extracting "'xfer.diff'" '(913 characters)'
+if test -f 'xfer.diff'
+then
+	echo shar: will not over-write existing file "'xfer.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'xfer.diff'
+	X*** nntpxfer.c	Thu Jul  5 02:04:38 1990
+	X--- ../../nntp/xfer/nntpxfer.c	Sat Aug 25 16:59:00 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char * scsid = "@(#)$Header: nntpxfer.c,v 1.6 90/07/05 02:04:28 sob Exp $";
+	X  #endif
+	X  /*
+	X   * nntpxfer
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char * scsid = "@(#)$Header: nntpxfer.c,v 1.7 90/08/25 16:58:52 sob Exp $";
+	X  #endif
+	X  /*
+	X   * nntpxfer
+	X***************
+	X*** 60,65
+	X  #endif
+	X  
+	X  #ifdef DBM
+	X  # undef NULL
+	X  # include <dbm.h>
+	X  # undef NULL
+	X
+	X--- 60,68 -----
+	X  #endif
+	X  
+	X  #ifdef DBM
+	X+ # ifdef DBZ
+	X+ #   include <dbz.h>
+	X+ #else /* DBZ */
+	X  # undef NULL
+	X  # include <dbm.h>
+	X  # undef NULL
+	X***************
+	X*** 64,70
+	X  # include <dbm.h>
+	X  # undef NULL
+	X  # define NULL	0
+	X! #endif DBM
+	X  
+	X  #ifdef NDBM
+	X  #include <ndbm.h>
+	X
+	X--- 67,74 -----
+	X  # include <dbm.h>
+	X  # undef NULL
+	X  # define NULL	0
+	X! #endif /* DBZ */
+	X! #endif  /* DBM */
+	X  
+	X  #ifdef NDBM
+	X  #include <ndbm.h>
+SHAR_EOF
+if test 913 -ne "`wc -c < 'xfer.diff'`"
+then
+	echo shar: error transmitting "'xfer.diff'" '(should have been 913 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'xfer'"
+cd ..
+if test ! -d 'xmit'
+then
+	echo shar: creating directory "'xmit'"
+	mkdir 'xmit'
+fi
+echo shar: entering directory "'xmit'"
+cd 'xmit'
+echo shar: extracting "'xmit.diff'" '(7740 characters)'
+if test -f 'xmit.diff'
+then
+	echo shar: will not over-write existing file "'xmit.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'xmit.diff'
+	X*** Makefile	Sun Jul  8 01:10:57 1990
+	X--- ../../nntp/xmit/Makefile	Sat Aug 18 17:14:40 1990
+	X***************
+	X*** 42,48
+	X  	-rm -f *.o nntpxmit shlock make*.out a.out
+	X  
+	X  distrib: clean
+	X! 	rm -rf SCCS save tags
+	X  
+	X  check:
+	X  	sccs check
+	X
+	X--- 42,48 -----
+	X  	-rm -f *.o nntpxmit shlock make*.out a.out
+	X  
+	X  distrib: clean
+	X! 	rm -rf RCS save tags
+	X  
+	X  check:
+	X  	ci -l *.[ch] Makefile
+	X***************
+	X*** 45,52
+	X  	rm -rf SCCS save tags
+	X  
+	X  check:
+	X! 	sccs check
+	X! 	sccs prt -y *.[ch] > /dev/null
+	X  
+	X  tags:	${SRVRSRC} ${SRVRINC}
+	X  	ctags ${SRVRSRC} ${SRVRINC}
+	X
+	X--- 45,51 -----
+	X  	rm -rf RCS save tags
+	X  
+	X  check:
+	X! 	ci -l *.[ch] Makefile
+	X  
+	X  tags:	${SRVRSRC} ${SRVRINC}
+	X  	ctags ${SRVRSRC} ${SRVRINC}
+	X*** nntpsend.sh	Wed Jul  4 20:01:16 1990
+	X--- ../../nntp/xmit/nntpsend.sh	Sat Aug 11 21:27:11 1990
+	X***************
+	X*** 1,4
+	X  #!/bin/sh
+	X  #
+	X  # What we have here is a csh script for sending netnews to NNTP sites.
+	X  #
+	X
+	X--- 1,6 -----
+	X  #!/bin/sh
+	X+ # $Header: nntpsend.sh,v 1.2 90/08/11 21:27:04 sob Exp $
+	X+ # What we have here is a sh script for sending netnews to NNTP sites.
+	X  #
+	X  batchdir=/usr/spool/news/batch
+	X  libdir=/usr/spool/news/lib
+	X***************
+	X*** 1,7
+	X  #!/bin/sh
+	X  #
+	X- # What we have here is a csh script for sending netnews to NNTP sites.
+	X- #
+	X  batchdir=/usr/spool/news/batch
+	X  libdir=/usr/spool/news/lib
+	X  PATH=${libdir}:/usr/ucb:/usr/bin:/bin:${PATH}
+	X
+	X--- 2,7 -----
+	X  # $Header: nntpsend.sh,v 1.2 90/08/11 21:27:04 sob Exp $
+	X  # What we have here is a sh script for sending netnews to NNTP sites.
+	X  #
+	X  batchdir=/usr/spool/news/batch
+	X  libdir=/usr/spool/news/lib
+	X  PATH=${libdir}:/usr/ucb:/usr/bin:/bin:${PATH}
+	X***************
+	X*** 29,35
+	X  	tmp=${host}.tmp
+	X  	send=${host}.nntp
+	X  	if shlock -p $$ -f ${lock} ; then
+	X! 		if test -e ${tmp} ; then
+	X  			cat ${tmp} >> ${send}
+	X  			rm ${tmp}
+	X  		fi
+	X
+	X--- 29,35 -----
+	X  	tmp=${host}.tmp
+	X  	send=${host}.nntp
+	X  	if shlock -p $$ -f ${lock} ; then
+	X! 		if test -f ${tmp} ; then
+	X  			cat ${tmp} >> ${send}
+	X  			rm ${tmp}
+	X  		fi
+	X***************
+	X*** 35,42
+	X  		fi
+	X  # we let the tmp file cool off for a while if there's other work to do
+	X  # and we pick it up again during next iteration
+	X! 		if test -e ${host} ; then
+	X! 			if test -e ${send} ; then
+	X  				mv ${host} ${tmp}
+	X  			else
+	X  				mv ${host} ${send}
+	X
+	X--- 35,42 -----
+	X  		fi
+	X  # we let the tmp file cool off for a while if there's other work to do
+	X  # and we pick it up again during next iteration
+	X! 		if test -f ${host} ; then
+	X! 			if test -f ${send} ; then
+	X  				mv ${host} ${tmp}
+	X  			else
+	X  				mv ${host} ${send}
+	X***************
+	X*** 42,48
+	X  				mv ${host} ${send}
+	X  			fi
+	X  		fi
+	X! 		if test -e ${send} ; then
+	X  			echo ${pname}: "[$$]" begin ${host}
+	X  			time nntpxmit ${host}:${send}
+	X  			echo ${pname}: "[$$]" end ${host}
+	X
+	X--- 42,48 -----
+	X  				mv ${host} ${send}
+	X  			fi
+	X  		fi
+	X! 		if test -f ${send} ; then
+	X  			echo ${pname}: "[$$]" begin ${host}
+	X  			time nntpxmit ${host}:${send}
+	X  			echo ${pname}: "[$$]" end ${host}
+	X***************
+	X*** 53,55
+	X  	fi
+	X  done
+	X  echo ${pname}: "[$$]" end `date`
+	X
+	X--- 53,56 -----
+	X  	fi
+	X  done
+	X  echo ${pname}: "[$$]" end `date`
+	X+ 
+	X*** nntpxmit.h	Wed Jul  4 20:01:27 1990
+	X--- ../../nntp/xmit/nntpxmit.h	Fri Aug 10 22:56:08 1990
+	X***************
+	X*** 6,11
+	X  ** to your liking, look them over carefully.
+	X  */
+	X  
+	X  #ifdef SIGRET
+	X  #undef SIGRET
+	X  #endif
+	X
+	X--- 6,16 -----
+	X  ** to your liking, look them over carefully.
+	X  */
+	X  
+	X+ #ifdef MMAP
+	X+ #include <sys/mman.h>
+	X+ #include <sys/stat.h>
+	X+ #endif MMAP
+	X+ 
+	X  #ifdef SIGRET
+	X  #undef SIGRET
+	X  #endif
+	X*** remote.c	Wed Jul  4 20:01:52 1990
+	X--- ../../nntp/xmit/remote.c	Fri Aug 10 22:56:22 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char * rcsid = "@(#)$Header: remote.c,v 1.1 90/01/15 01:37:29 sob Exp $";
+	X  #endif
+	X  /*
+	X  ** remote communication routines for NNTP/SMTP style communication.
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char * rcsid = "@(#)$Header: remote.c,v 1.2 90/08/10 22:56:12 sob Exp $";
+	X  #endif
+	X  /*
+	X  ** remote communication routines for NNTP/SMTP style communication.
+	X***************
+	X*** 4,9
+	X  /*
+	X  ** remote communication routines for NNTP/SMTP style communication.
+	X  **
+	X  **	sendcmd		- return TRUE on error.
+	X  **
+	X  **	readreply	- return reply code or FAIL for error;
+	X
+	X--- 4,18 -----
+	X  /*
+	X  ** remote communication routines for NNTP/SMTP style communication.
+	X  **
+	X+ ************
+	X+ ** This version has been modified to support mmap()'ing of article files
+	X+ ** on systems that support it.
+	X+ **
+	X+ ** David Robinson (david@elroy.jpl.nasa.gov) and
+	X+ ** Steve Groom (stevo@elroy.jpl.nasa.gov), June 30, 1989.
+	X+ **
+	X+ ************
+	X+ **
+	X  **	sendcmd		- return TRUE on error.
+	X  **
+	X  **	readreply	- return reply code or FAIL for error;
+	X***************
+	X*** 391,396
+	X  	register FILE	*remote = rmt_wr;
+	X  	register int	nl = TRUE;	/* assume we start on a new line */
+	X  
+	X  /*
+	X  ** I'm using putc() instead of fputc();
+	X  ** why do a subroutine call when you don't have to?
+	X
+	X--- 400,413 -----
+	X  	register FILE	*remote = rmt_wr;
+	X  	register int	nl = TRUE;	/* assume we start on a new line */
+	X  
+	X+ #ifdef MMAP
+	X+ 	register char *mbufr,*mptr;
+	X+         long msize;
+	X+         long offset;
+	X+         struct stat sbuf;
+	X+ 	char buf[BUFSIZ];
+	X+ #endif MMAP
+	X+ 
+	X  /*
+	X  ** I'm using putc() instead of fputc();
+	X  ** why do a subroutine call when you don't have to?
+	X***************
+	X*** 396,401
+	X  ** why do a subroutine call when you don't have to?
+	X  ** Besides, this ought to give the C preprocessor a work-out.
+	X  */
+	X  #define	PUTC(c)	if (putc(c, remote) == EOF) return(FALSE)
+	X  
+	X  	if (fp == (FILE *)NULL)
+	X
+	X--- 413,423 -----
+	X  ** why do a subroutine call when you don't have to?
+	X  ** Besides, this ought to give the C preprocessor a work-out.
+	X  */
+	X+ #ifdef MMAP
+	X+ #define	PUTC(c)	if (putc(c, remote) == EOF) {\
+	X+ 	(void) munmap (mbufr, sbuf.st_size);\
+	X+ 	return(FALSE); }
+	X+ #else !MMAP
+	X  #define	PUTC(c)	if (putc(c, remote) == EOF) return(FALSE)
+	X  #endif !MMAP
+	X  
+	X***************
+	X*** 397,402
+	X  ** Besides, this ought to give the C preprocessor a work-out.
+	X  */
+	X  #define	PUTC(c)	if (putc(c, remote) == EOF) return(FALSE)
+	X  
+	X  	if (fp == (FILE *)NULL)
+	X  		return(FALSE);
+	X
+	X--- 419,425 -----
+	X  	return(FALSE); }
+	X  #else !MMAP
+	X  #define	PUTC(c)	if (putc(c, remote) == EOF) return(FALSE)
+	X+ #endif !MMAP
+	X  
+	X  	if (fp == (FILE *)NULL)
+	X  		return(FALSE);
+	X***************
+	X*** 401,406
+	X  	if (fp == (FILE *)NULL)
+	X  		return(FALSE);
+	X  
+	X  	/*
+	X  	** the second test makes no sense to me,
+	X  	** but System V apparently needed it...
+	X
+	X--- 424,444 -----
+	X  	if (fp == (FILE *)NULL)
+	X  		return(FALSE);
+	X  
+	X+ #ifdef MMAP
+	X+ 	/* map the article into memory */
+	X+ 	(void) fstat(fileno(fp), &sbuf);
+	X+         mbufr = mmap (0, sbuf.st_size, PROT_READ, MAP_PRIVATE, fileno(fp), 0);
+	X+         if(mbufr == (char *) -1){
+	X+ 		sprintf(buf, "sendfile: mmap failed: %s", errmsg(errno));
+	X+ 		log(L_NOTICE, buf);
+	X+                 return(FALSE);
+	X+         }
+	X+ 
+	X+         mptr = mbufr;		/* start of article in memory */
+	X+         msize = sbuf.st_size;	/* size of article (bytes) */
+	X+ 	while(msize-- > 0) {
+	X+ 		c = *mptr++;
+	X+ #else !MMAP
+	X  	/*
+	X  	** the second test makes no sense to me,
+	X  	** but System V apparently needed it...
+	X***************
+	X*** 406,411
+	X  	** but System V apparently needed it...
+	X  	*/
+	X  	while((c = fgetc(fp)) != EOF && !feof(fp)) {
+	X  		switch(c) {
+	X  		case '\n':
+	X  			PUTC('\r');		/* \n -> \r\n */
+	X
+	X--- 444,450 -----
+	X  	** but System V apparently needed it...
+	X  	*/
+	X  	while((c = fgetc(fp)) != EOF && !feof(fp)) {
+	X+ #endif !MMAP
+	X  		switch(c) {
+	X  		case '\n':
+	X  			PUTC('\r');		/* \n -> \r\n */
+	X***************
+	X*** 429,433
+	X  		PUTC('\r');
+	X  		PUTC('\n');
+	X  	}
+	X  	return( !(sendcmd(".") || ferror(fp)) );
+	X  }
+	X
+	X--- 468,475 -----
+	X  		PUTC('\r');
+	X  		PUTC('\n');
+	X  	}
+	X+ #ifdef MMAP
+	X+ 	(void) munmap (mbufr, sbuf.st_size);
+	X+ #endif MMAP
+	X  	return( !(sendcmd(".") || ferror(fp)) );
+	X  }
+SHAR_EOF
+if test 7740 -ne "`wc -c < 'xmit.diff'`"
+then
+	echo shar: error transmitting "'xmit.diff'" '(should have been 7740 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'xmit'"
+cd ..
+if test ! -d 'inews'
+then
+	echo shar: creating directory "'inews'"
+	mkdir 'inews'
+fi
+echo shar: entering directory "'inews'"
+cd 'inews'
+echo shar: extracting "'inews.diff'" '(4526 characters)'
+if test -f 'inews.diff'
+then
+	echo shar: will not over-write existing file "'inews.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'inews.diff'
+	X*** Makefile	Sun Jul  8 02:46:58 1990
+	X--- ../../nntp/inews/Makefile	Sat Aug 18 17:13:30 1990
+	X***************
+	X*** 1,7
+	X  #
+	X  # Makefile for pseudo-inews
+	X  #
+	X! 
+	X  SRCS	=	inews.c uname.c postauth.c ../common/clientlib.c ../common/version.c ../server/strcasecmp.c
+	X  OBJS	=	inews.o uname.o postauth.o ../common/clientlib.o ../common/version.o ../server/strcasecmp.o
+	X  HFILES	=	../common/nntp.h ../common/conf.h
+	X
+	X--- 1,7 -----
+	X  #
+	X  # Makefile for pseudo-inews
+	X  #
+	X! NEWSUSR=usenet
+	X  SRCS	=	inews.c uname.c postauth.c ../common/clientlib.c ../common/version.c ../server/strcasecmp.c
+	X  OBJS	=	inews.o uname.o postauth.o ../common/clientlib.o ../common/version.o ../server/strcasecmp.o
+	X  HFILES	=	../common/nntp.h ../common/conf.h
+	X***************
+	X*** 10,16
+	X  
+	X  LIBS	=
+	X  
+	X! DESTDIR	= /usr/local
+	X  
+	X  inews:  $(OBJS) $(HFILES)
+	X  	$(CC) $(CFLAGS) $(OBJS) -o inews $(LIBS)
+	X
+	X--- 10,16 -----
+	X  
+	X  LIBS	=
+	X  
+	X! DESTDIR	= /usr/local/bin
+	X  
+	X  inews:  $(OBJS) $(HFILES)
+	X  	$(CC) $(CFLAGS) $(OBJS) -o inews $(LIBS)
+	X***************
+	X*** 33,39
+	X  
+	X  install: inews
+	X  	cp inews ${DESTDIR}/inews
+	X! 	chmod 755 ${DESTDIR}/inews
+	X  
+	X  clean:
+	X  	-rm -f ${OBJS} inews make*.out
+	X
+	X--- 33,40 -----
+	X  
+	X  install: inews
+	X  	cp inews ${DESTDIR}/inews
+	X! 	chown ${NEWSUSR} ${DESTDIR}/inews
+	X! 	chmod 4755 ${DESTDIR}/inews
+	X  
+	X  clean:
+	X  	-rm -f ${OBJS} inews make*.out
+	X***************
+	X*** 43,50
+	X  	rm -rf SCCS
+	X  
+	X  check:
+	X! 	sccs check
+	X! 	sccs prt -y *.[ch] > /dev/null
+	X  
+	X  lint:
+	X  	lint ${SRCS} ${HFILES}
+	X
+	X--- 44,50 -----
+	X  	rm -rf SCCS
+	X  
+	X  check:
+	X! 	ci -l *.[ch] Makefile
+	X  
+	X  lint:
+	X  	lint ${SRCS} ${HFILES}
+	X*** inews.c	Sun Jul  8 01:00:01 1990
+	X--- ../../nntp/inews/inews.c	Fri Aug 10 22:53:40 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char *sccsid = "@(#)$Header: inews.c,v 1.18 90/07/08 00:59:48 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char *sccsid = "@(#)$Header: inews.c,v 1.19 90/08/10 22:53:27 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 138,143
+	X  	in_header = 1;
+	X  	seen_header = 0;
+	X  	seen_fromline = 0;
+	X  
+	X  	while (gets(s) != NULL) {
+	X  		if (s[0] == '.')    /* Single . is eof, so put in extra one */
+	X
+	X--- 138,144 -----
+	X  	in_header = 1;
+	X  	seen_header = 0;
+	X  	seen_fromline = 0;
+	X+ 	seen_pathline = 0;
+	X  
+	X  	while (fgets(s, sizeof(s), stdin) != NULL) {
+	X  		/* Strip trailing newline */
+	X***************
+	X*** 139,145
+	X  	seen_header = 0;
+	X  	seen_fromline = 0;
+	X  
+	X! 	while (gets(s) != NULL) {
+	X  		if (s[0] == '.')    /* Single . is eof, so put in extra one */
+	X  			(void) fputc('.', ser_wr_fp);
+	X  		if (in_header && strneql(s, "From:", sizeof("From:")-1)) {
+	X
+	X--- 140,151 -----
+	X  	seen_fromline = 0;
+	X  	seen_pathline = 0;
+	X  
+	X! 	while (fgets(s, sizeof(s), stdin) != NULL) {
+	X! 		/* Strip trailing newline */
+	X! 		cp = s + strlen(s) - 1;
+	X! 		if (cp >= s && *cp == '\n')
+	X! 			*cp = '\0';
+	X! 
+	X  		if (s[0] == '.')    /* Single . is eof, so put in extra one */
+	X  			(void) fputc('.', ser_wr_fp);
+	X  		if (in_header && strneql(s, "From:", sizeof("From:")-1)) {
+	X***************
+	X*** 262,268
+	X  			MAX_SIGNATURE);
+	X  			break;
+	X  		}
+	X! 		if (cp = index(line, '\n'))
+	X  			*cp = '\0';
+	X  		fprintf(ser_wr_fp, "%s\r\n", line);
+	X  	}
+	X
+	X--- 268,276 -----
+	X  			MAX_SIGNATURE);
+	X  			break;
+	X  		}
+	X! 		/* Strip trailing newline */
+	X! 		cp = line + strlen(line) - 1;
+	X! 		if (cp >= line && *cp == '\n')
+	X  			*cp = '\0';
+	X  
+	X  		fprintf(ser_wr_fp, "%s\r\n", line);
+	X***************
+	X*** 264,269
+	X  		}
+	X  		if (cp = index(line, '\n'))
+	X  			*cp = '\0';
+	X  		fprintf(ser_wr_fp, "%s\r\n", line);
+	X  	}
+	X  	(void) fclose(fp);
+	X
+	X--- 272,278 -----
+	X  		cp = line + strlen(line) - 1;
+	X  		if (cp >= line && *cp == '\n')
+	X  			*cp = '\0';
+	X+ 
+	X  		fprintf(ser_wr_fp, "%s\r\n", line);
+	X  	}
+	X  	(void) fclose(fp);
+	X*** postauth.c	Sun Jul  8 01:00:21 1990
+	X--- ../../nntp/inews/postauth.c	Sat Aug 11 21:25:49 1990
+	X***************
+	X*** 3,9
+	X   * Originally by Brian Kantor. Some modifications by Stan Barber.
+	X   */
+	X  #ifndef lint
+	X! static char * rcsid = "$Header: postauth.c,v 1.2 90/07/08 01:00:05 sob Exp $";
+	X  #endif
+	X  #include <stdio.h>
+	X  #include "../common/conf.h"
+	X
+	X--- 3,9 -----
+	X   * Originally by Brian Kantor. Some modifications by Stan Barber.
+	X   */
+	X  #ifndef lint
+	X! static char * rcsid = "$Header: postauth.c,v 1.3 90/08/11 21:25:38 sob Exp $";
+	X  #endif
+	X  #include <stdio.h>
+	X  #include "../common/conf.h"
+	X***************
+	X*** 71,77
+	X  char *buf;
+	X  int buflen;
+	X  	{
+	X! 	put_server(buf,buflen);
+	X  	get_server(buf,buflen);
+	X  	return(atoi(buf));
+	X  	}
+	X
+	X--- 71,77 -----
+	X  char *buf;
+	X  int buflen;
+	X  	{
+	X! 	put_server(buf);
+	X  	get_server(buf,buflen);
+	X  	return(atoi(buf));
+	X  	}
+	X
+SHAR_EOF
+if test 4526 -ne "`wc -c < 'inews.diff'`"
+then
+	echo shar: error transmitting "'inews.diff'" '(should have been 4526 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'inews'"
+cd ..
+#	End of shell archive
+exit 0

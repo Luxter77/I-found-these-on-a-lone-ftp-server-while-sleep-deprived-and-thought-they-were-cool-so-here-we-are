@@ -1,0 +1,21 @@
+INSTALL - uuparts
+-------
+
+The binary forms for Unix need only decompressing:
+
+compress -d <file>.Z
+mv <file> uuparts
+chmod u+x uuparts
+
+The VMS version is provided in pure executable form. Just define as a 
+foreign command:
+
+$ rename uuparts-vax-vms6.2 uuparts.exe
+$ uuparts := $<disk>:[dir]uuparts.exe
+
+INSTALL - uudeview
+-------
+
+Uudeview is distributed in compressed tar format and in PC's ZIP format.
+You will have to unzip it (or uncompress and untar). All further information
+about compiling is contained in the file itself.

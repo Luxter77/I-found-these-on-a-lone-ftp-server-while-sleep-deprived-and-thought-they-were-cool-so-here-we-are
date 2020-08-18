@@ -1,0 +1,19 @@
+*** 14-Sep-1989.orig	Sat Sep 16 18:49:35 1989
+--- 14-Sep-1989	Sat Sep 16 18:49:38 1989
+***************
+*** 1566,1572 ****
+    	    (readcnt=fread(block, 1, (int)min(art->a_unread, COPYSIZE), in)) > 0;
+    	    art->a_unread -= readcnt, art->a_charswritten += readcnt)
+  
+! *** cnpatch/tmp.file	Thu Sep 14 15:54:41 1989
+  --- relay/regress/out/stderr	Wed Sep 13 20:35:17 1989
+  ***************
+  *** 0 ****
+--- 1566,1572 ----
+    	    (readcnt=fread(block, 1, (int)min(art->a_unread, COPYSIZE), in)) > 0;
+    	    art->a_unread -= readcnt, art->a_charswritten += readcnt)
+  
+! *** cnpatch/tmp.nonexistent.file.with.very.long.name.for.stupid.patch	Thu Sep 14 15:54:41 1989
+  --- relay/regress/out/stderr	Wed Sep 13 20:35:17 1989
+  ***************
+  *** 0 ****

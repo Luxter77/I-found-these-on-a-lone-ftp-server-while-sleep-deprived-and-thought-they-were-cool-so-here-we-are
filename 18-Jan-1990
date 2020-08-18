@@ -1,0 +1,87 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 18-Jan-1990
+
+Sigh...  One minor bit of unfinished business was overlooked in the build
+changes, and of course neither of our test systems gave any trouble on it.
+Some systems, however, will object, and build will fail as it is starting
+to construct doit.bin.  The quick fix is to look for "xxx" in build and
+just delete it.  Here is the definitive fix, which takes out the -s option
+and some related sludge in doit.bin, because the to-subst-or-not-to-subst
+decision is now made more sensibly by make.
+
+start of patch 18-Jan-1990
+(suggested archive name: `pch18Jan90.Z')
+this should be run with   patch -p0 <thisfile
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+*** PATCHDATES.old	Thu Jan 18 12:54:06 1990
+--- PATCHDATES	Thu Jan 18 12:54:06 1990
+***************
+*** 1,10 ****
+--- 1,11 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
++ 18-Jan-1990
+
+Changed files, if any:
+
+*** cnpatch/old/conf/build	Wed Jan 17 17:06:37 1990
+--- conf/build	Thu Jan 18 12:34:52 1990
+***************
+*** 666,671 ****
+  (
+  	echo '#! /bin/sh'
+! 	echo '# -i suppresses install, -t suppresses stdio test, -s suppresses subst'
+! 	echo '# options are seen in first argument only, i.e. use -si not -s -i'
+  	echo "umask $newsumask"
+  	echo "set -x"
+--- 666,671 ----
+  (
+  	echo '#! /bin/sh'
+! 	echo '# -i suppresses install, -t suppresses stdio test'
+! 	echo '# options are seen in first argument only, i.e. use -ti not -t -i'
+  	echo "umask $newsumask"
+  	echo "set -x"
+***************
+*** 732,744 ****
+  	echo ": making substitutions..."
+  	echo "cd ../conf"
+! 	if test " $needsubst" != " n"	xxx
+! 	then
+! 		echo 'case "$1" in'
+! 		echo '-*s*)	;;'
+! 		echo '*)	make substs || exit 1	;;'
+! 		echo 'esac'
+! 	else
+! 		echo ": make substs || exit 1	not necessary, defaults used"
+! 	fi
+  	echo ": done"
+  	echo ": making spacefor, queuelen, etc...."
+--- 732,736 ----
+  	echo ": making substitutions..."
+  	echo "cd ../conf"
+! 	echo 'make substs || exit 1'
+  	echo ": done"
+  	echo ": making spacefor, queuelen, etc...."
+
+
+end of patch 18-Jan-1990

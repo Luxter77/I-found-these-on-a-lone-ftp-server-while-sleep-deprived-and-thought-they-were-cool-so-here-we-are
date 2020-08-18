@@ -1,0 +1,1665 @@
+#! /bin/sh
+# This is a shell archive, meaning:
+# 1. Remove everything above the #! /bin/sh line.
+# 2. Save the resulting text in a file.
+# 3. Execute the file with /bin/sh (not csh) to create the files:
+#	support
+#	server
+# This archive created: Sun Feb 10 14:30:48 1991
+export PATH; PATH=/bin:$PATH
+if test ! -d 'support'
+then
+	echo shar: creating directory "'support'"
+	mkdir 'support'
+fi
+echo shar: entering directory "'support'"
+cd 'support'
+echo shar: extracting "'access_file'" '(799 characters)'
+sed 's/^	X//' << \SHAR_EOF > 'access_file'
+	X#
+	X# Sample NNTP access file. 
+	X# Note that "default" must be the first entry in the
+	X# table. Order is important. Put the most restictive
+	X# entried just behind "default"
+	X#
+	X# If you defined SUBNET when you compiled the server,
+	X# this file can have subnets as well as class A, B, C
+	X# networks, hosts, and domains.
+	X#
+	X# host/net		read/xfer/no	post/no
+	X#
+	X# by default, let anyone transfer news, but not read or post
+	Xdefault			xfer		no
+	X# bugs, a notorious undergraduate machine, is not allowed
+	X# to read or post news at all.
+	Xbugs.berkeley.edu	no		no
+	X# ic can read and post news, but users on ic cannot read
+	X# articles in the group ucb.postgres or any of its decendents
+	X# (e.g., ucb.postgres.core)
+	Xic			read		post	!ucb.postgres
+	X# hosts on the Berkeley campus can read and post news
+	X*.berkeley.edu		read		post
+SHAR_EOF
+if test 799 -ne "`wc -c < 'access_file'`"
+then
+	echo shar: error transmitting "'access_file'" '(should have been 799 characters)'
+fi
+echo shar: done with directory "'support'"
+cd ..
+if test ! -d 'server'
+then
+	echo shar: creating directory "'server'"
+	mkdir 'server'
+fi
+echo shar: entering directory "'server'"
+cd 'server'
+echo shar: extracting "'server.pt2.diff'" '(28993 characters)'
+if test -f 'server.pt2.diff'
+then
+	echo shar: will not over-write existing file "'server.pt2.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'server.pt2.diff'
+	XIndex: Makefile
+	XPrereq: 1.2
+	X*** Makefile	Thu Jul  5 02:29:07 1990
+	X--- ../../nntp/server/Makefile	Sat Dec 22 10:16:13 1990
+	X***************
+	X*** 1,4
+	X! # $Header: Makefile,v 1.2 90/07/05 02:22:37 sob Exp $
+	X  # Makefile for NNTP server
+	X  #
+	X  
+	X
+	X--- 1,4 -----
+	X! # $Header: Makefile,v 1.3 90/12/22 10:16:02 sob Exp $
+	X  # Makefile for NNTP server
+	X  #
+	X  
+	X***************
+	X*** 6,12
+	X  	ahbs.o globals.o group.o help.o ihave.o list.o misc.o netaux.o \
+	X  	newgroups.o newnews.o nextlast.o ngmatch.o post.o parsit.o scandir.o \
+	X  	slave.o spawn.o strcasecmp.o subnet.o time.o xhdr.o fakesyslog.o \
+	X! 	batch.o putenv.o auth.o ../common/version.o
+	X  
+	X  SRVRSRC = main.c serve.c access.c access_inet.c access_dnet.c active.c \
+	X  	ahbs.c globals.c group.c help.c ihave.c list.c misc.c netaux.c \
+	X
+	X--- 6,12 -----
+	X  	ahbs.o globals.o group.o help.o ihave.o list.o misc.o netaux.o \
+	X  	newgroups.o newnews.o nextlast.o ngmatch.o post.o parsit.o scandir.o \
+	X  	slave.o spawn.o strcasecmp.o subnet.o time.o xhdr.o fakesyslog.o \
+	X! 	batch.o auth.o timer.o ../common/version.o
+	X  
+	X  SRVRSRC = main.c serve.c access.c access_inet.c access_dnet.c active.c \
+	X  	ahbs.c globals.c group.c help.c ihave.c list.c misc.c netaux.c \
+	X***************
+	X*** 12,18
+	X  	ahbs.c globals.c group.c help.c ihave.c list.c misc.c netaux.c \
+	X  	newgroups.c newnews.c nextlast.c ngmatch.c post.c parsit.c scandir.c \
+	X  	slave.c spawn.c strcasecmp.c subnet.c time.c xhdr.c fakesyslog.c \
+	X! 	batch.c putenv.c auth.c ../common/version.c
+	X  
+	X  SRVRINC = common.h ../common/conf.h ../common/nntp.h
+	X  
+	X
+	X--- 12,18 -----
+	X  	ahbs.c globals.c group.c help.c ihave.c list.c misc.c netaux.c \
+	X  	newgroups.c newnews.c nextlast.c ngmatch.c post.c parsit.c scandir.c \
+	X  	slave.c spawn.c strcasecmp.c subnet.c time.c xhdr.c fakesyslog.c \
+	X! 	batch.c auth.c timer.c ../common/version.c
+	X  
+	X  SRVRINC = common.h ../common/conf.h ../common/nntp.h timer.h
+	X  
+	X***************
+	X*** 14,20
+	X  	slave.c spawn.c strcasecmp.c subnet.c time.c xhdr.c fakesyslog.c \
+	X  	batch.c putenv.c auth.c ../common/version.c
+	X  
+	X! SRVRINC = common.h ../common/conf.h ../common/nntp.h
+	X  
+	X  SRCS	= ${SRVRSRC}
+	X  
+	X
+	X--- 14,20 -----
+	X  	slave.c spawn.c strcasecmp.c subnet.c time.c xhdr.c fakesyslog.c \
+	X  	batch.c auth.c timer.c ../common/version.c
+	X  
+	X! SRVRINC = common.h ../common/conf.h ../common/nntp.h timer.h
+	X  
+	X  SRCS	= ${SRVRSRC}
+	X  
+	X***************
+	X*** 52,58
+	X  	sccs prt -y *.[ch] > /dev/null
+	X  
+	X  tags:	${SRVRSRC} ${SRVRINC}
+	X! 	ctags ${SRVRSRC} ${SRVRINC}
+	X  
+	X  # Dependencies
+	X  
+	X
+	X--- 52,58 -----
+	X  	sccs prt -y *.[ch] > /dev/null
+	X  
+	X  tags:	${SRVRSRC} ${SRVRINC}
+	X! 	ctags -wt ${SRVRSRC} ${SRVRINC}
+	X  
+	X  # Dependencies
+	X  
+	X*** README	Thu Jul  5 02:29:07 1990
+	X--- ../../nntp/server/README	Sun Oct 28 10:40:20 1990
+	X***************
+	X*** 48,54
+	X  	      yellow pages.
+	X  
+	X  	      Don't forget to kill -HUP your inetd (or kill it and restart
+	X!               it if you are on SunOS).
+	X  
+	X  	   If you're NOT using inetd,
+	X  
+	X
+	X--- 48,54 -----
+	X  	      yellow pages.
+	X  
+	X  	      Don't forget to kill -HUP your inetd (or kill it and restart
+	X!               it if you are on SunOS prior to version 4.1).
+	X  
+	X  	   If you're NOT using inetd,
+	X  
+	X*** batch.c	Sat Aug 25 16:59:48 1990
+	X--- ../../nntp/server/batch.c	Sun Jan 13 03:27:43 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static	char	*rcsid = "@(#)Header: batch.c,v 1.5 90/08/02 13:32:10 sob Exp $";
+	X  #endif
+	X  /*
+	X   * Batch subroutine for Cnews.
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static	char	*rcsid = "@(#)$Header: batch.c,v 1.15 91/01/13 03:27:26 sob Exp $";
+	X  #endif
+	X  /*
+	X   * Batch subroutine for Cnews.
+	X***************
+	X*** 30,37
+	X  /* imports */
+	X  extern time_t time();
+	X  extern char *malloc(), *mktemp(), *index(), *rindex();
+	X- extern char **myenviron;
+	X- 
+	X  /* forwards */
+	X  static char *strsave();
+	X  static int xfer_timeout();
+	X
+	X--- 30,35 -----
+	X  /* imports */
+	X  extern time_t time();
+	X  extern char *malloc(), *mktemp(), *index(), *rindex();
+	X  /* forwards */
+	X  static char *strsave();
+	X  #ifdef XFER_TIMEOUT
+	X***************
+	X*** 34,39
+	X  
+	X  /* forwards */
+	X  static char *strsave();
+	X  static int xfer_timeout();
+	X  static int cpstdin();
+	X  static int appbatch();
+	X
+	X--- 32,38 -----
+	X  extern char *malloc(), *mktemp(), *index(), *rindex();
+	X  /* forwards */
+	X  static char *strsave();
+	X+ #ifdef XFER_TIMEOUT
+	X  static int xfer_timeout();
+	X  #endif
+	X  static int cpstdin();
+	X***************
+	X*** 35,40
+	X  /* forwards */
+	X  static char *strsave();
+	X  static int xfer_timeout();
+	X  static int cpstdin();
+	X  static int appbatch();
+	X  static int enqueue();
+	X
+	X--- 34,40 -----
+	X  static char *strsave();
+	X  #ifdef XFER_TIMEOUT
+	X  static int xfer_timeout();
+	X+ #endif
+	X  static int cpstdin();
+	X  static int appbatch();
+	X  static int enqueue();
+	X***************
+	X*** 47,52
+	X  static char *endart = art;		/* points just past end of article */
+	X  static int incore = YES;
+	X  
+	X  static struct batch_file {
+	X  	char *name;
+	X  	FILE *file;
+	X
+	X--- 47,57 -----
+	X  static char *endart = art;		/* points just past end of article */
+	X  static int incore = YES;
+	X  
+	X+ #ifdef NONEWSRUN
+	X+ static int uniq = 0;                    /* unique counter for this process */
+	X+ static int in_batchdir = NO;
+	X+ 
+	X+ #endif /* NONEWSRUN */
+	X  static struct batch_file {
+	X  	char *name;
+	X  	FILE *file;
+	X***************
+	X*** 53,58
+	X  	char isopen;
+	X  	time_t start;			/* time of creation */
+	X  	off_t size;			/* current size */
+	X  } btch = { NULL, NULL, NO, 0, 0 };
+	X  
+	X  /*
+	X
+	X--- 58,64 -----
+	X  	char isopen;
+	X  	time_t start;			/* time of creation */
+	X  	off_t size;			/* current size */
+	X+ 	int arts;			/* number of articles */
+	X  } btch = { NULL, NULL, NO, 0, 0 };
+	X  
+	X  /*
+	X***************
+	X*** 68,74
+	X   *		Can time out if XFER_TIMEOUT is defined.
+	X   */
+	X  int
+	X! batch_input_article(cont_code, err_code, errbuf)
+	X  int cont_code, err_code;
+	X  char *errbuf;
+	X  {
+	X
+	X--- 74,80 -----
+	X   *		Can time out if XFER_TIMEOUT is defined.
+	X   */
+	X  int
+	X! batch_input_article(cont_code, err_code, errbuf, msg_id)
+	X  int cont_code, err_code;
+	X  char *errbuf;
+	X  char *msg_id;
+	X***************
+	X*** 71,76
+	X  batch_input_article(cont_code, err_code, errbuf)
+	X  int cont_code, err_code;
+	X  char *errbuf;
+	X  {
+	X  	int status = 1;			/* okay status */
+	X  
+	X
+	X--- 77,83 -----
+	X  batch_input_article(cont_code, err_code, errbuf, msg_id)
+	X  int cont_code, err_code;
+	X  char *errbuf;
+	X+ char *msg_id;
+	X  {
+	X  	int status = 1;			/* okay status */
+	X  
+	X***************
+	X*** 79,84
+	X  	signal(SIGQUIT, SIG_IGN);
+	X  	signal(SIGHUP, SIG_IGN);
+	X  
+	X  	if (btch.name == NULL) {
+	X  		/* BATCH_FILE may trigger unprivileged() */
+	X  		btch.name = mktemp(strsave(BATCH_FILE));
+	X
+	X--- 86,102 -----
+	X  	signal(SIGQUIT, SIG_IGN);
+	X  	signal(SIGHUP, SIG_IGN);
+	X  
+	X+ #ifdef NONEWSRUN
+	X+ 	/* This really should be done in main.c so that we don't have to
+	X+ 	   check each time we get a new article - sigh */
+	X+ 
+	X+ 	if (!in_batchdir)
+	X+ 		if (chdir(INDIR) < 0)
+	X+ 			syslog(LOG_ERR, "chdir(%s) failed", INDIR);
+	X+ 		else
+	X+ 			in_batchdir = YES;
+	X+ 
+	X+ #endif /* NONEWSRUN */
+	X  	if (btch.name == NULL) {
+	X  		/* BATCH_FILE may trigger unprivileged() */
+	X  		btch.name = mktemp(strsave(BATCH_FILE));
+	X***************
+	X*** 89,95
+	X  #ifdef UMASK
+	X  	(void) umask(UMASK);
+	X  #endif
+	X! 	if (!cpstdin(cont_code, err_code, errbuf)) /* may create tempfile */
+	X  		return 0;
+	X  #ifdef POSTER
+	X  	if (tempfile[0])
+	X
+	X--- 107,114 -----
+	X  #ifdef UMASK
+	X  	(void) umask(UMASK);
+	X  #endif
+	X! 	/* may create tempfile */
+	X! 	if (!cpstdin(cont_code, err_code, errbuf, msg_id))
+	X  		return 0;
+	X  #ifdef POSTER
+	X  	if (tempfile[0])
+	X***************
+	X*** 96,101
+	X  		(void) chown(tempfile, uid_poster, gid_poster);
+	X  #endif
+	X  	status = appbatch();
+	X  	if (tempfile[0] != '\0')
+	X  		(void) unlink(tempfile);
+	X  	if (status == 1 && oktorunbatch())
+	X
+	X--- 115,121 -----
+	X  		(void) chown(tempfile, uid_poster, gid_poster);
+	X  #endif
+	X  	status = appbatch();
+	X+ 	btch.arts++;
+	X  	if (tempfile[0] != '\0')
+	X  		(void) unlink(tempfile);
+	X  	if (status == 1 && oktorunbatch())
+	X***************
+	X*** 111,118
+	X  	if (!btch.isopen || fstat(fileno(btch.file), &stbuf) < 0)
+	X  		return NO;
+	X  	btch.size = stbuf.st_size;
+	X! 	return btch.size > TOOBIG ||
+	X! 		btch.size > 0 && time((time_t *)NULL) - btch.start > TOOOLD;
+	X  }
+	X  
+	X  /*
+	X
+	X--- 131,138 -----
+	X  	if (!btch.isopen || fstat(fileno(btch.file), &stbuf) < 0)
+	X  		return NO;
+	X  	btch.size = stbuf.st_size;
+	X! 	return(btch.arts >= TOOMANY || btch.size > TOOBIG ||
+	X! 	    btch.size > 0 && time((time_t *)NULL) - btch.start > TOOOLD);
+	X  }
+	X  
+	X  /*
+	X***************
+	X*** 121,127
+	X   */
+	X  /* ARGSUSED errbuf */
+	X  static int					/* boolean: got article ok? */
+	X! cpstdin(cont_code, err_code, errbuf)
+	X  int cont_code, err_code;
+	X  char *errbuf;
+	X  {
+	X
+	X--- 141,147 -----
+	X   */
+	X  /* ARGSUSED errbuf */
+	X  static int					/* boolean: got article ok? */
+	X! cpstdin(cont_code, err_code, errbuf, msg_id)
+	X  int cont_code, err_code;
+	X  char *errbuf, *msg_id;
+	X  {
+	X***************
+	X*** 123,129
+	X  static int					/* boolean: got article ok? */
+	X  cpstdin(cont_code, err_code, errbuf)
+	X  int cont_code, err_code;
+	X! char *errbuf;
+	X  {
+	X  	register FILE *tfp = NULL;
+	X  	register char *cp, *realline;
+	X
+	X--- 143,149 -----
+	X  static int					/* boolean: got article ok? */
+	X  cpstdin(cont_code, err_code, errbuf, msg_id)
+	X  int cont_code, err_code;
+	X! char *errbuf, *msg_id;
+	X  {
+	X  	register FILE *tfp = NULL;
+	X  	register char *cp, *realline;
+	X***************
+	X*** 206,213
+	X  			(void) unlink(tempfile);
+	X  #ifdef SYSLOG
+	X  #ifdef LOG
+	X! 		syslog(LOG_ERR, "%s spawn: EOF before period on line by itself",
+	X! 			hostname);
+	X  #else
+	X  		syslog(LOG_ERR, "spawn: EOF before period on line by itself");
+	X  #endif
+	X
+	X--- 226,234 -----
+	X  			(void) unlink(tempfile);
+	X  #ifdef SYSLOG
+	X  #ifdef LOG
+	X! 		syslog(LOG_ERR,
+	X! 		    "%s cpstdin: EOF before period on line by itself %s",
+	X! 			hostname, msg_id);
+	X  #else
+	X  		syslog(LOG_ERR,
+	X  		    "cpstdin: EOF before period on line by itself %s", msg_id);
+	X***************
+	X*** 209,215
+	X  		syslog(LOG_ERR, "%s spawn: EOF before period on line by itself",
+	X  			hostname);
+	X  #else
+	X! 		syslog(LOG_ERR, "spawn: EOF before period on line by itself");
+	X  #endif
+	X  #endif
+	X  		return 0;
+	X
+	X--- 230,237 -----
+	X  		    "%s cpstdin: EOF before period on line by itself %s",
+	X  			hostname, msg_id);
+	X  #else
+	X! 		syslog(LOG_ERR,
+	X! 		    "cpstdin: EOF before period on line by itself %s", msg_id);
+	X  #endif
+	X  #endif
+	X  		return 0;
+	X***************
+	X*** 259,265
+	X  		btch.file = fopen(btch.name, "a");
+	X  		if (btch.file == NULL) {
+	X  #ifdef SYSLOG
+	X! 			syslog(LOG_ERR,"appbatch(): %s: %m", btch.name);
+	X  #endif
+	X  			return 0;
+	X  		}
+	X
+	X--- 281,287 -----
+	X  		btch.file = fopen(btch.name, "a");
+	X  		if (btch.file == NULL) {
+	X  #ifdef SYSLOG
+	X! 			syslog(LOG_ERR,"appbatch: fopen: %s: %m", btch.name);
+	X  #endif
+	X  			return 0;
+	X  		}
+	X***************
+	X*** 264,270
+	X  			return 0;
+	X  		}
+	X  		btch.isopen = YES;
+	X- 		btch.size = 0;
+	X  		btch.start = time(&btch.start);
+	X  	}
+	X  
+	X
+	X--- 286,291 -----
+	X  			return 0;
+	X  		}
+	X  		btch.isopen = YES;
+	X  		btch.start = time(&btch.start);
+	X  		btch.size = 0;
+	X  		btch.arts = 0;
+	X***************
+	X*** 266,271
+	X  		btch.isopen = YES;
+	X  		btch.size = 0;
+	X  		btch.start = time(&btch.start);
+	X  	}
+	X  
+	X  	/* find article size and write the article */
+	X
+	X--- 287,294 -----
+	X  		}
+	X  		btch.isopen = YES;
+	X  		btch.start = time(&btch.start);
+	X+ 		btch.size = 0;
+	X+ 		btch.arts = 0;
+	X  	}
+	X  
+	X  	/* find article size and write the article */
+	X***************
+	X*** 278,284
+	X  		if (fstat(fileno(tfp), &stbuf) >= 0)
+	X  			size = stbuf.st_size;
+	X  	}
+	X! 	(void) fprintf(btch.file, "#! rnews %ld\n", size);
+	X  
+	X  	/* copy the article to the batch file */
+	X  	if (incore)
+	X
+	X--- 301,307 -----
+	X  		if (fstat(fileno(tfp), &stbuf) >= 0)
+	X  			size = stbuf.st_size;
+	X  	}
+	X! 	(void) fprintf(btch.file, "#! rnews %ld %s\n", size, hostname);
+	X  
+	X  	/* copy the article to the batch file */
+	X  	if (incore)
+	X***************
+	X*** 287,293
+	X  		while ((bytes = fread(artbuf, 1, sizeof artbuf, tfp)) > 0)
+	X  			if (fwrite(artbuf, 1, bytes, btch.file) != bytes) {
+	X  #ifdef SYSLOG
+	X! 				syslog(LOG_ERR,"can't write %s", btch.name);
+	X  #endif
+	X  				status = 0;	/* hmm, #! count is off */
+	X  				break;
+	X
+	X--- 310,318 -----
+	X  		while ((bytes = fread(artbuf, 1, sizeof artbuf, tfp)) > 0)
+	X  			if (fwrite(artbuf, 1, bytes, btch.file) != bytes) {
+	X  #ifdef SYSLOG
+	X! 				syslog(LOG_ERR,
+	X! 				    "enqueue: fwrite can't write %s",
+	X! 				    btch.name);
+	X  #endif
+	X  				status = 0;	/* hmm, #! count is off */
+	X  				break;
+	X***************
+	X*** 296,302
+	X  	}
+	X  	if (fflush(btch.file) == EOF) {
+	X  #ifdef SYSLOG
+	X! 		syslog(LOG_ERR,"can't write %s", btch.name);
+	X  #endif
+	X  		status = 0;
+	X  	}
+	X
+	X--- 321,327 -----
+	X  	}
+	X  	if (fflush(btch.file) == EOF) {
+	X  #ifdef SYSLOG
+	X! 		syslog(LOG_ERR, "enqueue: fflush: %s", btch.name);
+	X  #endif
+	X  		status = 0;
+	X  	}
+	X***************
+	X*** 338,343
+	X  	int pid, wpid, status, fd, exitstat;
+	X  	char permname[MAXDIGITS], *number = permname, *newsrun;
+	X  	struct stat stbuf;
+	X  
+	X  	(void) fclose(btch.file);
+	X  	btch.file = NULL;
+	X
+	X--- 363,374 -----
+	X  	int pid, wpid, status, fd, exitstat;
+	X  	char permname[MAXDIGITS], *number = permname, *newsrun;
+	X  	struct stat stbuf;
+	X+ #ifdef POSTER
+	X+ 	char *envp[4], user[sizeof(POSTER) + 5], logname[sizeof(POSTER) + 8];
+	X+ 	char *home;
+	X+ #else
+	X+ 	char *envp[1];
+	X+ #endif
+	X  
+	X  	if (fclose(btch.file) != 0) {
+	X  #ifdef SYSLOG
+	X***************
+	X*** 339,345
+	X  	char permname[MAXDIGITS], *number = permname, *newsrun;
+	X  	struct stat stbuf;
+	X  
+	X! 	(void) fclose(btch.file);
+	X  	btch.file = NULL;
+	X  	btch.isopen = NO;
+	X  	btch.start = 0;
+	X
+	X--- 370,380 -----
+	X  	char *envp[1];
+	X  #endif
+	X  
+	X! 	if (fclose(btch.file) != 0) {
+	X! #ifdef SYSLOG
+	X! 		syslog(LOG_ERR, "enqueue: fclose: %m");
+	X! #endif
+	X! 	}
+	X  	btch.file = NULL;
+	X  	btch.isopen = NO;
+	X  	btch.start = 0;
+	X***************
+	X*** 344,349
+	X  	btch.isopen = NO;
+	X  	btch.start = 0;
+	X  	btch.size = 0;
+	X  
+	X  	(void) fflush(stdout);
+	X  	(void) fflush(stderr);
+	X
+	X--- 379,385 -----
+	X  	btch.isopen = NO;
+	X  	btch.start = 0;
+	X  	btch.size = 0;
+	X+ 	btch.arts = 0;
+	X  
+	X  	(void) fflush(stdout);
+	X  	(void) fflush(stderr);
+	X***************
+	X*** 347,352
+	X  
+	X  	(void) fflush(stdout);
+	X  	(void) fflush(stderr);
+	X  	pid = fork();
+	X  	if (pid == -1) {
+	X  #ifdef SYSLOG
+	X
+	X--- 383,389 -----
+	X  
+	X  	(void) fflush(stdout);
+	X  	(void) fflush(stderr);
+	X+ #ifndef NONEWSRUN
+	X  	pid = fork();
+	X  	if (pid == -1) {
+	X  #ifdef SYSLOG
+	X***************
+	X*** 350,356
+	X  	pid = fork();
+	X  	if (pid == -1) {
+	X  #ifdef SYSLOG
+	X! 		syslog(LOG_ERR,"can't fork");
+	X  #endif
+	X  		return 0;
+	X  	} else if (pid != 0) {			/* parent */
+	X
+	X--- 387,393 -----
+	X  	pid = fork();
+	X  	if (pid == -1) {
+	X  #ifdef SYSLOG
+	X! 		syslog(LOG_ERR, "enqueue: fork: %m");
+	X  #endif
+	X  		return 0;
+	X  	} else if (pid != 0) {			/* parent */
+	X***************
+	X*** 365,370
+	X  #endif
+	X  		return exitstat != 0? -1 :1;
+	X  	}
+	X  #ifdef POSTER
+	X  #ifndef USG
+	X  		if (getuid() == 0) initgroups(POSTER,gid_poster);
+	X
+	X--- 402,408 -----
+	X  #endif
+	X  		return exitstat != 0? -1 :1;
+	X  	}
+	X+ #endif /* NONEWSRUN */
+	X  #ifdef POSTER
+	X  #ifndef USG
+	X  		if (getuid() == 0) initgroups(POSTER,gid_poster);
+	X***************
+	X*** 369,375
+	X  #ifndef USG
+	X  		if (getuid() == 0) initgroups(POSTER,gid_poster);
+	X  #endif
+	X- 		(void) setuid(uid_poster);
+	X  		(void) setgid(gid_poster);
+	X  #endif
+	X  
+	X
+	X--- 407,412 -----
+	X  #ifndef USG
+	X  		if (getuid() == 0) initgroups(POSTER,gid_poster);
+	X  #endif
+	X  		(void) setgid(gid_poster);
+	X  		(void) setuid(uid_poster);
+	X  #endif
+	X***************
+	X*** 371,376
+	X  #endif
+	X  		(void) setuid(uid_poster);
+	X  		(void) setgid(gid_poster);
+	X  #endif
+	X  
+	X  	/* child: must exit */
+	X
+	X--- 408,414 -----
+	X  		if (getuid() == 0) initgroups(POSTER,gid_poster);
+	X  #endif
+	X  		(void) setgid(gid_poster);
+	X+ 		(void) setuid(uid_poster);
+	X  #endif
+	X  #ifndef NONEWSRUN
+	X  	/* child: must exit */
+	X***************
+	X*** 372,378
+	X  		(void) setuid(uid_poster);
+	X  		(void) setgid(gid_poster);
+	X  #endif
+	X! 
+	X  	/* child: must exit */
+	X  #ifdef SYSLOG
+	X  	/* Close in such a way that syslog() will know to reopen */
+	X
+	X--- 410,416 -----
+	X  		(void) setgid(gid_poster);
+	X  		(void) setuid(uid_poster);
+	X  #endif
+	X! #ifndef NONEWSRUN
+	X  	/* child: must exit */
+	X  #ifdef SYSLOG
+	X  	/* Close in such a way that syslog() will know to reopen */
+	X***************
+	X*** 382,388
+	X  		(void) close(fd);
+	X  	if (chdir(INDIR) < 0) {
+	X  #ifdef SYSLOG
+	X! 		syslog(LOG_ERR, "chdir(%s) failed", INDIR);
+	X  #else
+	X  		;
+	X  #endif
+	X
+	X--- 420,426 -----
+	X  		(void) close(fd);
+	X  	if (chdir(INDIR) < 0) {
+	X  #ifdef SYSLOG
+	X! 		syslog(LOG_ERR, "enqueue: chdir(%s): %m", INDIR);
+	X  #else
+	X  		;
+	X  #endif
+	X***************
+	X*** 390,395
+	X  
+	X  	/* rename btch.name to a number so newsrun will see it */
+	X  	sprintf(number, "%ld", (long)time(&now));
+	X  	while (link(btch.name, permname) < 0) {
+	X  		if (stat(btch.name, &stbuf) < 0)
+	X  			break;
+	X
+	X--- 428,436 -----
+	X  
+	X  	/* rename btch.name to a number so newsrun will see it */
+	X  	sprintf(number, "%ld", (long)time(&now));
+	X+ #else
+	X+ 	sprintf(number, "%d.%d", getpid(), uniq++);
+	X+ #endif /* NONEWSRUN */
+	X  	while (link(btch.name, permname) < 0) {
+	X  		if (stat(btch.name, &stbuf) < 0)
+	X  			break;
+	X***************
+	X*** 394,399
+	X  		if (stat(btch.name, &stbuf) < 0)
+	X  			break;
+	X  		sleep(2);
+	X  		sprintf(number, "%ld", (long)time(&now));
+	X  	}
+	X  	if (unlink(btch.name) < 0)
+	X
+	X--- 435,441 -----
+	X  		if (stat(btch.name, &stbuf) < 0)
+	X  			break;
+	X  		sleep(2);
+	X+ #ifndef NONEWSRUN
+	X  		sprintf(number, "%ld", (long)time(&now));
+	X  #else
+	X  		sprintf(number, "%d.%d", getpid(), uniq++);
+	X***************
+	X*** 395,400
+	X  			break;
+	X  		sleep(2);
+	X  		sprintf(number, "%ld", (long)time(&now));
+	X  	}
+	X  	if (unlink(btch.name) < 0)
+	X  #ifdef SYSLOG
+	X
+	X--- 437,445 -----
+	X  		sleep(2);
+	X  #ifndef NONEWSRUN
+	X  		sprintf(number, "%ld", (long)time(&now));
+	X+ #else
+	X+ 		sprintf(number, "%d.%d", getpid(), uniq++);
+	X+ #endif /* NONEWSRUN */
+	X  	}
+	X  	if (unlink(btch.name) < 0) {
+	X  #ifdef SYSLOG
+	X***************
+	X*** 396,402
+	X  		sleep(2);
+	X  		sprintf(number, "%ld", (long)time(&now));
+	X  	}
+	X! 	if (unlink(btch.name) < 0)
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "cannot find %s", btch.name);
+	X  #else
+	X
+	X--- 441,447 -----
+	X  		sprintf(number, "%d.%d", getpid(), uniq++);
+	X  #endif /* NONEWSRUN */
+	X  	}
+	X! 	if (unlink(btch.name) < 0) {
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "enqueue: cannot unlink %s: %m", btch.name);
+	X  #endif
+	X***************
+	X*** 398,406
+	X  	}
+	X  	if (unlink(btch.name) < 0)
+	X  #ifdef SYSLOG
+	X! 		syslog(LOG_ERR, "cannot find %s", btch.name);
+	X! #else
+	X! 		;
+	X  #endif
+	X  
+	X  	signal(SIGINT, SIG_IGN);
+	X
+	X--- 443,449 -----
+	X  	}
+	X  	if (unlink(btch.name) < 0) {
+	X  #ifdef SYSLOG
+	X! 		syslog(LOG_ERR, "enqueue: cannot unlink %s: %m", btch.name);
+	X  #endif
+	X  	}
+	X  #ifndef NONEWSRUN
+	X***************
+	X*** 402,407
+	X  #else
+	X  		;
+	X  #endif
+	X  
+	X  	signal(SIGINT, SIG_IGN);
+	X  	signal(SIGQUIT, SIG_IGN);
+	X
+	X--- 445,452 -----
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "enqueue: cannot unlink %s: %m", btch.name);
+	X  #endif
+	X+ 	}
+	X+ #ifndef NONEWSRUN
+	X  
+	X  	signal(SIGINT, SIG_IGN);
+	X  	signal(SIGQUIT, SIG_IGN);
+	X***************
+	X*** 411,417
+	X  	newsrun = strsave(NEWSRUN);
+	X  	if (newsrun == NULL)
+	X  		newsrun = "/usr/lib/newsbin/input/newsrun";
+	X! 	execle(newsrun, newsrun, (char *)NULL, myenviron);
+	X  #ifdef SYSLOG
+	X  	syslog(LOG_ERR, "enqueue: execle(%s): %m", newsrun);
+	X  #endif
+	X
+	X--- 456,481 -----
+	X  	newsrun = strsave(NEWSRUN);
+	X  	if (newsrun == NULL)
+	X  		newsrun = "/usr/lib/newsbin/input/newsrun";
+	X! 
+	X! 	/* Empty environment keeps cnews inews from telling lies */
+	X! #ifdef POSTER
+	X! 	sprintf(user, "USER=%s", POSTER);
+	X! 	sprintf(logname, "LOGNAME=%s", POSTER);
+	X! 	if ((home = (char *)malloc(strlen(home_poster)+5)) != NULL)
+	X! 		sprintf(home, "HOME=%s", home_poster);
+	X! 	envp[0] = user;
+	X! 	envp[1] = logname;
+	X! 	envp[2] = home;
+	X! 	envp[3] = 0;
+	X! #else
+	X! 	envp[0] = 0;
+	X! #endif
+	X! #ifdef USG
+	X!  	/* execle() fails because newsrun is a shell procedure */
+	X!  	execle("/bin/sh", "sh", newsrun, (char *)NULL, envp);
+	X! #else
+	X! 	execle(newsrun, newsrun, (char *)NULL, envp);
+	X! #endif
+	X  #ifdef SYSLOG
+	X  	syslog(LOG_ERR, "enqueue: execle(%s): %m", newsrun);
+	X  #endif
+	X***************
+	X*** 417,422
+	X  #endif
+	X  	exit(1);
+	X  	/* NOTREACHED */
+	X  }
+	X  static char *
+	X  strsave(s)
+	X
+	X--- 481,489 -----
+	X  #endif
+	X  	exit(1);
+	X  	/* NOTREACHED */
+	X+ #else
+	X+ 	return(1);
+	X+ #endif /* NONEWSRUN */
+	X  }
+	X  
+	X  static char *
+	X***************
+	X*** 418,423
+	X  	exit(1);
+	X  	/* NOTREACHED */
+	X  }
+	X  static char *
+	X  strsave(s)
+	X  register char *s;
+	X
+	X--- 485,491 -----
+	X  	return(1);
+	X  #endif /* NONEWSRUN */
+	X  }
+	X+ 
+	X  static char *
+	X  strsave(s)
+	X  register char *s;
+	XIndex: common.h
+	XPrereq: 1.33
+	X*** common.h	Sat Aug 25 17:00:35 1990
+	X--- ../../nntp/server/common.h	Sat Feb  2 15:55:37 1991
+	X***************
+	X*** 1,7
+	X  /*
+	X   * Common declarations, includes, and other goodies.
+	X   *
+	X!  * @(#)$Header: common.h,v 1.33 90/08/25 17:00:11 sob Exp $
+	X   */
+	X  
+	X  
+	X
+	X--- 1,7 -----
+	X  /*
+	X   * Common declarations, includes, and other goodies.
+	X   *
+	X!  * @(#)$Header: common.h,v 1.38 91/02/02 15:55:21 sob Exp $
+	X   */
+	X  
+	X  
+	X***************
+	X*** 5,10
+	X   */
+	X  
+	X  
+	X  #include <stdio.h>
+	X  #include <sys/types.h>
+	X  #include <sys/stat.h>
+	X
+	X--- 5,11 -----
+	X   */
+	X  
+	X  
+	X+ #include "../common/conf.h"
+	X  #include <stdio.h>
+	X  #ifndef BSD_42
+	X  #include <sys/types.h>
+	X***************
+	X*** 6,11
+	X  
+	X  
+	X  #include <stdio.h>
+	X  #include <sys/types.h>
+	X  #include <sys/stat.h>
+	X  #include <errno.h>
+	X
+	X--- 7,13 -----
+	X  
+	X  #include "../common/conf.h"
+	X  #include <stdio.h>
+	X+ #ifndef BSD_42
+	X  #include <sys/types.h>
+	X  #endif /* BSD_42 */
+	X  #include <sys/param.h>
+	X***************
+	X*** 7,12
+	X  
+	X  #include <stdio.h>
+	X  #include <sys/types.h>
+	X  #include <sys/stat.h>
+	X  #include <errno.h>
+	X  #include <ctype.h>
+	X
+	X--- 9,16 -----
+	X  #include <stdio.h>
+	X  #ifndef BSD_42
+	X  #include <sys/types.h>
+	X+ #endif /* BSD_42 */
+	X+ #include <sys/param.h>
+	X  #include <sys/stat.h>
+	X  #include <errno.h>
+	X  #include <ctype.h>
+	X***************
+	X*** 12,18
+	X  #include <ctype.h>
+	X  #include <pwd.h>
+	X  #include <sys/file.h>
+	X- #include <sys/param.h>
+	X  #ifdef BSD2_10
+	X  #include <short_names.h>
+	X  #endif BSD2_10
+	X
+	X--- 16,21 -----
+	X  #include <ctype.h>
+	X  #include <pwd.h>
+	X  #include <sys/file.h>
+	X  #ifdef BSD2_10
+	X  #include <short_names.h>
+	X  #endif /* BSD2_10 */
+	X***************
+	X*** 15,21
+	X  #include <sys/param.h>
+	X  #ifdef BSD2_10
+	X  #include <short_names.h>
+	X! #endif BSD2_10
+	X  
+	X  #include "../common/nntp.h"
+	X  #include "../common/conf.h"
+	X
+	X--- 18,24 -----
+	X  #include <sys/file.h>
+	X  #ifdef BSD2_10
+	X  #include <short_names.h>
+	X! #endif /* BSD2_10 */
+	X  
+	X  #include "../common/nntp.h"
+	X  
+	X***************
+	X*** 18,24
+	X  #endif BSD2_10
+	X  
+	X  #include "../common/nntp.h"
+	X- #include "../common/conf.h"
+	X  
+	X  #ifdef SYSLOG
+	X  # ifdef FAKESYSLOG
+	X
+	X--- 21,26 -----
+	X  #endif /* BSD2_10 */
+	X  
+	X  #include "../common/nntp.h"
+	X  
+	X  #ifdef SYSLOG
+	X  # ifdef FAKESYSLOG
+	X***************
+	X*** 32,38
+	X  extern struct passwd *getpwent(), *getpwuid(), *getpwnam();
+	X  #define iolen_t unsigned
+	X  # include <string.h>
+	X! #else not USG
+	X  # include <strings.h>
+	X  # include <sys/wait.h>
+	X  #define iolen_t int
+	X
+	X--- 34,40 -----
+	X  extern struct passwd *getpwent(), *getpwuid(), *getpwnam();
+	X  #define iolen_t unsigned
+	X  # include <string.h>
+	X! #else /* not USG */
+	X  # include <strings.h>
+	X  # include <sys/wait.h>
+	X  #define iolen_t int
+	X***************
+	X*** 36,42
+	X  # include <strings.h>
+	X  # include <sys/wait.h>
+	X  #define iolen_t int
+	X! #endif not USG
+	X  
+	X  #ifdef NDIR
+	X  #ifdef M_XENIX
+	X
+	X--- 38,44 -----
+	X  # include <strings.h>
+	X  # include <sys/wait.h>
+	X  #define iolen_t int
+	X! #endif /* not USG */
+	X  
+	X  #ifdef NDIR
+	X  #ifdef M_XENIX
+	X***************
+	X*** 44,50
+	X  #else
+	X  # include <ndir.h>
+	X  #endif
+	X! #else not NDIR
+	X  # include <sys/dir.h>
+	X  #endif not NDIR
+	X  
+	X
+	X--- 46,52 -----
+	X  #else
+	X  # include <ndir.h>
+	X  #endif
+	X! #else /* not NDIR */
+	X  # include <sys/dir.h>
+	X  #endif /* not NDIR */
+	X  
+	X***************
+	X*** 46,52
+	X  #endif
+	X  #else not NDIR
+	X  # include <sys/dir.h>
+	X! #endif not NDIR
+	X  
+	X  #ifdef FCNTL
+	X  # include <fcntl.h>
+	X
+	X--- 48,54 -----
+	X  #endif
+	X  #else /* not NDIR */
+	X  # include <sys/dir.h>
+	X! #endif /* not NDIR */
+	X  
+	X  #ifdef FCNTL
+	X  # include <fcntl.h>
+	X***************
+	X*** 50,56
+	X  
+	X  #ifdef FCNTL
+	X  # include <fcntl.h>
+	X! #endif FCNTL
+	X  
+	X  #ifdef ultrix
+	X  extern char * index();
+	X
+	X--- 52,58 -----
+	X  
+	X  #ifdef FCNTL
+	X  # include <fcntl.h>
+	X! #endif /* FCNTL */
+	X  
+	X  #ifdef ultrix
+	X  extern char * index();
+	X***************
+	X*** 71,76
+	X  #  undef NULL
+	X  #  define NULL	0
+	X  # endif /* DBZ */
+	X  #endif /* DBM */
+	X  
+	X  #ifdef NDBM
+	X
+	X--- 73,82 -----
+	X  #  undef NULL
+	X  #  define NULL	0
+	X  # endif /* DBZ */
+	X+ #else
+	X+ # ifdef NDBM
+	X+ #  include <ndbm.h>
+	X+ # endif /* NDBM */
+	X  #endif /* DBM */
+	X  
+	X  #ifdef TIMEOUT
+	X***************
+	X*** 73,80
+	X  # endif /* DBZ */
+	X  #endif /* DBM */
+	X  
+	X! #ifdef NDBM
+	X! # include <ndbm.h>
+	X  #endif
+	X  /*
+	X   * Some generic maximums.
+	X
+	X--- 79,87 -----
+	X  # endif /* NDBM */
+	X  #endif /* DBM */
+	X  
+	X! #ifdef TIMEOUT
+	X! #ifndef TIMERS
+	X! #define TIMERS
+	X  #endif
+	X  #endif
+	X  
+	X***************
+	X*** 76,81
+	X  #ifdef NDBM
+	X  # include <ndbm.h>
+	X  #endif
+	X  /*
+	X   * Some generic maximums.
+	X   */
+	X
+	X--- 83,102 -----
+	X  #ifndef TIMERS
+	X  #define TIMERS
+	X  #endif
+	X+ #endif
+	X+ 
+	X+ #ifdef LOGINCHECK
+	X+ #ifndef TIMERS
+	X+ #define TIMERS
+	X+ #endif
+	X+ #endif
+	X+ 
+	X+ #ifdef BATCHCHECK
+	X+ #ifndef TIMERS
+	X+ #define TIMERS
+	X+ #endif
+	X+ #endif
+	X+ 
+	X  /*
+	X   * Some generic maximums.
+	X   */
+	X***************
+	X*** 82,88
+	X  
+	X  #ifndef MAXPATHLEN
+	X  #define	MAXPATHLEN	1024
+	X! #endif not MAXPATHLEN
+	X  
+	X  #ifndef MAXHOSTNAMELEN
+	X  #define	MAXHOSTNAMELEN	256
+	X
+	X--- 103,109 -----
+	X  
+	X  #ifndef MAXPATHLEN
+	X  #define	MAXPATHLEN	1024
+	X! #endif
+	X  
+	X  #ifndef MAXHOSTNAMELEN
+	X  #define	MAXHOSTNAMELEN	256
+	X***************
+	X*** 86,92
+	X  
+	X  #ifndef MAXHOSTNAMELEN
+	X  #define	MAXHOSTNAMELEN	256
+	X! #endif not MAXHOSTNAMELEN
+	X  
+	X  #ifndef MINFREE
+	X  #define MINFREE         0
+	X
+	X--- 107,113 -----
+	X  
+	X  #ifndef MAXHOSTNAMELEN
+	X  #define	MAXHOSTNAMELEN	256
+	X! #endif
+	X  
+	X  #ifndef MINFREE
+	X  #define MINFREE         0
+	X***************
+	X*** 126,131
+	X  extern	char	*gethistent();
+	X  extern	int	restreql();
+	X  extern	int	s1strneql();	/* for ngmatch */
+	X  
+	X  extern	char	spooldir[];
+	X  extern	char	activefile[];
+	X
+	X--- 147,158 -----
+	X  extern	char	*gethistent();
+	X  extern	int	restreql();
+	X  extern	int	s1strneql();	/* for ngmatch */
+	X+ #ifdef DEBUG
+	X+ void debugup(), debugdown();
+	X+ #endif
+	X+ #ifdef SETPROCTITLE
+	X+ void setproctitle();
+	X+ #endif
+	X  
+	X  extern	char	spooldir[];
+	X  extern	char	activefile[];
+	X***************
+	X*** 143,148
+	X  extern	char	*homedir;
+	X  extern	int	ingroup;
+	X  extern	int	maxgroups;
+	X  extern	int	art_array[];
+	X  extern	int	art_ptr;
+	X  extern	FILE	*art_fp;
+	X
+	X--- 170,179 -----
+	X  extern	char	*homedir;
+	X  extern	int	ingroup;
+	X  extern	int	maxgroups;
+	X+ #ifdef DYNAMIC_ART_ARRAY
+	X+ extern	int	*art_array;
+	X+ extern	unsigned int size_art_array;
+	X+ #else
+	X  extern	int	art_array[];
+	X  #endif
+	X  extern	int	art_ptr;
+	X***************
+	X*** 144,149
+	X  extern	int	ingroup;
+	X  extern	int	maxgroups;
+	X  extern	int	art_array[];
+	X  extern	int	art_ptr;
+	X  extern	FILE	*art_fp;
+	X  extern	int	num_arts;
+	X
+	X--- 175,181 -----
+	X  extern	unsigned int size_art_array;
+	X  #else
+	X  extern	int	art_array[];
+	X+ #endif
+	X  extern	int	art_ptr;
+	X  extern	FILE	*art_fp;
+	X  extern	int	num_arts;
+	X***************
+	X*** 148,153
+	X  extern	FILE	*art_fp;
+	X  extern	int	num_arts;
+	X  extern	int	uid_poster, gid_poster;
+	X  extern	int	canread, canpost, canxfer;
+	X  extern	char	**ngpermlist;
+	X  extern	int	ngpermcount;
+	X
+	X--- 180,186 -----
+	X  extern	FILE	*art_fp;
+	X  extern	int	num_arts;
+	X  extern	int	uid_poster, gid_poster;
+	X+ extern	char	*home_poster;
+	X  extern	int	canread, canpost, canxfer;
+	X  extern	char	**ngpermlist;
+	X  extern	int	ngpermcount;
+	X***************
+	X*** 155,160
+	X  extern	char	nntp_version[];
+	X  
+	X  extern	char	hostname[];
+	X  
+	X  #ifdef LOG
+	X  extern	int	grps_acsd, arts_acsd;
+	X
+	X--- 188,194 -----
+	X  extern	char	nntp_version[];
+	X  
+	X  extern	char	hostname[];
+	X+ extern	int	debug;
+	X  
+	X  #ifdef LOG
+	X  extern	int	grps_acsd, arts_acsd;
+	XIndex: globals.c
+	XPrereq: 1.7
+	X*** globals.c	Thu Jul  5 23:09:18 1990
+	X--- ../../nntp/server/globals.c	Sat Feb  2 15:55:43 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: globals.c,v 1.7 90/07/05 23:09:11 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: globals.c,v 1.10 91/02/02 15:55:37 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 36,41
+	X  int	ingroup = 0;
+	X  int	art_ptr;
+	X  int	num_arts;
+	X  int	art_array[MAX_ARTICLES];
+	X  FILE	*art_fp;
+	X  int	uid_poster, gid_poster;
+	X
+	X--- 36,45 -----
+	X  int	ingroup = 0;
+	X  int	art_ptr;
+	X  int	num_arts;
+	X+ #ifdef DYNAMIC_ART_ARRAY
+	X+ int	*art_array = 0;		/* dynamic array */
+	X+ unsigned int size_art_array = 0;	/* current size of art_array */
+	X+ #else
+	X  int	art_array[MAX_ARTICLES];
+	X  #endif
+	X  FILE	*art_fp;
+	X***************
+	X*** 37,42
+	X  int	art_ptr;
+	X  int	num_arts;
+	X  int	art_array[MAX_ARTICLES];
+	X  FILE	*art_fp;
+	X  int	uid_poster, gid_poster;
+	X  int	canpost, canread, canxfer;
+	X
+	X--- 41,47 -----
+	X  unsigned int size_art_array = 0;	/* current size of art_array */
+	X  #else
+	X  int	art_array[MAX_ARTICLES];
+	X+ #endif
+	X  FILE	*art_fp;
+	X  int	uid_poster, gid_poster;
+	X  char	*home_poster;
+	X***************
+	X*** 39,44
+	X  int	art_array[MAX_ARTICLES];
+	X  FILE	*art_fp;
+	X  int	uid_poster, gid_poster;
+	X  int	canpost, canread, canxfer;
+	X  char	**ngpermlist;
+	X  int	ngpermcount;
+	X
+	X--- 44,50 -----
+	X  #endif
+	X  FILE	*art_fp;
+	X  int	uid_poster, gid_poster;
+	X+ char	*home_poster;
+	X  int	canpost, canread, canxfer;
+	X  char	**ngpermlist;
+	X  int	ngpermcount;
+	X***************
+	X*** 43,48
+	X  char	**ngpermlist;
+	X  int	ngpermcount;
+	X  char	hostname[256];
+	X  
+	X  #ifdef AUTH
+	X  int	Needauth;	/* 1 if we need to do authorization */
+	X
+	X--- 49,55 -----
+	X  char	**ngpermlist;
+	X  int	ngpermcount;
+	X  char	hostname[256];
+	X+ int	debug;
+	X  
+	X  #ifdef AUTH
+	X  int	Needauth;	/* 1 if we need to do authorization */
+SHAR_EOF
+if test 28993 -ne "`wc -c < 'server.pt2.diff'`"
+then
+	echo shar: error transmitting "'server.pt2.diff'" '(should have been 28993 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'timer.c'" '(3900 characters)'
+if test -f 'timer.c'
+then
+	echo shar: will not over-write existing file "'timer.c'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'timer.c'
+	X/*
+	X * Machinery to run routines off timers.
+	X */
+	X#include "common.h"
+	X
+	X#ifdef TIMERS
+	X#ifndef lint
+	Xstatic char rcsid[] =
+	X    "@(#) $Header: timer.c,v 1.2 90/12/27 22:16:27 sob Exp $ (NNTP with TIMERS)";
+	X#endif
+	X#else
+	X#ifndef lint
+	Xstatic char rcsid[] =
+	X    "@(#) $Header: timer.c,v 1.2 90/12/27 22:16:27 sob Exp $ (NNTP without TIMERS)";
+	X#endif
+	X#endif
+	X
+	X#ifdef TIMERS
+	X#include <sys/time.h>
+	X#include "timer.h"
+	X#ifndef USG
+	X#ifndef FD_SETSIZE
+	X/* Forward compatability */
+	X#define FD_SET(n, p)    ((p)->fds_bits[0] |= (1<<(n)))
+	X#define FD_CLR(n, p)    ((p)->fds_bits[0] &= ~(1<<(n)))
+	X#define FD_ISSET(n, p)  ((p)->fds_bits[0] & (1<<(n)))
+	X#define FD_ZERO(p)      ((p)->fds_bits[0] = 0)
+	X#endif
+	X#endif
+	X/* non-portable */
+	X#define BUFFERED_DATA(f) ((f)->_cnt > 0)
+	X
+	Xstatic long lastsecs;
+	X
+	X/*
+	X * Should be called before first call to timer_sleep()
+	X */
+	Xvoid
+	Xtimer_init(timers, ntimer)
+	X	register struct timer *timers;
+	X	register int ntimer;
+	X{
+	X	register int i;
+	X	register struct timer *tp;
+	X
+	X#ifdef SYSLOG
+	X	if (ntimer <= 0)
+	X		syslog(LOG_ERR,
+	X		    "timer_init(): configuration error, %d timers\n", ntimer);
+	X#endif
+	X
+	X	/* Reset all timers */
+	X	for (i = ntimer, tp = timers; i > 0; --i, ++tp)
+	X		tp->left = tp->seconds;
+	X
+	X	/* Start clock */
+	X	lastsecs = time((long *)0);
+	X}
+	X
+	X/*
+	X * Sleep until input or next timer needs to be run and then run any
+	X * expired timers. Returns true if input is available to be read.
+	X */
+	Xint
+	Xtimer_sleep(timers, ntimer)
+	X	register struct timer *timers;
+	X	register int ntimer;
+	X{
+	X	register int i, n;
+	X	register struct timer *tp;
+	X	register long secs;
+	X#ifdef USG
+	X	long timeout;
+	X	long readfds;
+	X#else
+	X	register struct timeval *timeoutp;
+	X	struct timeval timeout;
+	X	fd_set readfds;
+	X#endif
+	X
+	X	/* No need to do the select if there are characters in the buffer */
+	X	if (BUFFERED_DATA(stdin))
+	X		return(1);
+	X
+	X	/* Length of next timeout is minimum of all "timers" */
+	X#ifdef USG
+	X	timeout = -1;
+	X	for (i = ntimer, tp = timers; i > 0; --i, ++tp)
+	X		if (tp->left >= 0 &&
+	X		    (tp->left < timeout || timeout < 0))
+	X			timeout = tp->left;
+	X
+	X	/* If active timeouts (this can easily happen), block until input */
+	X	if (timeout < 0)
+	X		timeout = 0;
+	X#ifdef EXCELAN
+	X	readfds = 1<<(fileno(stdin));
+	X	timeout = timeout * 1000;     /* timeout needs to be in milliseconds */
+	X#endif /* EXCELAN */
+	X#else
+	X	timeout.tv_sec = -1;
+	X	timeout.tv_usec = 0;
+	X	for (i = ntimer, tp = timers; i > 0; --i, ++tp)
+	X		if (tp->left >= 0 &&
+	X		    (tp->left < timeout.tv_sec || timeout.tv_sec < 0))
+	X			timeout.tv_sec = tp->left;
+	X
+	X	/* If active timeouts (this can easily happen), block until input */
+	X	if (timeout.tv_sec < 0)
+	X		timeoutp = 0;
+	X	else
+	X		timeoutp = &timeout;
+	X
+	X	/* Do select */
+	X	FD_ZERO(&readfds);
+	X	FD_SET(fileno(stdin), &readfds);
+	X#endif /* !USG */
+	X	errno = 0;
+	X#ifdef EXCELAN
+	X	n = select(fileno(stdin) + 1, &readfds, (long*)0, timeout);
+	X#else
+	X	n = select(fileno(stdin) + 1,
+	X	    &readfds, (fd_set*)0, (fd_set*)0, timeoutp);
+	X#endif
+	X	/* "Interrupted system call" isn't a real error */
+	X	if (n < 0 && errno != EINTR) {
+	X#ifdef SYSLOG
+	X		syslog(LOG_ERR, "%s read select: %m", hostname);
+	X#endif
+	X		exit(1);
+	X	}
+	X
+	X	/* Calculate off seconds since last time */
+	X	secs = time((long *)0) - lastsecs;
+	X	if (secs < 0)
+	X		secs = 0;
+	X
+	X	/* Subtract time from "timers" that have time remaining */
+	X	for (i = ntimer, tp = timers; i > 0; --i, ++tp)
+	X		if (tp->left > 0 && (tp->left -= secs) < 0)
+	X			tp->left = 0;
+	X
+	X	/* Update lastsecs */
+	X	lastsecs += secs;
+	X
+	X	/* If we have input, reset clock on guys that like it that way */
+	X	if (n > 0)
+	X		for (i = ntimer, tp = timers; i > 0; --i, ++tp)
+	X			if (tp->resetoninput)
+	X				tp->left = tp->seconds;
+	X
+	X	/* Process "timers" that have timed out */
+	X	for (i = ntimer, tp = timers; i > 0; --i, ++tp) {
+	X		if (tp->left == 0) {
+	X			(tp->subr)();
+	X			/* resetoninput guys only get "reset on input" */
+	X			if (tp->resetoninput)
+	X				tp->left = -1;
+	X			else
+	X				tp->left = tp->seconds;
+	X		}
+	X	}
+	X
+	X	/* Indicate no input */
+	X	if (n <= 0)
+	X		return(0);
+	X	return(1);
+	X	
+	X}
+	X#endif
+SHAR_EOF
+if test 3900 -ne "`wc -c < 'timer.c'`"
+then
+	echo shar: error transmitting "'timer.c'" '(should have been 3900 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'timer.h'" '(325 characters)'
+if test -f 'timer.h'
+then
+	echo shar: will not over-write existing file "'timer.h'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'timer.h'
+	X/* @(#) $Header: timer.h,v 1.2 90/12/12 00:52:56 sob Exp $ */
+	X
+	Xstruct timer {
+	X	void (*subr)();		/* routine to invoke at timeout */
+	X	int resetoninput;	/* if true, reset timer on input */
+	X	long seconds;		/* seconds until a timeout */
+	X	long left;		/* seconds left until next timeout */
+	X};
+	X
+	Xvoid timer_init();
+	Xint timer_sleep();
+SHAR_EOF
+if test 325 -ne "`wc -c < 'timer.h'`"
+then
+	echo shar: error transmitting "'timer.h'" '(should have been 325 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'server'"
+cd ..
+#	End of shell archive
+exit 0

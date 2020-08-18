@@ -1,0 +1,249 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 14-Dec-1990
+
+This one concludes the catch-up patches, and incorporates a couple of
+tail-end additions to earlier ones.  Fix a bug in updatemin, uncovered
+by the new split(), that caused blank lines to be added to the active
+file.  Update rnews(8) to match the new rnews.  Add a copy of inews in
+NEWSCTL, for the benefit of things like rn that want to see one there.
+(Kind of a blemish, but at least inews is a shell file.)  Completion
+of the ANSI-C-errno fixes.  And change anne.jones (part of the inews
+machinery) to generate dates with four-digit years.
+
+
+start of patch 14-Dec-1990
+(suggested archive name: `pch14Dec90.Z')
+this should be run with   patch -p0 <thisfile
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+Prereq: 13-Dec-1990
+*** PATCHDATES.old	Fri Dec 14 13:38:17 1990
+--- PATCHDATES	Fri Dec 14 13:38:18 1990
+***************
+*** 1,21 ****
+--- 1,22 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
+  13-Dec-1990
++ 14-Dec-1990
+
+Changed files, if any:
+
+*** cnpatch/old/expire/updatemin.c	Fri Dec 14 13:40:25 1990
+--- expire/updatemin.c	Fri Dec 14 13:28:50 1990
+***************
+*** 43,47 ****
+  	register FILE *a;
+  	register FILE *new;
+! 	char *line;
+  #	define	NF	4
+  	char *field[NF];
+--- 43,47 ----
+  	register FILE *a;
+  	register FILE *new;
+! 	register char *line;
+  #	define	NF	4
+  	char *field[NF];
+***************
+*** 50,53 ****
+--- 50,54 ----
+  	register char *name;
+  	char minstr[6];
++ 	register char *p;
+  
+  	progname = argv[0];
+***************
+*** 73,76 ****
+--- 74,80 ----
+  	cd(fullartfile((char *)NULL));
+  	while ((line = fgetms(a)) != NULL) {
++ 		p = line + strlen(line) - 1;
++ 		if (*p == '\n')
++ 			*p = '\0';
+  		nf = split(line, field, NF, "");
+  		if (nf != NF)
+
+*** cnpatch/old/man/rnews.8	Fri Dec 14 13:43:22 1990
+--- man/rnews.8	Thu Dec 13 16:39:00 1990
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH RNEWS 8 "18 Sept 1990"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH RNEWS 8 "13 Dec 1990"
+  .BY "C News"
+  .SH NAME
+***************
+*** 35,38 ****
+--- 35,50 ----
+  accepts news from standard input
+  and spools it up for processing, space permitting.
++ If space is persistently too short,
++ .I rnews
++ looks for the file
++ .IR \*c/rnews.stall ;
++ if it is present,
++ .I rnews
++ waits patiently for more space to appear,
++ while if it is absent,
++ .I rnews
++ discards the news and reports this.
++ .PP
++ .PP
+  .I Cunbatch
+  is a historical synonym for
+***************
+*** 52,55 ****
+--- 64,71 ----
+  .I newsrun
+  to process the new news immediately.
++ .I Rnews
++ invokes it this way if and only if the file
++ .I \*c/rnews.immed
++ exists.
+  .PP
+  .I Newsrun
+
+*** cnpatch/old/relay/fileart.c	Fri Dec 14 13:44:53 1990
+--- relay/fileart.c	Thu Nov  1 16:15:26 1990
+***************
+*** 20,23 ****
+--- 20,24 ----
+  #include <stdio.h>
+  #include <errno.h>
++ #include "fixerrno.h"
+  #include <sys/types.h>
+  
+
+*** cnpatch/old/relay/history.c	Fri Dec 14 13:45:05 1990
+--- relay/history.c	Thu Nov  1 16:15:51 1990
+***************
+*** 16,19 ****
+--- 16,22 ----
+  
+  #include <stdio.h>
++ #include <string.h>		/* for memcpy */
++ #include <errno.h>
++ #include "fixerrno.h"
+  #include <sys/types.h>
+  #include "libc.h"
+
+*** cnpatch/old/relay/makefile	Fri Dec 14 13:45:13 1990
+--- relay/makefile	Sun Oct 14 03:01:35 1990
+***************
+*** 75,80 ****
+  	cp ctl/[a-z]* $(NEWSBIN)/ctl
+  	cp aux/[a-z]* $(NEWSBIN)/relay
+! 	rm -f $(BIN)/inews
+  	ln $(NEWSBIN)/inject/inews $(BIN)/inews 2>/dev/null || cp sh/inews $(BIN)
+  
+  cmp:	relaynews
+--- 75,81 ----
+  	cp ctl/[a-z]* $(NEWSBIN)/ctl
+  	cp aux/[a-z]* $(NEWSBIN)/relay
+! 	rm -f $(BIN)/inews $(NEWSCTL)/inews
+  	ln $(NEWSBIN)/inject/inews $(BIN)/inews 2>/dev/null || cp sh/inews $(BIN)
++ 	ln $(NEWSCTL)/inject/inews $(NEWSCTL)/inews 2>/dev/null || cp sh/inews $(NEWSCTL)
+  
+  cmp:	relaynews
+***************
+*** 84,87 ****
+--- 85,89 ----
+  	for f in `ls aux` ; do cmp $(NEWSBIN)/relay/$$f aux/$$f ; done
+  	cmp $(BIN)/inews sh/inews
++ 	cmp $(NEWSCTL)/inews sh/inews
+  	ls -lg $(NEWSBIN)/relay/relaynews | egrep -s '^-rwsrwsr-x  1 news     news'
+  
+***************
+*** 92,95 ****
+--- 94,98 ----
+  	for f in `ls aux` ; do cmp $(NEWSBIN)/relay/$$f aux/$$f || true ; done
+  	cmp $(BIN)/inews sh/inews || true
++ 	cmp $(NEWSCTL)/inews sh/inews || true
+  	ls -lg $(NEWSBIN)/relay/relaynews | egrep -s '^-rwsrwsr-x  1 news     news'
+  
+
+*** cnpatch/old/relay/relaynews.c	Fri Dec 14 13:46:04 1990
+--- relay/relaynews.c	Thu Nov  1 16:16:12 1990
+***************
+*** 31,34 ****
+--- 31,36 ----
+  #include <ctype.h>
+  #include <signal.h>		/* to make locking safe */
++ #include <errno.h>
++ #include "fixerrno.h"
+  #include <sys/types.h>
+  
+
+*** cnpatch/old/relay/sh/anne.jones	Fri Dec 14 13:46:08 1990
+--- relay/sh/anne.jones	Sat Dec  1 03:37:53 1990
+***************
+*** 117,120 ****
+  defpath="$badsites$USER" \
+  deffrom="$FROM" deforg="$deforg" \
+! defdate="` set $date; echo $1, $3 $2 \` echo $6 | sed 's/^..//' \` $4 $5`" \
+  defmsgid="`set $date; echo \<$6$2$3.\`  echo $4 | tr -d : \`.$$@$host\>`" -
+--- 117,120 ----
+  defpath="$badsites$USER" \
+  deffrom="$FROM" deforg="$deforg" \
+! defdate="` set $date; echo $1, $3 $2 $6 $4 $5`" \
+  defmsgid="`set $date; echo \<$6$2$3.\`  echo $4 | tr -d : \`.$$@$host\>`" -
+
+*** cnpatch/old/relay/sys.c	Fri Dec 14 13:46:17 1990
+--- relay/sys.c	Thu Nov  1 16:16:25 1990
+***************
+*** 5,8 ****
+--- 5,10 ----
+  #include <stdio.h>
+  #include <ctype.h>
++ #include <errno.h>
++ #include "fixerrno.h"
+  #include <sys/types.h>
+  #include <sys/stat.h>
+
+
+end of patch 14-Dec-1990

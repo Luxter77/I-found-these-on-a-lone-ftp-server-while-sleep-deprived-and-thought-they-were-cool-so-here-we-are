@@ -1,0 +1,119 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 22-Aug-1991
+
+Yes, a patch that fell through a time warp! :-)  Due to unusually high
+sunspot activity, the August patch set consists of *four*, not three.
+
+Okay, what happened was that there is a bug:  in an option I never use
+during testing, one of the recent changes broke the output of build.
+Oops.  Here's the fix.  Also included is the little bit of post-patch
+fixup mentioned in my earlier posting.
+
+start of patch 22-Aug-1991
+(suggested archive name: `pch22Aug91.Z')
+this should be run with   patch -p0 <thisfile
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+Prereq: 13-Dec-1990
+Prereq: 14-Dec-1990
+Prereq: 15-Dec-1990
+Prereq: 16-Mar-1991
+Prereq: 17-Mar-1991
+Prereq: 23-Mar-1991
+Prereq: 24-Mar-1991
+Prereq: 6-Jul-1991
+Prereq: 9-Aug-1991
+Prereq: 17-Aug-1991
+Prereq: 21-Aug-1991
+*** PATCHDATES.old	Wed Aug 21 16:42:58 1991
+--- PATCHDATES	Wed Aug 21 16:42:58 1991
+***************
+*** 1,31 ****
+--- 1,32 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
+  13-Dec-1990
+  14-Dec-1990
+  15-Dec-1990
+  16-Mar-1991
+  17-Mar-1991
+  23-Mar-1991
+  24-Mar-1991
+  6-Jul-1991
+  9-Aug-1991
+  17-Aug-1991
+  21-Aug-1991
++ 22-Aug-1991
+
+Changed files, if any:
+
+*** cnpatch/old/conf/build	Wed Aug 21 16:43:48 1991
+--- conf/build	Wed Aug 21 16:41:48 1991
+***************
+*** 838,841 ****
+--- 838,842 ----
+  	esac
+  	echo ": making spacefor, queuelen, etc...."
++ 	echo 'cd ../conf'
+  	echo "rm -f spacefor queuelen hostname setnewsids"
+  	echo "make sf.$dftype || exit 1"
+***************
+*** 851,855 ****
+  	echo ': done'
+  	echo ': building programs'
+- 	echo 'cd ../conf'
+  	case "$sete" in
+  	no)	echo "make setnewsids NEWSUSER=$newsuid NEWSGROUP=$newsgid $ccc || exit 1"
+--- 852,855 ----
+
+*** cnpatch/old/conf/subst.hs	Wed Aug 21 16:44:13 1991
+--- conf/subst.hs	Wed Aug 21 15:20:20 1991
+***************
+*** 55,58 ****
+  conf/sf.ultrix
+  conf/sf.ustat
+- misc/soonerthan
+  contrib/nntpmail/nntp_support/frontend_inews
+--- 55,57 ----
+
+
+end of patch 22-Aug-1991

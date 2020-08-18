@@ -1,0 +1,109 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 23-Aug-1991
+
+Boy, are the sunspots ever active today. :-)  Fifth of three August patches.
+
+Our thanks to Bill Kucharski of Solbourne for leaping to install the new
+stuff the instant it came out.  He found the build bug fixed in the first
+sunspot patch, and also a Makefile bug (a side effect of the deletion of
+soonerthan) which is the subject of this one.  I sure hope this is the
+last for a while. :-)  My fault; I ran short of time and didn't test as
+thoroughly as I usually do.
+
+start of patch 23-Aug-1991
+(suggested archive name: `pch23Aug91.Z')
+this should be run with   patch -p0 <thisfile
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+Prereq: 13-Dec-1990
+Prereq: 14-Dec-1990
+Prereq: 15-Dec-1990
+Prereq: 16-Mar-1991
+Prereq: 17-Mar-1991
+Prereq: 23-Mar-1991
+Prereq: 24-Mar-1991
+Prereq: 6-Jul-1991
+Prereq: 9-Aug-1991
+Prereq: 17-Aug-1991
+Prereq: 21-Aug-1991
+Prereq: 22-Aug-1991
+*** PATCHDATES.old	Wed Aug 21 17:14:19 1991
+--- PATCHDATES	Wed Aug 21 17:14:19 1991
+***************
+*** 1,32 ****
+--- 1,33 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
+  13-Dec-1990
+  14-Dec-1990
+  15-Dec-1990
+  16-Mar-1991
+  17-Mar-1991
+  23-Mar-1991
+  24-Mar-1991
+  6-Jul-1991
+  9-Aug-1991
+  17-Aug-1991
+  21-Aug-1991
+  22-Aug-1991
++ 23-Aug-1991
+
+Changed files, if any:
+
+*** cnpatch/old/misc/Makefile	Wed Aug 21 17:18:55 1991
+--- misc/Makefile	Wed Aug 21 17:12:39 1991
+***************
+*** 15,19 ****
+  	adddirs addfeed act.to.times histfrom newsfrom addmissing newshist
+  UTILBIN = gngp newslock ctime getdate canonhdr getabsdate
+! UTILS = $(UTILBIN) sizeof newshostname soonerthan
+  THEM = $(MAINT) $(UTILS)
+  
+--- 15,19 ----
+  	adddirs addfeed act.to.times histfrom newsfrom addmissing newshist
+  UTILBIN = gngp newslock ctime getdate canonhdr getabsdate
+! UTILS = $(UTILBIN) sizeof newshostname
+  THEM = $(MAINT) $(UTILS)
+  
+
+
+end of patch 23-Aug-1991

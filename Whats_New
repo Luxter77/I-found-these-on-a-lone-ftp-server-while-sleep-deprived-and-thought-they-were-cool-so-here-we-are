@@ -1,0 +1,9 @@
+Updated 18-Oct-1995 :
+New version of uudeview is now available, still only in source form because
+I just came back from a long vacation and hadn't the time to compile it.
+So the bin/ directory contains binaries for uudeview-0.4.11, but the source/
+directory has uudeview-0.4.12 in it.
+Notice that uudeview4.zip is still uudeview-0.4.11! This is mainly because I
+didn't do that yet, but also because the majority of changes from 0.4.11 to
+0.4.12 relate to the Unix part of uudeview.
+						Amit.

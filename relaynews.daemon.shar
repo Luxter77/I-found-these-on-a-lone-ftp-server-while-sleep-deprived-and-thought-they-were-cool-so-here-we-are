@@ -1,0 +1,931 @@
+#! /bin/sh
+# This is a shell archive.  Remove anything before this line, then unpack
+# it by saving it into a file and typing "sh file".  To overwrite existing
+# files, type "sh file -c".  You can also feed this as standard input via
+# unshar, or by typing "sh <file", e.g..  If this archive is complete, you
+# will see the following message at the end:
+#		"End of shell archive."
+# Contents:  README cnews.patch nntp1.5.10.patches
+# Wrapped by alden@shape on Fri Dec 14 17:57:45 1990
+PATH=/bin:/usr/bin:/usr/ucb ; export PATH
+if test -f 'README' -a "${1}" != "-c" ; then 
+  echo shar: Will not clobber existing file \"'README'\"
+else
+echo shar: Extracting \"'README'\" \(555 characters\)
+sed "s/^X//" >'README' <<'END_OF_FILE'
+X
+XThese patches are designed to turn the relaynews program into a daemon.
+XThis way only one relaynews needs to be started once - it will watch the
+Xin.coming directory for new news batches.  These are diff'ed against the
+Xlatest version of C-News (14-Dec-1990) - but should work on the 7-Sep-1990
+Xpatchlevel too.
+X
+XPlease check the relaynews.h for any local changes that you may need to
+Xmade.
+X
+XIf you have any problems, suggestions, etc. please mail them to me.
+X
+XDave Alden
+XDepartment of Mathematics, The Ohio State University
+Xalden@shape.mps.ohio-state.edu
+X
+END_OF_FILE
+if test 555 -ne `wc -c <'README'`; then
+    echo shar: \"'README'\" unpacked with wrong size!
+fi
+# end of 'README'
+fi
+if test -f 'cnews.patch' -a "${1}" != "-c" ; then 
+  echo shar: Will not clobber existing file \"'cnews.patch'\"
+else
+echo shar: Extracting \"'cnews.patch'\" \(19591 characters\)
+sed "s/^X//" >'cnews.patch' <<'END_OF_FILE'
+X*** orig.man/news.5	Thu Dec 13 18:08:04 1990
+X--- man/news.5	Fri Dec 14 16:45:31 1990
+X***************
+X*** 366,371 ****
+X--- 366,374 ----
+X  (like
+X  .B F
+X  but write Message-ID:s instead of filenames),
+X+ .B l
+X+ (just logs the sysname in the log file - for use with the nntplink "-X")
+X+ option),
+X  .B n
+X  (like
+X  .B F
+X*** orig.man/relaynews.8	Thu Nov  1 09:22:23 1990
+X--- man/relaynews.8	Fri Dec 14 16:45:32 1990
+X***************
+X*** 13,21 ****
+X  .SH SYNOPSIS
+X  .B relaynews
+X  [
+X! .B \-inrs
+X  ]
+X  [
+X  .B \-d
+X  .B fhlmt
+X  ]
+X--- 13,24 ----
+X  .SH SYNOPSIS
+X  .B relaynews
+X  [
+X! .B \-inrsD
+X  ]
+X  [
+X+ .B -S spool-dir
+X+ ]
+X+ [
+X  .B \-d
+X  .B fhlmt
+X  ]
+X***************
+X*** 71,76 ****
+X--- 74,86 ----
+X  excludes
+X  .I excluded-site
+X  from the list of netnews neighbours to receive article(s).
+X+ .B -D
+X+ makes it run in a daemon mode where it loops forever unbatching
+X+ any new articles found in the incoming spool directory.
+X+ .B -S
+X+ makes
+X+ .I spool-dir
+X+ the incoming spool directory that the daemon mode uses.
+X  .PP
+X  .IR "Control messages" ,
+X  recognised by their
+X***************
+X*** 252,257 ****
+X--- 262,281 ----
+X  Written by Geoff Collyer
+X  at the University of Toronto
+X  as part of the C news project.
+X+ Modified by David Alden (added the Daemon mode option, Spool directory
+X+ option, and new signal handling).
+X+ .SH SIGNAL HANDLING
+X+ .I relaynews
+X+ now handles 2 signals differently:
+X+ .TP
+X+ .B SIGHUP
+X+ This "restarts" the relaynews daemon by rereading in the sys file and
+X+ reopening the logfiles.  Usefull after updating the sys file or after
+X+ creating new log files.
+X+ .TP
+X+ .B SIGTERM
+X+ This "terminates" the relaynews daemon after it finishes the current
+X+ run through the in.coming spool directory.
+X  .SH BUGS
+X  An article with a header that does not fit entirely in a
+X  static buffer
+X*** orig.notebook/log	Thu Nov  1 11:04:53 1990
+X--- notebook/log	Fri Dec 14 16:45:33 1990
+X***************
+X*** 60,70 ****
+X  Jul  4 06:40:22.395 jarvis.csri.toronto.edu + <0541.AA0541@worsel> utgpu
+X  Jul  4 06:40:22.595 jarvis.csri.toronto.edu + <0549.AA0549@worsel> utgpu
+X  Jul  4 07:00:26.565 jarvis.csri.toronto.edu + <295@lancelot> utgpu
+X- Jul  4 07:17:51.537 utgpu - <8258@saturn.ucsc.edu> duplicate
+X  Jul  4 07:17:51.697 utgpu - <1675@neoucom.UUCP> duplicate
+X  Jul  4 07:17:51.757 utgpu - <89Jul4.043358edt.10369@neat.ai.toronto.edu> duplicate
+X  Jul  4 17:23:28.234 utgpu - <2537@quanta.eng.ohio-state.edu> no subscribed groups in `rec.arts.sf-lovers,rec.arts.startrek,rec.arts.drwho'
+X  Jul  4 19:17:15.785 utgpu - <89Jul4.190330edt.5559@gpu.utcs.utoronto.ca> all groups `list.humanist' excluded in active
+X  .vs
+X  .ps
+X  .ft
+X--- 60,71 ----
+X  Jul  4 06:40:22.395 jarvis.csri.toronto.edu + <0541.AA0541@worsel> utgpu
+X  Jul  4 06:40:22.595 jarvis.csri.toronto.edu + <0549.AA0549@worsel> utgpu
+X  Jul  4 07:00:26.565 jarvis.csri.toronto.edu + <295@lancelot> utgpu
+X  Jul  4 07:17:51.697 utgpu - <1675@neoucom.UUCP> duplicate
+X  Jul  4 07:17:51.757 utgpu - <89Jul4.043358edt.10369@neat.ai.toronto.edu> duplicate
+X  Jul  4 17:23:28.234 utgpu - <2537@quanta.eng.ohio-state.edu> no subscribed groups in `rec.arts.sf-lovers,rec.arts.startrek,rec.arts.drwho'
+X  Jul  4 19:17:15.785 utgpu - <89Jul4.190330edt.5559@gpu.utcs.utoronto.ca> all groups `list.humanist' excluded in active
+X+ Jul  4 20:18:50.337 jarvis.csri.toronto.edu c <3277@uunet.uu.net> utgpu
+X+ Jul  4 20:18:50.337 jarvis.csri.toronto.edu f <3278@uunet.uu.net> utgpu
+X  .vs
+X  .ps
+X  .ft
+X***************
+X*** 83,88 ****
+X--- 84,91 ----
+X  T}	reason for junking
+X  i	generated in response to an \fIihave\fR control message	list of sites to which this article was relayed
+X  s	generated in response to a \fIsendme\fR control message	list of sites to which this article was relayed
+X+ c	control article accepted	list of sites to which this article was relayed
+X+ f	local execution of the control article failed	<none>
+X  .TE
+X  .PP
+X  Beware that control-message handlers inherit
+X***************
+X*** 90,92 ****
+X--- 93,98 ----
+X  standard output, so if any of them natters on standard output
+X  (we believe none of ours does), the nattering will appear in
+X  .B log .
+X+ Note that the usual reason for the control article failing
+X+ is that you haven't received the article that is being canceled.
+X+ 
+X*** /dev/null	Fri Dec 14 16:36:22 1990
+X--- relay/relaynews.h	Fri Dec 14 16:45:36 1990
+X***************
+X*** 0 ****
+X--- 1,51 ----
+X+ /**
+X+  ** Is this a USG (SYSV) style system ?  Used for signals and daemon mode
+X+  **/
+X+ #undef USG
+X+ 
+X+ /**
+X+  ** If your system doesn't have getdtablesize() then define the following
+X+  ** to be the max number of slots in the file descriptor table.
+X+  **/
+X+ #undef DTABLESIZE 20
+X+ 
+X+ /**
+X+  ** If your system has <sys/dir.h> instead of <dirent.h> then define
+X+  ** the following.
+X+  **/
+X+ #undef OLD_DIRECTORY
+X+ 
+X+ /**
+X+  ** Where is incoming news spooled?
+X+  **/
+X+ #define INDIR "/usr/spool/news/in.coming"
+X+ 
+X+ /**
+X+  ** Where do you want relaynews to store its pid?  Undefine it if you
+X+  ** don't want it to save it's pid into a file.
+X+  **/
+X+ #define PID_FILE  "/usr/lib/news/relaynews.pid"
+X+ 
+X+ /**
+X+  ** How often should relaynews check for a batch file?
+X+  **/
+X+ #define SLEEP_INTERVAL 1
+X+ 
+X+ 
+X+ /**
+X+  ** End of configuration section...Nothing below should need to be changed.
+X+  **/
+X+ 
+X+ #ifdef OLD_DIRECTORY
+X+ #include <sys/dir.h>
+X+ #else
+X+ #include <dirent.h>
+X+ #endif
+X+ 
+X+ #include <sys/stat.h>
+X+ #include <sys/ioctl.h>
+X+ 
+X+ void restart_relaynews();
+X+ void abort_relaynews();
+X+ void resetsys();
+X+ 
+X*** orig.relay/history.c	Fri Dec 14 15:42:30 1990
+X--- relay/history.c	Fri Dec 14 16:45:34 1990
+X***************
+X*** 193,200 ****
+X  
+X  	if (startlog) {
+X  		timestamp(stdout, &now);
+X! 		if (printf(" %s + %s", sendersite(nullify(art->h.h_path)),
+X! 		    msgid) == EOF)
+X  			fulldisk(art, "stdout");
+X  	} else
+X  		now = time(&now);
+X--- 193,208 ----
+X  
+X  	if (startlog) {
+X  		timestamp(stdout, &now);
+X! 		if(art->h.h_ngs == NULL) {
+X! 			if (printf(" %s f %s",
+X! 			    sendersite(nullify(art->h.h_path)), msgid) == EOF)
+X! 				fulldisk(art, "stdout");
+X! 		} else if (printf(" %s %c %s %s",
+X! 				  sendersite(nullify(art->h.h_path)),
+X! 				  (art->h.h_ctlcmd) ? 'c' : '+', msgid,
+X! 				  art->a_tmpf) == EOF)
+X! 		  fulldisk(art, "stdout");
+X! 		if ( art->h.h_ctlcmd && printf(" %s", art->h.h_ctlcmd) == EOF)
+X  			fulldisk(art, "stdout");
+X  	} else
+X  		now = time(&now);
+X*** orig.relay/relaynews.c	Fri Dec 14 15:42:31 1990
+X--- relay/relaynews.c	Fri Dec 14 17:11:56 1990
+X***************
+X*** 27,32 ****
+X--- 27,67 ----
+X   * ("I") instead).
+X   */
+X  
+X+ /*
+X+  * IMPORTANT NOTE:
+X+  *       This program (relaynews) has been modified by David J Alden,
+X+  *       alden@zaphod.mps.ohio-state.edu.  The new changes are:
+X+  *
+X+  *         New daemon mode:
+X+  *            relaynews detaches itself from the controlling terminal and
+X+  *            watches for any new news.  There are 2 new signals that it
+X+  *            uses for daemon mode:
+X+  *
+X+  *               SIGHUP   -  This "restarts relaynews" by rereading in the
+X+  *                           sys file and reopening the logfiles.  Usefull
+X+  *                           after updating the sys file or after creating
+X+  *                           new log files.
+X+  *               SIGTERM  -  This "terminates relaynews" after it finishes
+X+  *                           the current run through the spool directory.
+X+  *
+X+  *         New flag for working with nntplink:
+X+  *            relaynews now accepts a new flag in the sys file, "l".  This
+X+  *            works just like "F" - except it doesn't actually create a
+X+  *            batchfile - it only logs the sysname to the logfile.
+X+  *
+X+  *         Extra information sent to the logfile:
+X+  *            relaynews prints the article's path after the message-id.
+X+  *            relaynews now prints more than just accepted ('+') and
+X+  *            rejected ('-') characters, the new characters are:
+X+  *
+X+  *               'c'  -  The control message "worked"
+X+  *               'f'  -  The control message failed
+X+  *
+X+  *
+X+  *    Please read the appropriate man pages (relaynews(8) and news(5)) for
+X+  *    explanations of the new options and flags.
+X+  */
+X+ 
+X  #include <stdio.h>
+X  #include <ctype.h>
+X  #include <signal.h>		/* to make locking safe */
+X***************
+X*** 44,49 ****
+X--- 79,85 ----
+X  #include "headers.h"
+X  #include "history.h"
+X  #include "transmit.h"
+X+ #include "relaynews.h"
+X  
+X  /*
+X   * setuid-root program to set ids to news/news & rexec rnews with
+X***************
+X*** 61,67 ****
+X--- 97,112 ----
+X  
+X  /* internal */
+X  static boolean userealids = NO;
+X+ static int redirlogs = 0;	    /* redirect n std output streams to logs */
+X+ struct stat dir_timestamp, old_dir_timestamp;
+X+ char spooldir[MAXPATH] = INDIR;
+X+ int daemonize = NO, use_spooldir = NO;
+X+ int reset_relaynews = NO;
+X+ int exit_relaynews = NO;
+X+ char goodname[MAXPATH];
+X+ char badname[MAXPATH];
+X  
+X+ 
+X  /* imports */
+X  extern int optind;			/* set by getopt */
+X  extern char *optarg;
+X***************
+X*** 85,94 ****
+X  char *argv[];
+X  {
+X  	statust status = ST_OKAY;
+X- 	int redirlogs = 0;		/* redirect n std output streams to logs */
+X  	char *origdir = NULL;		/* current directory at start */
+X  
+X  	progname = argv[0];
+X  #ifdef CSRIMALLOC
+X  	mal_debug(0);	/* was 2; 3 is too slow */
+X  	mal_leaktrace(0);	/* was 1 */
+X--- 130,151 ----
+X  char *argv[];
+X  {
+X  	statust status = ST_OKAY;
+X  	char *origdir = NULL;		/* current directory at start */
+X+ 	int i;
+X  
+X  	progname = argv[0];
+X+ 
+X+ 	/*
+X+ 	 * We're gonna be paranoid and make sure all our file descriptors
+X+ 	 * (except stdin, stdout, and stderr) are closed.
+X+ 	 */
+X+ #ifdef DTABLESIZE
+X+ 	for (i=3; i < DTABLESIZE; i++)
+X+ #else
+X+ 	for (i=3; i < getdtablesize(); i++)
+X+ #endif
+X+ 	  (void)close(i);
+X+ 
+X  #ifdef CSRIMALLOC
+X  	mal_debug(0);	/* was 2; 3 is too slow */
+X  	mal_leaktrace(0);	/* was 1 */
+X***************
+X*** 96,109 ****
+X  	prelude(argv);		/* various precautions; switch to "news" */
+X  
+X  	/* ignore signals (for locking). relaynews runs quickly, so don't worry. */
+X! 	(void) signal(SIGINT, (sigarg_t)SIG_IGN);
+X  	(void) signal(SIGQUIT, (sigarg_t)SIG_IGN);
+X! 	(void) signal(SIGHUP, (sigarg_t)SIG_IGN);
+X! 	(void) signal(SIGTERM, (sigarg_t)SIG_IGN);
+X  
+X  	procopts(argc, argv, &redirlogs, &okrefusal);
+X  
+X- 	newslock();			/* done here due to dbm internal cacheing */
+X  	if (redirlogs > 0) {
+X  		redirectlogs(redirlogs); /* redirect std output streams to logs */
+X  #ifdef MANYERRORS
+X--- 153,165 ----
+X  	prelude(argv);		/* various precautions; switch to "news" */
+X  
+X  	/* ignore signals (for locking). relaynews runs quickly, so don't worry. */
+X! 	(void) signal(SIGINT,  (sigarg_t)SIG_IGN);
+X  	(void) signal(SIGQUIT, (sigarg_t)SIG_IGN);
+X! 	(void) signal(SIGHUP,  restart_relaynews);
+X! 	(void) signal(SIGTERM, abort_relaynews);
+X  
+X  	procopts(argc, argv, &redirlogs, &okrefusal);
+X  
+X  	if (redirlogs > 0) {
+X  		redirectlogs(redirlogs); /* redirect std output streams to logs */
+X  #ifdef MANYERRORS
+X***************
+X*** 114,127 ****
+X  #endif
+X  	}
+X  
+X  	getwdandcd(argc, argv, &origdir);
+X- 	status |= procargs(argc, argv, &origdir);
+X  
+X! 	status |= synccaches();		/* being cautious: write & close caches */
+X! 	status |= closehist();
+X! 	(void) fflush(stdout);		/* log file */
+X! 	(void) fflush(stderr);		/* errlog file */
+X  
+X  #ifdef notdef
+X  #ifdef CSRIMALLOC
+X  	mal_dumpleaktrace(fileno(stderr));
+X--- 170,240 ----
+X  #endif
+X  	}
+X  
+X+ 	if (daemonize == YES) {
+X+ 
+X+ #ifdef TIOCNOTTY
+X+ 	  int fd;
+X+ #endif
+X+ 	  int p;
+X+ #ifdef PID_FILE
+X+ 	  FILE * pidf;
+X+ #endif
+X+ 
+X+ 	  if ((p = fork()) < 0)
+X+  	    {
+X+ 	      (void) fprintf(stderr, "%s: fork failed\n", progname);
+X+ 	      exit(1);
+X+ 	    }
+X+ 	  if (p != 0)
+X+ 	    exit(0);                    /* parent exit, child continues */
+X+ 
+X+ #ifdef PID_FILE
+X+           if ((pidf=fopen(PID_FILE,"w")) > 0) {
+X+             fprintf(pidf, "%d\n", getpid());
+X+             fclose(pidf);
+X+           }
+X+ #endif
+X+ 
+X+ #ifdef USG
+X+ 	  (void) setpgrp();
+X+ #ifdef TIOCNOTTY
+X+ 	  fd = open("/dev/tty", 2);	/* disconnect from the tty */
+X+ 	  if (fd >= 0) {
+X+ 	    (void) ioctl(fd, (int)TIOCNOTTY, (char *)0);
+X+ 	    (void) close(fd);
+X+ 	  }
+X+ #endif /* TIOCNOTTY */
+X+ #else /* USG */
+X+ 	  (void) setpgrp(0, 0);
+X+ #endif /* USG */
+X+ 
+X+ 	}
+X+ 
+X  	getwdandcd(argc, argv, &origdir);
+X  
+X! 	do {
+X! 	  newslock();
+X! 	  (void) fseek(stdout,0L,2);        /* make sure wee're still at EOF */
+X! 	  (void) fseek(stderr,0L,2);        /* ditto */
+X  
+X+ 	  status |= procargs(argc, argv, &origdir);
+X+ 
+X+ 	  status |= synccaches();    /* being cautious: write & close caches */
+X+ 	  status |= closehist();
+X+ 	  (void) fflush(stdout);		/* log file */
+X+ 	  (void) fflush(stderr);		/* errlog file */
+X+ 
+X+ 	  newsunlock();
+X+ 
+X+ 	  old_dir_timestamp = dir_timestamp;
+X+ 
+X+ 	  while ((dir_timestamp.st_ctime == old_dir_timestamp.st_ctime) &&
+X+ 		 daemonize && !exit_relaynews) {
+X+ 	    sleep(SLEEP_INTERVAL);
+X+ 	    (void) stat(spooldir, &dir_timestamp);
+X+ 	  }
+X+ 	} while (daemonize  && !exit_relaynews);
+X+ 
+X  #ifdef notdef
+X  #ifdef CSRIMALLOC
+X  	mal_dumpleaktrace(fileno(stderr));
+X***************
+X*** 133,138 ****
+X--- 246,278 ----
+X  }
+X  
+X  /*
+X+  * Sets a flag to tell relaynews to reload the sys file and if redirlogs
+X+  * is true then to go ahead and re-redirect the output to the logs.
+X+  */
+X+ void
+X+ restart_relaynews()
+X+ {
+X+   reset_relaynews = YES;
+X+ #ifdef USG
+X+   (void) signal(SIGHUP,  restart_relaynews);
+X+ #endif
+X+ }
+X+ 
+X+ 
+X+ /*
+X+  * Sets a flag to tell relaynews to exit after processing the next
+X+  * article.
+X+  */
+X+ void
+X+ abort_relaynews()
+X+ {
+X+   exit_relaynews = YES;
+X+ #ifdef USG
+X+   (void) signal(SIGTERM, abort_relaynews);
+X+ #endif
+X+ }
+X+ 
+X+ /*
+X   * reset various environmental things for safety: umask, alarm,
+X   * environment variables (PATH, IFS), standard file descriptors,
+X   * user & group ids.
+X***************
+X*** 208,219 ****
+X  {
+X  	int c, errflg = 0;
+X  
+X! 	while ((c = getopt(argc, argv, "d:inrsx:")) != EOF)
+X  		switch (c) {
+X  		case 'd':		/* -d debug-options; thanks, henry */
+X  			if (!debugon(optarg))
+X  				errflg++;	/* debugon has complained */
+X  			break;
+X  		case 'i':		/* redirect stdout to log (inews) */
+X  			*redirlogsp = 1; /* just stdout */
+X  			break;
+X--- 348,364 ----
+X  {
+X  	int c, errflg = 0;
+X  
+X! 	while ((c = getopt(argc, argv, "d:DinrsS:x:")) != EOF)
+X  		switch (c) {
+X  		case 'd':		/* -d debug-options; thanks, henry */
+X  			if (!debugon(optarg))
+X  				errflg++;	/* debugon has complained */
+X  			break;
+X+ 		case 'D':                    /* daemonize it , note that this*/
+X+ 			*redirlogsp = 2;     /* implies -r */
+X+ 			daemonize = YES;
+X+ 			use_spooldir = YES;
+X+ 			break;
+X  		case 'i':		/* redirect stdout to log (inews) */
+X  			*redirlogsp = 1; /* just stdout */
+X  			break;
+X***************
+X*** 226,231 ****
+X--- 371,380 ----
+X  		case 's':		/* dropping input is serious (inews) */
+X  			*okrefusalp = NO;
+X  			break;
+X+ 		case 'S':               /* Spool directory */
+X+ 			use_spooldir = YES;
+X+ 			strcpy(spooldir, optarg);
+X+ 			break;
+X  		case 'x':		/* -x site: don't send to site */
+X  			/* you're welcome, erik */
+X  			/* erik says he only needs one -x per inews */
+X***************
+X*** 242,248 ****
+X  			break;
+X  		}
+X  	if (errflg) {
+X! 		(void) fprintf(stderr, "usage: %s [-inrs][-d fhlmt][-x site]\n",
+X  			progname);
+X  		exit(1);
+X  	}
+X--- 391,398 ----
+X  			break;
+X  		}
+X  	if (errflg) {
+X! 		(void) fprintf(stderr,
+X! 		        "usage: %s [-Dinrs][-d fhlmt][-x site][-S spooldir]\n",
+X  			progname);
+X  		exit(1);
+X  	}
+X***************
+X*** 353,367 ****
+X  char **argv;
+X  char **origdirp;
+X  {
+X! 	register statust status = ST_OKAY;
+X  
+X! 	if (optind == argc)
+X! 		status |= process(stdin, "stdin");
+X! 	else
+X! 		for (; optind < argc; optind++)
+X! 			status |= relnmprocess(argv[optind], *origdirp);
+X! 	nnfree(origdirp);
+X! 	return status;
+X  }
+X  
+X  statust
+X--- 503,575 ----
+X  char **argv;
+X  char **origdirp;
+X  {
+X!   register statust status = ST_OKAY;
+X!   DIR *my_dirp;
+X! #ifdef OLD_DIRECTORY
+X!   struct direct *dp;
+X! #else
+X!   struct dirent *dp;
+X! #endif
+X!   int keep_looping = YES;
+X!   register int isgoodname, i;
+X  
+X!   if (use_spooldir) {  /* loop through spool dir processing all news */
+X! 
+X!     my_dirp = opendir(spooldir);
+X! 
+X!     if (my_dirp == (DIR *)NULL) {
+X!       fprintf(stderr, "%s: Spool directory (%s) not found, exiting.\n",
+X! 	      progname, spooldir);
+X!       exit_relaynews = YES;
+X!     } else
+X!       (void) stat(spooldir, &dir_timestamp);
+X! 
+X!     while (keep_looping && !exit_relaynews) {
+X! 
+X!       keep_looping = NO;
+X! 
+X!       for (dp = readdir(my_dirp); dp != NULL; dp = readdir(my_dirp)) {
+X! 
+X! 	if (reset_relaynews) {
+X! 
+X! 	  resetsys();
+X! 
+X! 	  if (redirlogs > 0)
+X! 	    redirectlogs(redirlogs);		/* close & reopen log files */
+X! 
+X! 	  reset_relaynews = NO;
+X! 	}
+X! 
+X! 	if (isdigit(dp->d_name[0])) {
+X! 	  status = relnmprocess(dp->d_name, spooldir);
+X! 	  sprintf(goodname, "%s/%s", spooldir, dp->d_name);
+X! 	  if (status) {
+X! 	    sprintf(badname, "%s/bad/%s", spooldir, dp->d_name);
+X! 	    rename(goodname, badname);
+X! 	    status = 0;
+X! 	  } else
+X! 	    unlink(goodname);
+X! 
+X! 	  keep_looping = YES;
+X!         }
+X! 	
+X! 	if (exit_relaynews)
+X! 	  break;
+X!       }
+X! 
+X!       closedir(my_dirp);
+X! 
+X!     }
+X!   } else {        /* Act like "original relaynews" */
+X! 
+X!     if (optind == argc)
+X!       status |= process(stdin, "stdin");
+X!     else
+X!       for (; optind < argc; optind++)
+X! 	status |= relnmprocess(argv[optind], *origdirp);
+X!     nnfree(origdirp);
+X!     return status;
+X!   }
+X  }
+X  
+X  statust
+X*** orig.relay/sys.c	Fri Dec 14 15:42:32 1990
+X--- relay/sys.c	Fri Dec 14 16:45:37 1990
+X***************
+X*** 300,305 ****
+X--- 300,310 ----
+X  		case 'I':		/* NNTP hook: write msgids, !files */
+X  			sysp->sy_flags |= FLG_BATCH|FLG_IHAVE;
+X  			break;
+X+ 		case 'l':		/* Just print sysname matches to */
+X+ 					/* logfile - use this with the -X */
+X+ 					/* option to nntplink */
+X+ 			sysp->sy_flags |= FLG_LINK;
+X+ 			break;
+X  		case 'L':		/* Ln */
+X  			sysp->sy_flags |= FLG_LOCAL;
+X  			sysp->sy_lochops = 0;
+X***************
+X*** 337,340 ****
+X--- 342,373 ----
+X  rewndsys()
+X  {
+X  	rewsys(fp);
+X+ }
+X+ 
+X+ 
+X+ void
+X+ resetsys()
+X+ {
+X+   struct system *nextsys;
+X+ 
+X+   if (firstsys != NULL) {
+X+ 
+X+     for (currsys = firstsys; currsys != NULL; currsys = nextsys) {
+X+       nextsys = currsys->sy_next;
+X+       /* 
+X+        * No need to free sy_excl and sy_distr members as they cam from reparse
+X+        * and will not be null but will be freed with sy_name and sy_ngs
+X+        */
+X+       nnfree(&currsys->sy_name);
+X+       nnfree(&currsys->sy_ngs);
+X+       nnfree(&currsys->sy_cmd);
+X+       nnafree(&currsys);
+X+     }
+X+     remmysys((struct system *)NULL);
+X+     firstsys = NULL;
+X+     if (fp != NULL) {
+X+       nfclose(fp);
+X+       fp = NULL;
+X+     }
+X+   }
+X  }
+X*** orig.relay/system.h	Sat Oct 13 18:10:27 1990
+X--- relay/system.h	Fri Dec 14 16:45:38 1990
+X***************
+X*** 22,27 ****
+X--- 22,28 ----
+X  #define FLG_MOD		(1<<4)		/* m: send moderated groups only */
+X  #define FLG_UNMOD	(1<<5)		/* u: send unmoderated groups only */
+X  #define FLG_NBATCH	(1<<6)		/* n: NNTP batch: filename & msg-id */
+X+ #define FLG_LINK	(1<<7)		/* l: just print sys name in log */
+X  
+X  /* imports from system.c */
+X  extern struct system *oursys(), *nextsys();
+X*** orig.relay/transmit.c	Sat Oct 13 18:10:25 1990
+X--- relay/transmit.c	Fri Dec 14 16:45:38 1990
+X***************
+X*** 147,153 ****
+X  #endif
+X  	if (sys->sy_flags&FLG_BATCH)
+X      		trbatch(art, sys, fullname, bsysno);
+X! 	else
+X  		trcmd(art, sys, fullname);
+X  #ifdef PARANOID
+X  	free(fullname);
+X--- 147,153 ----
+X  #endif
+X  	if (sys->sy_flags&FLG_BATCH)
+X      		trbatch(art, sys, fullname, bsysno);
+X! 	else if (!(sys->sy_flags&FLG_LINK))
+X  		trcmd(art, sys, fullname);
+X  #ifdef PARANOID
+X  	free(fullname);
+END_OF_FILE
+if test 19591 -ne `wc -c <'cnews.patch'`; then
+    echo shar: \"'cnews.patch'\" unpacked with wrong size!
+fi
+# end of 'cnews.patch'
+fi
+if test -f 'nntp1.5.10.patches' -a "${1}" != "-c" ; then 
+  echo shar: Will not clobber existing file \"'nntp1.5.10.patches'\"
+else
+echo shar: Extracting \"'nntp1.5.10.patches'\" \(4282 characters\)
+sed "s/^X//" >'nntp1.5.10.patches' <<'END_OF_FILE'
+X*** orig.common/conf.h	Thu Nov  1 13:16:24 1990
+X--- common/conf.h	Thu Nov  1 19:56:37 1990
+X***************
+X*** 298,308 ****
+X  /*
+X   * Support for C-News style batching 
+X   */
+X! #define TOOBIG 300000L		/* batch > TOOBIG bytes, kick rnews */
+X  #define TOOOLD (5*60)		/* batch > TOOOLD seconds old, kick rnews */
+X  #define COPYSIZE 8192		/* bytes to copy at one time */
+X! #define MAXDIGITS 25		/* lg(maxlongint) + epsilon */
+X  #define MAXSTR 1024
+X  #define INDIR			"/usr/spool/news/in.coming"
+X! #define BATCH_FILE		"/usr/spool/news/in.coming/nntp.XXXXXX"
+X  #define NEWSRUN			"/usr/lib/newsbin/input/newsrun"
+X--- 295,305 ----
+X  /*
+X   * Support for C-News style batching 
+X   */
+X! #define TOOBIG 1L		/* batch > TOOBIG bytes, kick rnews */
+X  #define TOOOLD (5*60)		/* batch > TOOOLD seconds old, kick rnews */
+X  #define COPYSIZE 8192		/* bytes to copy at one time */
+X! #define MAXDIGITS 35		/* lg(maxlongint) + epsilon */
+X  #define MAXSTR 1024
+X  #define INDIR			"/usr/spool/news/in.coming"
+X! #define BATCH_FILE		"nntp.XXXXXX"
+X  #define NEWSRUN			"/usr/lib/newsbin/input/newsrun"
+X*** orig.server/batch.c	Tue Oct 16 16:57:42 1990
+X--- server/batch.c	Fri Nov  2 10:28:45 1990
+X***************
+X*** 47,52 ****
+X--- 47,55 ----
+X  static char *endart = art;		/* points just past end of article */
+X  static int incore = YES;
+X  
+X+ static int uniq = 0;                    /* unique counter for this process */
+X+ static int in_batchdir = NO;
+X+ 
+X  static struct batch_file {
+X  	char *name;
+X  	FILE *file;
+X***************
+X*** 79,84 ****
+X--- 82,96 ----
+X  	signal(SIGQUIT, SIG_IGN);
+X  	signal(SIGHUP, SIG_IGN);
+X  
+X+ 	/* This really should be done in main.c so that we don't have to
+X+ 	   check each time we get a new article - sigh */
+X+ 
+X+ 	if (!in_batchdir)
+X+ 		if (chdir(INDIR) < 0)
+X+ 			syslog(LOG_ERR, "chdir(%s) failed", INDIR);
+X+ 		else
+X+ 			in_batchdir = YES;
+X+ 
+X  	if (btch.name == NULL) {
+X  		/* BATCH_FILE may trigger unprivileged() */
+X  		btch.name = mktemp(strsave(BATCH_FILE));
+X***************
+X*** 347,370 ****
+X  
+X  	(void) fflush(stdout);
+X  	(void) fflush(stderr);
+X- 	pid = fork();
+X- 	if (pid == -1) {
+X- #ifdef SYSLOG
+X- 		syslog(LOG_ERR,"can't fork");
+X- #endif
+X- 		return 0;
+X- 	} else if (pid != 0) {			/* parent */
+X- 		while ((wpid = wait(&status)) != -1 && wpid != pid)
+X- 			;
+X- 		exitstat = (status>>8)&0377;
+X- #ifdef SYSLOG
+X- 		if (exitstat != 0) {
+X- 			syslog(LOG_ERR, " enqueue returned exit status 0%o",
+X- 				exitstat);
+X- 		}
+X- #endif
+X- 		return exitstat != 0? -1 :1;
+X- 	}
+X  #ifdef POSTER
+X  #ifndef USG
+X  		if (getuid() == 0) initgroups(POSTER,gid_poster);
+X--- 359,364 ----
+X***************
+X*** 373,422 ****
+X  		(void) setgid(gid_poster);
+X  #endif
+X  
+X- 	/* child: must exit */
+X- #ifdef SYSLOG
+X- 	/* Close in such a way that syslog() will know to reopen */
+X- 	closelog();
+X- #endif
+X- 	for (fd = 3; fd < 20; fd++)
+X- 		(void) close(fd);
+X- 	if (chdir(INDIR) < 0) {
+X- #ifdef SYSLOG
+X- 		syslog(LOG_ERR, "chdir(%s) failed", INDIR);
+X- #else
+X- 		;
+X- #endif
+X- 	}
+X- 
+X  	/* rename btch.name to a number so newsrun will see it */
+X! 	sprintf(number, "%ld", (long)time(&now));
+X  	while (link(btch.name, permname) < 0) {
+X  		if (stat(btch.name, &stbuf) < 0)
+X  			break;
+X  		sleep(2);
+X! 		sprintf(number, "%ld", (long)time(&now));
+X  	}
+X  	if (unlink(btch.name) < 0)
+X  #ifdef SYSLOG
+X  		syslog(LOG_ERR, "cannot find %s", btch.name);
+X- #else
+X- 		;
+X  #endif
+X! 
+X! 	signal(SIGINT, SIG_IGN);
+X! 	signal(SIGQUIT, SIG_IGN);
+X! 	signal(SIGHUP, SIG_IGN);
+X! 	(void) fflush(stdout);
+X! 	(void) fflush(stderr);
+X! 	newsrun = strsave(NEWSRUN);
+X! 	if (newsrun == NULL)
+X! 		newsrun = "/usr/lib/newsbin/input/newsrun";
+X! 	execle(newsrun, newsrun, (char *)NULL, myenviron);
+X! #ifdef SYSLOG
+X! 	syslog(LOG_ERR, "enqueue: execle(%s): %m", newsrun);
+X! #endif
+X! 	exit(1);
+X! 	/* NOTREACHED */
+X  }
+X  static char *
+X  strsave(s)
+X--- 367,385 ----
+X  		(void) setgid(gid_poster);
+X  #endif
+X  
+X  	/* rename btch.name to a number so newsrun will see it */
+X! 	sprintf(number, "%ld.%ld", (long)getpid(), (long)uniq++);
+X  	while (link(btch.name, permname) < 0) {
+X  		if (stat(btch.name, &stbuf) < 0)
+X  			break;
+X  		sleep(2);
+X! 		sprintf(number, "%ld.%ld", (long)getpid(), (long)uniq++);
+X  	}
+X  	if (unlink(btch.name) < 0)
+X  #ifdef SYSLOG
+X  		syslog(LOG_ERR, "cannot find %s", btch.name);
+X  #endif
+X! 	return(1);
+X  }
+X  static char *
+X  strsave(s)
+END_OF_FILE
+if test 4282 -ne `wc -c <'nntp1.5.10.patches'`; then
+    echo shar: \"'nntp1.5.10.patches'\" unpacked with wrong size!
+fi
+# end of 'nntp1.5.10.patches'
+fi
+echo shar: End of shell archive.
+exit 0

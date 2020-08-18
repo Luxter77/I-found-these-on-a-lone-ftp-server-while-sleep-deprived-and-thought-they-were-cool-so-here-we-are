@@ -1,0 +1,7 @@
+This directory contains the "performance release" distribution of 2 May
+1992.  The file "known.problems" contains fixes for known problems.  The
+"doc" directory contains relevant Usenix papers and RFCs.  The "msgidd"
+directory contains the msgidd daemon and patch for nntpd to prevent
+duplicates; it's just been sped up (27 July 1992).
+
+Geoff Collyer

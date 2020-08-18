@@ -1,0 +1,2756 @@
+#! /bin/sh
+# This is a shell archive, meaning:
+# 1. Remove everything above the #! /bin/sh line.
+# 2. Save the resulting text in a file.
+# 3. Execute the file with /bin/sh (not csh) to create the files:
+#	server/server.pt1.diff
+# This archive created: Sun Feb 10 14:24:06 1991
+export PATH; PATH=/bin:$PATH
+if test ! -d 'server'
+then
+	echo shar: creating directory "'server'"
+	mkdir 'server'
+fi
+echo shar: entering directory "'server'"
+cd 'server'
+echo shar: extracting "'server.pt1.diff'" '(55179 characters)'
+if test -f 'server.pt1.diff'
+then
+	echo shar: will not over-write existing file "'server.pt1.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'server.pt1.diff'
+	XIndex: ihave.c
+	XPrereq: 1.17
+	X*** ihave.c	Sat Aug 18 17:15:57 1990
+	X--- ../../nntp/server/ihave.c	Sun Dec 23 11:50:00 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: ihave.c,v 1.17 90/08/18 17:15:17 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: ihave.c,v 1.18 90/12/23 11:49:59 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 67,73
+	X  	} else 
+	X  #ifdef BATCHED_INPUT
+	X  	    /* C news input hook */
+	X! 	    retcode = batch_input_article(CONT_XFER, ERR_XFERFAIL, errbuf);
+	X  #else
+	X  	    retcode = spawn(rnews, "rnews", (char *) 0, CONT_XFER,
+	X  			    ERR_XFERFAIL, errbuf);
+	X
+	X--- 67,74 -----
+	X  	} else 
+	X  #ifdef BATCHED_INPUT
+	X  	    /* C news input hook */
+	X! 	    retcode = batch_input_article(CONT_XFER, ERR_XFERFAIL,
+	X! 		errbuf, argv[1]);
+	X  #else
+	X  	    retcode = spawn(rnews, "rnews", (char *) 0, CONT_XFER,
+	X  		ERR_XFERFAIL, errbuf, argv[1]);
+	X***************
+	X*** 70,76
+	X  	    retcode = batch_input_article(CONT_XFER, ERR_XFERFAIL, errbuf);
+	X  #else
+	X  	    retcode = spawn(rnews, "rnews", (char *) 0, CONT_XFER,
+	X! 			    ERR_XFERFAIL, errbuf);
+	X  #endif
+	X  
+	X  	if (retcode <= 0){
+	X
+	X--- 71,77 -----
+	X  		errbuf, argv[1]);
+	X  #else
+	X  	    retcode = spawn(rnews, "rnews", (char *) 0, CONT_XFER,
+	X! 		ERR_XFERFAIL, errbuf, argv[1]);
+	X  #endif
+	X  
+	X  	if (retcode <= 0){
+	X***************
+	X*** 89,94
+	X          else
+	X                 printf("%d Thanks.\r\n", OK_XFERED);
+	X          (void) fflush(stdout);
+	X  #ifdef LOG
+	X  	if (retcode == 1)
+	X  		ih_accepted++;
+	X
+	X--- 90,96 -----
+	X          else
+	X                 printf("%d Thanks.\r\n", OK_XFERED);
+	X          (void) fflush(stdout);
+	X+ 
+	X  #ifdef LOG
+	X  	if (retcode == 1)
+	X  		ih_accepted++;
+	XIndex: main.c
+	XPrereq: 1.15
+	X*** main.c	Sat Aug 11 21:30:22 1990
+	X--- ../../nntp/server/main.c	Sat Jan 12 10:54:24 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: main.c,v 1.15 90/08/11 21:29:53 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: main.c,v 1.18 91/01/12 10:54:01 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 22,28
+	X  struct sockaddr_in current_peer = { AF_INET, IPPORT_NNTP };
+	X  #endif
+	X  #include <signal.h>
+	X! #ifdef hpux
+	X  #include <varargs.h>
+	X  #endif /*hpux*/
+	X  
+	X
+	X--- 22,29 -----
+	X  struct sockaddr_in current_peer = { AF_INET, IPPORT_NNTP };
+	X  #endif
+	X  #include <signal.h>
+	X! /* XXX Should be #ifdef VARARGS */
+	X! #if defined(sun) || defined(hpux)
+	X  #include <varargs.h>
+	X  #endif
+	X  
+	X***************
+	X*** 24,30
+	X  #include <signal.h>
+	X  #ifdef hpux
+	X  #include <varargs.h>
+	X! #endif /*hpux*/
+	X  
+	X  #ifdef SETPROCTITLE
+	X  char	**Argv = NULL;		/* pointer to argument vector */
+	X
+	X--- 25,31 -----
+	X  /* XXX Should be #ifdef VARARGS */
+	X  #if defined(sun) || defined(hpux)
+	X  #include <varargs.h>
+	X! #endif
+	X  
+	X  #ifdef SETPROCTITLE
+	X  char	**Argv = NULL;		/* pointer to argument vector */
+	X***************
+	X*** 31,38
+	X  char	*LastArgv = NULL;	/* end of argv */
+	X  #endif /* SETPROCTITLE */
+	X  
+	X- char **myenviron;
+	X- 
+	X  main(argc,argv,envp)
+	X  char **argv, **envp;
+	X  {
+	X
+	X--- 32,37 -----
+	X  char	*LastArgv = NULL;	/* end of argv */
+	X  #endif /* SETPROCTITLE */
+	X  
+	X  main(argc,argv,envp)
+	X  char **argv, **envp;
+	X  {
+	X***************
+	X*** 42,47
+	X  	int			sockt, client, length;
+	X  	struct sockaddr_in	from;
+	X  	extern int 		reaper();
+	X  
+	X  	disassoc();
+	X  
+	X
+	X--- 41,49 -----
+	X  	int			sockt, client, length;
+	X  	struct sockaddr_in	from;
+	X  	extern int 		reaper();
+	X+ #ifdef LOAD
+	X+ 	register int load;
+	X+ #endif /* LOAD */
+	X  
+	X  	disassoc();
+	X  
+	X***************
+	X*** 74,79
+	X  	(void) signal(SIGCHLD, reaper);
+	X  #endif /* USG */
+	X  
+	X  	if (listen(sockt, SOMAXCONN) < 0) {
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "main: listen: %m");
+	X
+	X--- 76,86 -----
+	X  	(void) signal(SIGCHLD, reaper);
+	X  #endif /* USG */
+	X  
+	X+ #ifdef DEBUG
+	X+ 	(void) signal(SIGUSR1, debugup);
+	X+ 	(void) signal(SIGUSR2, debugdown);
+	X+ #endif
+	X+ 
+	X  	if (listen(sockt, SOMAXCONN) < 0) {
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "main: listen: %m");
+	X***************
+	X*** 84,105
+	X  
+	X  #ifdef SETPROCTITLE
+	X  	/*
+	X- 	 * Stash away a copy of the environment for use by later exec's.
+	X- 	 * (This leaves us free to trash the original copy.)
+	X- 	 */
+	X- 	{
+	X- 	register int i;
+	X- 
+	X- 	i = 0;
+	X- 	while (envp[i++])
+	X- 		;
+	X- 	myenviron = (char **)malloc(i * sizeof(char **));
+	X- 	myenviron[--i] = 0;
+	X- 	while (--i >= 0)
+	X- 		myenviron[i] =
+	X- 		    strcpy((char *)malloc(strlen(envp[i]) + 1), envp[i]);
+	X- 	}
+	X- 	/*
+	X  	 *  Save start and extent of argv for setproctitle.
+	X  	 */
+	X  
+	X
+	X--- 91,96 -----
+	X  
+	X  #ifdef SETPROCTITLE
+	X  	/*
+	X  	 *  Save start and extent of argv for setproctitle.
+	X  	 */
+	X  
+	X***************
+	X*** 111,119
+	X  		envp++;
+	X  	LastArgv = envp[-1] + strlen(envp[-1]);
+	X  #endif /*SDD*/
+	X- #else /* SETPROCTITLE */
+	X- 	/* Just use original copy if not doing proctitle hacking */
+	X- 	myenviron = envp;
+	X  #endif /* SETPROCTITLE */
+	X  
+	X  	for (;;) {
+	X
+	X--- 102,107 -----
+	X  		envp++;
+	X  	LastArgv = envp[-1] + strlen(envp[-1]);
+	X  #endif /*SDD*/
+	X  #endif /* SETPROCTITLE */
+	X  #if defined(LOAD) && defined(SETPROCTITLE)
+	X  	/* If LOAD and SETPROCTITLE, display load before first accept() */
+	X***************
+	X*** 115,120
+	X  	/* Just use original copy if not doing proctitle hacking */
+	X  	myenviron = envp;
+	X  #endif /* SETPROCTITLE */
+	X  
+	X  	for (;;) {
+	X  #ifdef LOAD
+	X
+	X--- 103,114 -----
+	X  	LastArgv = envp[-1] + strlen(envp[-1]);
+	X  #endif /*SDD*/
+	X  #endif /* SETPROCTITLE */
+	X+ #if defined(LOAD) && defined(SETPROCTITLE)
+	X+ 	/* If LOAD and SETPROCTITLE, display load before first accept() */
+	X+ 	load = getla();
+	X+ 	setproctitle("%sing connections: loadav %d",
+	X+ 	    load > LOAD ? "reject" : "accept", load);
+	X+ #endif /* LOAD && SETPROCTITLE */
+	X  
+	X  	for (;;) {
+	X  #ifdef LOAD
+	X***************
+	X*** 118,124
+	X  
+	X  	for (;;) {
+	X  #ifdef LOAD
+	X- 		register int load;
+	X  		char oline[NNTP_STRLEN];
+	X  #endif /* LOAD */
+	X  #ifdef EXCELAN
+	X
+	X--- 112,117 -----
+	X  
+	X  	for (;;) {
+	X  #ifdef LOAD
+	X  		char oline[NNTP_STRLEN];
+	X  #endif /* LOAD */
+	X  #ifdef EXCELAN
+	X***************
+	X*** 156,161
+	X  
+	X  #ifdef LOAD
+	X  		if (( load = getla()) > LOAD ) {
+	X  			setproctitle("rejecting connections: loadav %d", load);
+	X  			sprintf( oline, "%d loadav at %d, try later\n",
+	X  				ERR_GOODBYE, load );
+	X
+	X--- 149,155 -----
+	X  
+	X  #ifdef LOAD
+	X  		if (( load = getla()) > LOAD ) {
+	X+ #ifdef SETPROCTITLE
+	X  			setproctitle("rejecting connections: loadav %d", load);
+	X  #endif /* SETPROCTITLE */
+	X  			sprintf( oline, "%d loadav at %d, try later\r\n",
+	X***************
+	X*** 157,163
+	X  #ifdef LOAD
+	X  		if (( load = getla()) > LOAD ) {
+	X  			setproctitle("rejecting connections: loadav %d", load);
+	X! 			sprintf( oline, "%d loadav at %d, try later\n",
+	X  				ERR_GOODBYE, load );
+	X  			write( client, oline, strlen( oline ));
+	X  #ifdef SYSLOG
+	X
+	X--- 151,158 -----
+	X  		if (( load = getla()) > LOAD ) {
+	X  #ifdef SETPROCTITLE
+	X  			setproctitle("rejecting connections: loadav %d", load);
+	X! #endif /* SETPROCTITLE */
+	X! 			sprintf( oline, "%d loadav at %d, try later\r\n",
+	X  				ERR_GOODBYE, load );
+	X  			write( client, oline, strlen( oline ));
+	X  #ifdef SYSLOG
+	X***************
+	X*** 167,172
+	X  			sleep( 5 );
+	X  			continue;
+	X  		} else {
+	X  			setproctitle("accepting connections: loadav %d", load);
+	X  		}
+	X  #endif LOAD
+	X
+	X--- 162,168 -----
+	X  			sleep( 5 );
+	X  			continue;
+	X  		} else {
+	X+ #ifdef SETPROCTITLE
+	X  			setproctitle("accepting connections: loadav %d", load);
+	X  #endif /* SETPROCTITLE */
+	X  		}
+	X***************
+	X*** 168,173
+	X  			continue;
+	X  		} else {
+	X  			setproctitle("accepting connections: loadav %d", load);
+	X  		}
+	X  #endif LOAD
+	X  
+	X
+	X--- 164,170 -----
+	X  		} else {
+	X  #ifdef SETPROCTITLE
+	X  			setproctitle("accepting connections: loadav %d", load);
+	X+ #endif /* SETPROCTITLE */
+	X  		}
+	X  #endif /* LOAD */
+	X  
+	X***************
+	X*** 169,175
+	X  		} else {
+	X  			setproctitle("accepting connections: loadav %d", load);
+	X  		}
+	X! #endif LOAD
+	X  
+	X  		switch (fork()) {
+	X  		case	-1:
+	X
+	X--- 166,172 -----
+	X  			setproctitle("accepting connections: loadav %d", load);
+	X  #endif /* SETPROCTITLE */
+	X  		}
+	X! #endif /* LOAD */
+	X  
+	X  		switch (fork()) {
+	X  		case	-1:
+	X***************
+	X*** 206,212
+	X  		default:
+	X  #ifdef EXCELAN
+	X  				(void) close(sockt);
+	X! #else /* EXCELAN */
+	X  				(void) close(client);
+	X  #endif /* EXCELAN */
+	X  				break;
+	X
+	X--- 203,209 -----
+	X  		default:
+	X  #ifdef EXCELAN
+	X  				(void) close(sockt);
+	X! #else /* !EXCELAN */
+	X  				(void) close(client);
+	X  #endif /* EXCELAN */
+	X  				break;
+	X***************
+	X*** 220,226
+	X  		register int load;
+	X  
+	X  		if (( load = getla()) > LOAD ) {
+	X! 			printf("%d loadav at %d, try later\n", 
+	X  			       ERR_GOODBYE, load );
+	X  #ifdef SYSLOG
+	X  #ifdef BSD_42
+	X
+	X--- 217,223 -----
+	X  		register int load;
+	X  
+	X  		if (( load = getla()) > LOAD ) {
+	X! 			printf("%d loadav at %d, try later\r\n", 
+	X  			       ERR_GOODBYE, load );
+	X  #ifdef SYSLOG
+	X  #ifdef BSD_42
+	X***************
+	X*** 234,240
+	X  			exit(1);
+	X  		}
+	X  	}
+	X! #endif LOAD
+	X  #ifdef SETPROCTITLE
+	X  	/*
+	X  	 *  Save start and extent of argv for setproctitle.
+	X
+	X--- 231,237 -----
+	X  			exit(1);
+	X  		}
+	X  	}
+	X! #endif /* LOAD */
+	X  #ifdef SETPROCTITLE
+	X  	/*
+	X  	 *  Save start and extent of argv for setproctitle.
+	X***************
+	X*** 250,255
+	X  #endif /*SDD*/
+	X  #endif /* SETPROCTITLE */
+	X  
+	X  	serve();
+	X  
+	X  #endif /* ALONE */
+	X
+	X--- 247,256 -----
+	X  #endif /*SDD*/
+	X  #endif /* SETPROCTITLE */
+	X  
+	X+ #ifdef USG
+	X+ 	(void) signal(SIGCLD,SIG_DFL);
+	X+ #endif /* USG */
+	X+ 
+	X  	serve();
+	X  
+	X  #endif /* ALONE */
+	X***************
+	X*** 259,265
+	X   * clobber argv so ps will show what we're doing.
+	X   * stolen from sendmail
+	X   */
+	X! #ifdef hpux
+	X  /*VARARGS*/
+	X  void
+	X  setproctitle(va_alist)
+	X
+	X--- 260,267 -----
+	X   * clobber argv so ps will show what we're doing.
+	X   * stolen from sendmail
+	X   */
+	X! #ifdef SETPROCTITLE
+	X! #if defined(sun) || defined(hpux)
+	X  /*VARARGS*/
+	X  void
+	X  setproctitle(va_alist)
+	X***************
+	X*** 271,277
+	X      va_list ap;
+	X  
+	X      va_start(ap);
+	X- #ifdef SETPROCTITLE
+	X      fmt = va_arg(ap, char *);
+	X      
+	X      (void) vsprintf(buf, fmt, ap);
+	X
+	X--- 273,278 -----
+	X      va_list ap;
+	X  
+	X      va_start(ap);
+	X      fmt = va_arg(ap, char *);
+	X      
+	X      (void) vsprintf(buf, fmt, ap);
+	X***************
+	X*** 290,296
+	X      while (p < LastArgv)
+	X  	*p++ = ' ';
+	X  
+	X- #endif /* SETPROCTITLE */
+	X      va_end(ap);
+	X  }
+	X  #else
+	X
+	X--- 291,296 -----
+	X      while (p < LastArgv)
+	X  	*p++ = ' ';
+	X  
+	X      va_end(ap);
+	X  }
+	X  #else
+	X***************
+	X*** 295,300
+	X  }
+	X  #else
+	X  /*VARARGS1*/
+	X  setproctitle(fmt, a, b, c)
+	X  char *fmt;
+	X  {
+	X
+	X--- 295,301 -----
+	X  }
+	X  #else
+	X  /*VARARGS1*/
+	X+ void
+	X  setproctitle(fmt, a, b, c)
+	X  char *fmt;
+	X  {
+	X***************
+	X*** 298,304
+	X  setproctitle(fmt, a, b, c)
+	X  char *fmt;
+	X  {
+	X- #ifdef SETPROCTITLE
+	X  	register char *p;
+	X  	register int i;
+	X  	char buf[BUFSIZ];
+	X
+	X--- 299,304 -----
+	X  setproctitle(fmt, a, b, c)
+	X  char *fmt;
+	X  {
+	X  	register char *p;
+	X  	register int i;
+	X  	char buf[BUFSIZ];
+	X***************
+	X*** 318,323
+	X  	p += i;
+	X  	while (p < LastArgv)
+	X  		*p++ = ' ';
+	X- #endif /* SETPROCTITLE */
+	X  }
+	X  #endif /* hpux */
+	X
+	X--- 318,323 -----
+	X  	p += i;
+	X  	while (p < LastArgv)
+	X  		*p++ = ' ';
+	X  }
+	X  #endif /* hpux */
+	X  #endif /* SETPROCTITLE */
+	X***************
+	X*** 321,323
+	X  #endif /* SETPROCTITLE */
+	X  }
+	X  #endif /* hpux */
+	X
+	X--- 320,323 -----
+	X  		*p++ = ' ';
+	X  }
+	X  #endif /* hpux */
+	X+ #endif /* SETPROCTITLE */
+	XIndex: misc.c
+	XPrereq: 1.39
+	X*** misc.c	Sat Aug 25 17:00:10 1990
+	X--- ../../nntp/server/misc.c	Wed Dec 12 00:00:11 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: misc.c,v 1.39 90/08/25 16:59:48 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: misc.c,v 1.41 90/12/12 00:00:02 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 54,60
+	X  		return (NULL);
+	X  	}
+	X  
+	X! 	if ((statbuf.st_mode & S_IFREG) != S_IFREG) {
+	X  		close_crnt();
+	X  		return (NULL);
+	X  	}
+	X
+	X--- 54,60 -----
+	X  		return (NULL);
+	X  	}
+	X  
+	X! 	if ((statbuf.st_mode & S_IFMT) != S_IFREG) {
+	X  		close_crnt();
+	X  		return (NULL);
+	X  	}
+	X***************
+	X*** 565,571
+	X   *
+	X   *	Returns:	"c" if the character is not
+	X   *			upper case, otherwise the lower
+	X!  *			case eqivalent of "c".
+	X   *
+	X   *	Side effects:	None.
+	X   */
+	X
+	X--- 565,571 -----
+	X   *
+	X   *	Returns:	"c" if the character is not
+	X   *			upper case, otherwise the lower
+	X!  *			case equivalent of "c".
+	X   *
+	X   *	Side effects:	None.
+	X   */
+	XIndex: netaux.c
+	XPrereq: 1.11
+	X*** /tmp/,RCSt1a20277	Sun Feb 10 13:59:52 1991
+	X--- /tmp/,RCSt2a20277	Sun Feb 10 13:59:52 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)netaux.c	1.11	(Berkeley) 2/25/88";
+	X  #endif
+	X  
+	X  /*
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: netaux.c,v 1.14 91/02/10 13:59:20 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 61,67
+	X  	(void) dup2(0, 2);
+	X  	setpgrp();
+	X  	umask(000);
+	X! #else not USG
+	X  	i = open("/dev/tty", O_RDWR);
+	X  	if (i >= 0) {
+	X  		ioctl(i, TIOCNOTTY, 0);
+	X
+	X--- 61,67 -----
+	X  	(void) dup2(0, 2);
+	X  	setpgrp();
+	X  	umask(000);
+	X! #else /* not USG */
+	X  	i = open("/dev/tty", O_RDWR);
+	X  	if (i >= 0) {
+	X  		ioctl(i, TIOCNOTTY, 0);
+	X***************
+	X*** 77,83
+	X  		(void) dup2(0, 1);
+	X  		(void) dup2(1, 2);
+	X  	}
+	X! #endif not USG
+	X  }
+	X  
+	X  
+	X
+	X--- 77,83 -----
+	X  		(void) dup2(0, 1);
+	X  		(void) dup2(1, 2);
+	X  	}
+	X! #endif /* not USG */
+	X  }
+	X  
+	X  
+	X***************
+	X*** 91,97
+	X   *
+	X   *	Side effects:	None.
+	X   *
+	X!  *	Errors:		Syslogd, cause aboriton.
+	X   */
+	X  
+	X  get_socket()
+	X
+	X--- 91,97 -----
+	X   *
+	X   *	Side effects:	None.
+	X   *
+	X!  *	Errors:		Syslogd, cause abortion.
+	X   */
+	X  
+	X  get_socket()
+	X***************
+	X*** 109,115
+	X  #endif
+	X  		exit(1);
+	X  	}
+	X! #endif not EXCELAN
+	X  
+	X  	bzero((char *) &sin, sizeof (sin));
+	X  	sin.sin_family = AF_INET;
+	X
+	X--- 109,115 -----
+	X  #endif
+	X  		exit(1);
+	X  	}
+	X! #endif /* not EXCELAN */
+	X  
+	X  	bzero((char *) &sin, sizeof (sin));
+	X  	sin.sin_family = AF_INET;
+	X***************
+	X*** 118,124
+	X  	sin.sin_port = sp->s_port;
+	X  
+	X  	s = socket(AF_INET, SOCK_STREAM, 0);
+	X! #else EXCELAN
+	X  	sin.sin_port = htons(IPPORT_NNTP);
+	X  	s = 3;		/* WTF??? */
+	X  	s = socket(SOCK_STREAM, (struct sockproto *)0, &sin,
+	X
+	X--- 118,124 -----
+	X  	sin.sin_port = sp->s_port;
+	X  
+	X  	s = socket(AF_INET, SOCK_STREAM, 0);
+	X! #else /* EXCELAN */
+	X  	sin.sin_port = htons(IPPORT_NNTP);
+	X  	s = 3;		/* WTF??? */
+	X  	s = socket(SOCK_STREAM, (struct sockproto *)0, &sin,
+	X***************
+	X*** 123,129
+	X  	s = 3;		/* WTF??? */
+	X  	s = socket(SOCK_STREAM, (struct sockproto *)0, &sin,
+	X  		(SO_KEEPALIVE|SO_ACCEPTCONN));
+	X! #endif EXCELAN
+	X  	if (s < 0) {
+	X  #ifdef EXCELAN
+	X  		sleep(5);
+	X
+	X--- 123,129 -----
+	X  	s = 3;		/* WTF??? */
+	X  	s = socket(SOCK_STREAM, (struct sockproto *)0, &sin,
+	X  		(SO_KEEPALIVE|SO_ACCEPTCONN));
+	X! #endif /* EXCELAN */
+	X  	if (s < 0) {
+	X  #ifdef EXCELAN
+	X  		sleep(5);
+	X***************
+	X*** 128,134
+	X  #ifdef EXCELAN
+	X  		sleep(5);
+	X  		return (-1);
+	X! #else not EXCELAN
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "get_socket: socket: %m");
+	X  #endif SYSLOG
+	X
+	X--- 128,134 -----
+	X  #ifdef EXCELAN
+	X  		sleep(5);
+	X  		return (-1);
+	X! #else /* not EXCELAN */
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "get_socket: socket: %m");
+	X  #endif /* SYSLOG */
+	X***************
+	X*** 131,137
+	X  #else not EXCELAN
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "get_socket: socket: %m");
+	X! #endif SYSLOG
+	X  		exit(1);
+	X  #endif not EXCELAN
+	X  	}
+	X
+	X--- 131,137 -----
+	X  #else /* not EXCELAN */
+	X  #ifdef SYSLOG
+	X  		syslog(LOG_ERR, "get_socket: socket: %m");
+	X! #endif /* SYSLOG */
+	X  		exit(1);
+	X  #endif /* not EXCELAN */
+	X  	}
+	X***************
+	X*** 133,139
+	X  		syslog(LOG_ERR, "get_socket: socket: %m");
+	X  #endif SYSLOG
+	X  		exit(1);
+	X! #endif not EXCELAN
+	X  	}
+	X  #ifndef EXCELAN
+	X  #ifdef SO_REUSEADDR
+	X
+	X--- 133,139 -----
+	X  		syslog(LOG_ERR, "get_socket: socket: %m");
+	X  #endif /* SYSLOG */
+	X  		exit(1);
+	X! #endif /* not EXCELAN */
+	X  	}
+	X  #ifndef EXCELAN
+	X  #ifdef SO_REUSEADDR
+	X***************
+	X*** 147,153
+	X  #endif
+	X  		exit(1);
+	X  	}
+	X! #endif not EXCELAN
+	X  
+	X  	return (s);
+	X  }
+	X
+	X--- 147,153 -----
+	X  #endif
+	X  		exit(1);
+	X  	}
+	X! #endif /* not EXCELAN */
+	X  
+	X  	return (s);
+	X  }
+	X***************
+	X*** 191,197
+	X  {
+	X  #ifndef USG
+	X  	struct itimerval	new, old;
+	X! #endif not USG
+	X  	extern int		read_again();
+	X  
+	X  	(void) signal(SIGALRM, read_again);
+	X
+	X--- 191,197 -----
+	X  {
+	X  #ifndef USG
+	X  	struct itimerval	new, old;
+	X! #endif /* not USG */
+	X  	extern int		read_again();
+	X  
+	X  	(void) signal(SIGALRM, read_again);
+	X***************
+	X*** 197,203
+	X  	(void) signal(SIGALRM, read_again);
+	X  #ifdef USG
+	X  	alarm(READINTVL);
+	X! #else not USG
+	X  
+	X  	new.it_value.tv_sec = READINTVL;
+	X  	new.it_value.tv_usec = 0;
+	X
+	X--- 197,203 -----
+	X  	(void) signal(SIGALRM, read_again);
+	X  #ifdef USG
+	X  	alarm(READINTVL);
+	X! #else /* not USG */
+	X  
+	X  	new.it_value.tv_sec = READINTVL;
+	X  	new.it_value.tv_usec = 0;
+	X***************
+	X*** 214,220
+	X  #endif SYSLOG
+	X  		exit(1);
+	X  	}
+	X! #endif not USG
+	X  }
+	X  
+	X  
+	X
+	X--- 214,220 -----
+	X  #endif SYSLOG
+	X  		exit(1);
+	X  	}
+	X! #endif /* not USG */
+	X  }
+	X  
+	X  
+	X***************
+	X*** 262,268
+	X  
+	X  	while (wait3(&status, WNOHANG, (struct rusage *)0) > 0)
+	X  		;
+	X! #endif not USG
+	X  }
+	X  
+	X  #else not ALONE
+	X
+	X--- 262,268 -----
+	X  
+	X  	while (wait3(&status, WNOHANG, (struct rusage *)0) > 0)
+	X  		;
+	X! #endif /* not USG */
+	X  }
+	X  
+	X  #else /* not ALONE */
+	X***************
+	X*** 265,271
+	X  #endif not USG
+	X  }
+	X  
+	X! #else not ALONE
+	X  
+	X  /* Kludge for greenhill's C compiler */
+	X  
+	X
+	X--- 265,271 -----
+	X  #endif /* not USG */
+	X  }
+	X  
+	X! #else /* not ALONE */
+	X  
+	X  /* Kludge for greenhill's C compiler */
+	X  
+	X***************
+	X*** 273,276
+	X  netaux_greenkludge()
+	X  {
+	X  }
+	X! #endif not ALONE
+	X
+	X--- 273,276 -----
+	X  netaux_greenkludge()
+	X  {
+	X  }
+	X! #endif /* not ALONE */
+	X
+	XIndex: post.c
+	XPrereq: 1.16
+	X*** post.c	Thu Jul  5 23:47:54 1990
+	X--- ../../nntp/server/post.c	Sun Dec 23 11:50:02 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: post.c,v 1.16 90/07/05 23:47:52 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: post.c,v 1.17 90/12/23 11:50:01 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 51,57
+	X  	}
+	X  	else retcode =
+	X  #ifdef CNEWS
+	X! 	    spawn(inews, "inews", "-W", CONT_POST, ERR_POSTFAIL, errbuf);
+	X  #else
+	X  	    spawn(inews, "inews", "-h", CONT_POST, ERR_POSTFAIL, errbuf);
+	X  #endif
+	X
+	X--- 51,58 -----
+	X  	}
+	X  	else retcode =
+	X  #ifdef CNEWS
+	X! 	    spawn(inews, "inews", "-W", CONT_POST, ERR_POSTFAIL, errbuf,
+	X! 		"<none>");
+	X  #else
+	X  	    spawn(inews, "inews", "-h", CONT_POST, ERR_POSTFAIL, errbuf,
+	X  		"<none>");
+	X***************
+	X*** 53,59
+	X  #ifdef CNEWS
+	X  	    spawn(inews, "inews", "-W", CONT_POST, ERR_POSTFAIL, errbuf);
+	X  #else
+	X! 	    spawn(inews, "inews", "-h", CONT_POST, ERR_POSTFAIL, errbuf);
+	X  #endif
+	X  	if (retcode <= 0)
+	X  		printf("%d %s\r\n", ERR_POSTFAIL, errbuf);
+	X
+	X--- 54,61 -----
+	X  	    spawn(inews, "inews", "-W", CONT_POST, ERR_POSTFAIL, errbuf,
+	X  		"<none>");
+	X  #else
+	X! 	    spawn(inews, "inews", "-h", CONT_POST, ERR_POSTFAIL, errbuf,
+	X! 		"<none>");
+	X  #endif
+	X  	if (retcode <= 0)
+	X  		printf("%d %s\r\n", ERR_POSTFAIL, errbuf);
+	XIndex: scandir.c
+	XPrereq: 1.3
+	X*** scandir.c	Thu Jul  5 02:29:19 1990
+	X--- ../../nntp/server/scandir.c	Fri Feb  8 18:22:16 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)scandir.c	1.3	(Berkeley) 6/26/87";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: scandir.c,v 1.6 91/02/08 18:22:07 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 9,15
+	X   *	loading the article numbers into art_array.  Return
+	X   *	number of articles loaded.
+	X   *
+	X!  *	Paramaters:	"low_msg", "high_msg" are the low
+	X   *			and high messages numbers in this
+	X   *			group; we ignore numbers outside this
+	X   *			range.
+	X
+	X--- 9,15 -----
+	X   *	loading the article numbers into art_array.  Return
+	X   *	number of articles loaded.
+	X   *
+	X!  *	Parameters:	"low_msg", "high_msg" are the low
+	X   *			and high messages numbers in this
+	X   *			group; we ignore numbers outside this
+	X   *			range.
+	X***************
+	X*** 21,26
+	X   */
+	X  
+	X  extern	int	intcmp();
+	X  
+	X  scan_dir(low_msg, high_msg)
+	X  int	low_msg, high_msg;
+	X
+	X--- 21,27 -----
+	X   */
+	X  
+	X  extern	int	intcmp();
+	X+ extern char *malloc(), *realloc();
+	X  
+	X  scan_dir(low_msg, high_msg)
+	X  int	low_msg, high_msg;
+	X***************
+	X*** 38,43
+	X  
+	X  	while ((dirent = readdir(dirp)) != NULL) {
+	X  		artnum = atoi(dirent->d_name);
+	X  		if (artnum != 0 && artnum >= low_msg && artnum <= high_msg)
+	X  			art_array[num_arts++] = artnum;
+	X  	}
+	X
+	X--- 39,76 -----
+	X  
+	X  	while ((dirent = readdir(dirp)) != NULL) {
+	X  		artnum = atoi(dirent->d_name);
+	X+ #ifdef DYNAMIC_ART_ARRAY
+	X+ 		if (artnum == 0 || artnum < low_msg || artnum > high_msg)
+	X+ 			continue;
+	X+ 		/* Expand/allocate art_array elements as necessary */
+	X+ 		if (num_arts + 1 >= size_art_array) {
+	X+ 			size_art_array += 1024;
+	X+ 			if (art_array) {
+	X+ #ifdef SYSLOG
+	X+ 				syslog(LOG_INFO,
+	X+ 				    "increasing art_array to %d elements",
+	X+ 				    size_art_array);
+	X+ #endif
+	X+ 				art_array = (int *)realloc(art_array,
+	X+ 				    size_art_array * sizeof(*art_array));
+	X+ 			} else
+	X+ 				art_array = (int *)
+	X+ 				    malloc(size_art_array * sizeof(*art_array));
+	X+ 			if (art_array == 0) {
+	X+ #ifdef SYSLOG
+	X+ 				syslog(LOG_ERR,
+	X+ 				    "scan_dir(): malloc/realloc failed");
+	X+ #endif
+	X+ 				num_arts = 0;
+	X+ 				size_art_array = 0;
+	X+ 				size_art_array = 0;
+	X+ 				closedir(dirp);
+	X+ 				return(0);
+	X+ 			}
+	X+ 		}
+	X+ 		art_array[num_arts] = artnum;
+	X+  		++num_arts;
+	X+ #else
+	X  		if (artnum != 0 && artnum >= low_msg && artnum <= high_msg)
+	X  			art_array[num_arts++] = artnum;
+	X  #endif
+	X***************
+	X*** 40,46
+	X  		artnum = atoi(dirent->d_name);
+	X  		if (artnum != 0 && artnum >= low_msg && artnum <= high_msg)
+	X  			art_array[num_arts++] = artnum;
+	X! 	}
+	X  
+	X  	closedir(dirp);
+	X  
+	X
+	X--- 73,79 -----
+	X  #else
+	X  		if (artnum != 0 && artnum >= low_msg && artnum <= high_msg)
+	X  			art_array[num_arts++] = artnum;
+	X! #endif
+	X  
+	X  	}
+	X  	closedir(dirp);
+	X***************
+	X*** 42,47
+	X  			art_array[num_arts++] = artnum;
+	X  	}
+	X  
+	X  	closedir(dirp);
+	X  
+	X  	qsort((char *) art_array, num_arts, sizeof(int), intcmp);
+	X
+	X--- 75,81 -----
+	X  			art_array[num_arts++] = artnum;
+	X  #endif
+	X  
+	X+ 	}
+	X  	closedir(dirp);
+	X  
+	X  	qsort((char *) art_array, num_arts, sizeof(int), intcmp);
+	XIndex: serve.c
+	XPrereq: 1.35
+	X*** serve.c	Sat Aug 11 21:33:30 1990
+	X--- ../../nntp/server/serve.c	Thu Jan 10 17:20:08 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: serve.c,v 1.35 90/08/11 21:33:10 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: serve.c,v 1.37 91/01/10 17:19:52 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 20,32
+	X  # endif not USG
+	X  #endif
+	X  
+	X! #ifdef TIMEOUT
+	X! /* Not all systems define these */
+	X! #ifndef FD_SETSIZE
+	X! #define FD_SET(n, p)	((p)->fds_bits[0] |= (1<<(n)))
+	X! #define FD_CLR(n, p)	((p)->fds_bits[0] &= ~(1<<(n)))
+	X! #define FD_ISSET(n, p)	((p)->fds_bits[0] & (1<<(n)))
+	X! #define FD_ZERO(p)	((p)->fds_bits[0] = 0)
+	X  #endif
+	X  #endif
+	X  
+	X
+	X--- 20,27 -----
+	X  # endif not USG
+	X  #endif
+	X  
+	X! #ifdef TIMERS
+	X! #include "timer.h"
+	X  #endif
+	X  
+	X  extern	int	ahbs(), group(), help(), ihave();
+	X***************
+	X*** 28,34
+	X  #define FD_ISSET(n, p)	((p)->fds_bits[0] & (1<<(n)))
+	X  #define FD_ZERO(p)	((p)->fds_bits[0] = 0)
+	X  #endif
+	X- #endif
+	X  
+	X  extern	int	ahbs(), group(), help(), ihave();
+	X  extern	int	list(), newgroups(), newnews(), nextlast(), post();
+	X
+	X--- 23,28 -----
+	X  #ifdef TIMERS
+	X  #include "timer.h"
+	X  #endif
+	X  
+	X  extern	int	ahbs(), group(), help(), ihave();
+	X  extern	int	list(), newgroups(), newnews(), nextlast(), post();
+	X***************
+	X*** 70,75
+	X  };
+	X  #define NUMCMDS (sizeof(cmdtbl) / sizeof(struct cmdent))
+	X  
+	X  #ifdef AUTH
+	X  extern int	Needauth;
+	X  extern char	User[];
+	X
+	X--- 64,100 -----
+	X  };
+	X  #define NUMCMDS (sizeof(cmdtbl) / sizeof(struct cmdent))
+	X  
+	X+ #ifdef TIMEOUT
+	X+ static void timeout();
+	X+ #endif
+	X+ #ifdef LOGINCHECK
+	X+ static void logincheck();
+	X+ static int firstlogincheck;
+	X+ #endif
+	X+ #ifdef BATCHED_INPUT
+	X+ static void batchcheck();
+	X+ #endif
+	X+ 
+	X+ #ifdef TIMERS
+	X+ static struct timer timers[] = {
+	X+ #ifdef TIMEOUT
+	X+ 	{ timeout, 1, TIMEOUT, 0 },
+	X+ #endif
+	X+ #ifdef LOGINCHECK
+	X+ 	{ logincheck, 0, LOGINCHECK, 0 },
+	X+ #endif
+	X+ #ifdef BATCHCHECK
+	X+ 	{ batchcheck, 1, BATCHCHECK, 0 },
+	X+ #endif
+	X+ };
+	X+ #define NTIMERS (sizeof(timers) / sizeof(struct timer))
+	X+ #endif
+	X+ 
+	X+ static char *stats_init();
+	X+ #ifdef LOG
+	X+ static void stats_finish();
+	X+ #endif
+	X+ 
+	X  #ifdef AUTH
+	X  extern int	Needauth;
+	X  extern char	User[];
+	X***************
+	X*** 96,109
+	X  	char		**argp;
+	X  	char		*timeptr, *cp;
+	X  	int		argnum, i;
+	X- 	double		Tstart, Tfinish;
+	X- 	double		user, sys;
+	X- #ifdef USG
+	X- 	time_t		start, finish;
+	X- #else /* not USG */
+	X- 	struct timeval	start, finish;
+	X- #endif /* not USG */
+	X- 	extern char	*ctime();
+	X  #ifdef POSTER
+	X  	struct passwd	*pp;
+	X  #endif
+	X
+	X--- 121,126 -----
+	X  	char		**argp;
+	X  	char		*timeptr, *cp;
+	X  	int		argnum, i;
+	X  #ifdef POSTER
+	X  	struct passwd	*pp;
+	X  #endif
+	X***************
+	X*** 107,116
+	X  #ifdef POSTER
+	X  	struct passwd	*pp;
+	X  #endif
+	X- #ifdef TIMEOUT
+	X- 	struct timeval timeout;
+	X- 	fd_set readfds;
+	X- #endif
+	X  #ifdef LOG
+	X  # ifdef USG
+	X  	struct tms	cpu;
+	X
+	X--- 124,129 -----
+	X  #ifdef POSTER
+	X  	struct passwd	*pp;
+	X  #endif
+	X  #ifdef LOG
+	X  	grps_acsd = arts_acsd = 0;
+	X  #endif
+	X***************
+	X*** 112,122
+	X  	fd_set readfds;
+	X  #endif
+	X  #ifdef LOG
+	X- # ifdef USG
+	X- 	struct tms	cpu;
+	X- # else /* not USG */
+	X- 	struct rusage	me, kids;
+	X- # endif /* not USG */
+	X  	grps_acsd = arts_acsd = 0;
+	X  #endif
+	X  
+	X
+	X--- 125,130 -----
+	X  	struct passwd	*pp;
+	X  #endif
+	X  #ifdef LOG
+	X  	grps_acsd = arts_acsd = 0;
+	X  #endif
+	X  
+	X***************
+	X*** 139,144
+	X  # endif
+	X  #endif
+	X  
+	X  #ifdef ALONE
+	X  #ifndef USG
+	X  	(void) signal(SIGCHLD, SIG_IGN);
+	X
+	X--- 147,154 -----
+	X  # endif
+	X  #endif
+	X  
+	X+ 	timeptr = stats_init();
+	X+ 
+	X  #ifdef ALONE
+	X  #ifndef USG
+	X  	(void) signal(SIGCHLD, SIG_IGN);
+	X***************
+	X*** 159,164
+	X  	if (gethostname(host, sizeof(host)) < 0)
+	X  		(void) strcpy(host, "Amnesiac");
+	X  
+	X  	setproctitle("%s", hostname);
+	X  
+	X  	if (!canread && !canxfer) {
+	X
+	X--- 169,175 -----
+	X  	if (gethostname(host, sizeof(host)) < 0)
+	X  		(void) strcpy(host, "Amnesiac");
+	X  
+	X+ #ifdef SETPROCTITLE
+	X  	setproctitle("%s", hostname);
+	X  #endif
+	X  
+	X***************
+	X*** 160,165
+	X  		(void) strcpy(host, "Amnesiac");
+	X  
+	X  	setproctitle("%s", hostname);
+	X  
+	X  	if (!canread && !canxfer) {
+	X  		printf("%d %s NNTP server can't talk to you.  Goodbye.\r\n",
+	X
+	X--- 171,177 -----
+	X  
+	X  #ifdef SETPROCTITLE
+	X  	setproctitle("%s", hostname);
+	X+ #endif
+	X  
+	X  	if (!canread && !canxfer) {
+	X  		printf("%d %s NNTP server can't talk to you.  Goodbye.\r\n",
+	X***************
+	X*** 166,172
+	X  			ERR_ACCESS, host);
+	X  		(void) fflush(stdout);
+	X  		(void) fclose(stdout);
+	X! #ifdef LOG
+	X  		syslog(LOG_INFO, "%s refused connection", hostname);
+	X  #endif
+	X  		exit(1);
+	X
+	X--- 178,184 -----
+	X  			ERR_ACCESS, host);
+	X  		(void) fflush(stdout);
+	X  		(void) fclose(stdout);
+	X! #ifdef SYSLOG
+	X  		syslog(LOG_INFO, "%s refused connection", hostname);
+	X  #endif
+	X  		exit(1);
+	X***************
+	X*** 172,177
+	X  		exit(1);
+	X  	}
+	X  
+	X  	if ( !canpost && !canread && !space(MINFREE)) {
+	X  		printf("%d %s NNTP server out of space. Try later.\r\n",
+	X  			ERR_GOODBYE, host);
+	X
+	X--- 184,195 -----
+	X  		exit(1);
+	X  	}
+	X  
+	X+ #ifdef LOGINCHECK
+	X+ 	firstlogincheck = 1;
+	X+ 	logincheck();
+	X+ 	firstlogincheck = 0;
+	X+ #endif
+	X+ 
+	X  	if ( !canpost && !canread && !space(MINFREE)) {
+	X  		printf("%d %s NNTP server out of space. Try later.\r\n",
+	X  			ERR_GOODBYE, host);
+	X***************
+	X*** 176,181
+	X  		printf("%d %s NNTP server out of space. Try later.\r\n",
+	X  			ERR_GOODBYE, host);
+	X  		(void) fflush(stdout);
+	X  		exit(1);
+	X  	}
+	X  
+	X
+	X--- 194,202 -----
+	X  		printf("%d %s NNTP server out of space. Try later.\r\n",
+	X  			ERR_GOODBYE, host);
+	X  		(void) fflush(stdout);
+	X+ #ifdef SYSLOG
+	X+ 		syslog(LOG_INFO, "%s no space", hostname);
+	X+ #endif
+	X  		exit(1);
+	X  	}
+	X  
+	X***************
+	X*** 188,195
+	X  	if (pp != NULL) {
+	X  		uid_poster = pp->pw_uid;
+	X  		gid_poster = pp->pw_gid;
+	X! 		putenv("USER",POSTER,1);
+	X! 		putenv("LOGNAME",POSTER,1);
+	X  	} else
+	X  #endif
+	X  		uid_poster = gid_poster = 0;
+	X
+	X--- 209,215 -----
+	X  	if (pp != NULL) {
+	X  		uid_poster = pp->pw_uid;
+	X  		gid_poster = pp->pw_gid;
+	X! 		home_poster = pp->pw_dir;
+	X  	} else
+	X  #endif
+	X  		uid_poster = gid_poster = 0;
+	X***************
+	X*** 210,216
+	X  		printf("%d %s NNTP server unavailable. Try later.\r\n",
+	X  			ERR_FAULT, host);
+	X  		(void) fflush(stdout);
+	X! #ifdef LOG
+	X  		syslog(LOG_INFO, "%s no groups", hostname);
+	X  #endif
+	X  		exit(1);
+	X
+	X--- 230,236 -----
+	X  		printf("%d %s NNTP server unavailable. Try later.\r\n",
+	X  			ERR_FAULT, host);
+	X  		(void) fflush(stdout);
+	X! #ifdef SYSLOG
+	X  		syslog(LOG_INFO, "%s no groups", hostname);
+	X  #endif
+	X  		exit(1);
+	X***************
+	X*** 219,233
+	X  	art_fp = NULL;
+	X  	argp = (char **) NULL;		/* for first time */
+	X  
+	X- #ifdef USG
+	X- 	(void) time(&start);
+	X- 	Tstart = (double) start;
+	X- 	timeptr = ctime(&start);
+	X- #else not USG
+	X- 	(void) gettimeofday(&start, (struct timezone *)NULL);
+	X- 	Tstart = (double) start.tv_sec + ((double)start.tv_usec)/1000000.0;
+	X- 	timeptr = ctime(&start.tv_sec);
+	X- #endif not USG
+	X  	if ((cp = index(timeptr, '\n')) != NULL)
+	X  		*cp = '\0';
+	X  	else
+	X
+	X--- 239,244 -----
+	X  	art_fp = NULL;
+	X  	argp = (char **) NULL;		/* for first time */
+	X  
+	X  	if ((cp = index(timeptr, '\n')) != NULL)
+	X  		*cp = '\0';
+	X  	else
+	X***************
+	X*** 247,256
+	X  	 * Now get commands one at a time and execute the
+	X  	 * appropriate routine to deal with them.
+	X  	 */
+	X! 
+	X! #ifdef TIMEOUT
+	X! 	timeout.tv_sec = TIMEOUT;
+	X! 	timeout.tv_usec = 0;
+	X  #endif
+	X  	for (;;) {
+	X  #ifdef TIMEOUT
+	X
+	X--- 258,265 -----
+	X  	 * Now get commands one at a time and execute the
+	X  	 * appropriate routine to deal with them.
+	X  	 */
+	X! #ifdef TIMERS
+	X! 	timer_init(timers, NTIMERS);
+	X  #endif
+	X  	for (;;) {
+	X  #ifdef TIMERS
+	X***************
+	X*** 253,283
+	X  	timeout.tv_usec = 0;
+	X  #endif
+	X  	for (;;) {
+	X! #ifdef TIMEOUT
+	X! 		/* Do timeout with select() (i.e. the intelligent way) */
+	X! 		FD_ZERO(&readfds);
+	X! 		FD_SET(fileno(stdin), &readfds);
+	X! 		errno = 0;
+	X! 		i = select(fileno(stdin) + 1,
+	X! 		    &readfds, (fd_set*)0, (fd_set*)0, &timeout);
+	X! 		if (i < 0) {
+	X! 			/* "Interrupted system call" isn't a real error */
+	X! 			if (errno == EINTR)
+	X! 				continue;
+	X! 			syslog(LOG_ERR, "%s read select: %m", hostname);
+	X! 			break;
+	X! 		}
+	X! 		if (!FD_ISSET(fileno(stdin), &readfds)) {
+	X! 			printf(
+	X! 		    "%d Timeout after %d seconds, closing connection.\r\n",
+	X! 				ERR_FAULT, TIMEOUT);
+	X! 			(void) fflush(stdout);
+	X! 
+	X! #ifdef LOG
+	X! 			syslog(LOG_ERR, "%s timeout", hostname);
+	X! #endif LOG
+	X! 			exit(1);
+	X! 		}
+	X  #endif
+	X  		if (fgets(line, sizeof(line), stdin) == NULL)
+	X  			break;
+	X
+	X--- 262,271 -----
+	X  	timer_init(timers, NTIMERS);
+	X  #endif
+	X  	for (;;) {
+	X! #ifdef TIMERS
+	X! 		/* Don't try to read input unless there is some */
+	X! 		if (!timer_sleep(timers, NTIMERS))
+	X! 			continue;
+	X  #endif
+	X  		if (fgets(line, sizeof(line), stdin) == NULL)
+	X  			break;
+	X***************
+	X*** 286,292
+	X  		while (cp >= line && (*cp == '\n' || *cp == '\r'))
+	X  			*cp-- = '\0';
+	X  #ifdef DEBUG
+	X! 		syslog(LOG_DEBUG, "<- \"%s\"", line);
+	X  #endif
+	X  
+	X  		if ((argnum = parsit(line, &argp)) == 0)
+	X
+	X--- 274,281 -----
+	X  		while (cp >= line && (*cp == '\n' || *cp == '\r'))
+	X  			*cp-- = '\0';
+	X  #ifdef DEBUG
+	X! 		if (debug)
+	X! 			syslog(LOG_DEBUG, "<- \"%s\"", line);
+	X  #endif
+	X  
+	X  		/* Null command */
+	X***************
+	X*** 289,294
+	X  		syslog(LOG_DEBUG, "<- \"%s\"", line);
+	X  #endif
+	X  
+	X  		if ((argnum = parsit(line, &argp)) == 0)
+	X  			continue;		/* Null command */
+	X  		else {
+	X
+	X--- 278,284 -----
+	X  			syslog(LOG_DEBUG, "<- \"%s\"", line);
+	X  #endif
+	X  
+	X+ 		/* Null command */
+	X  		if ((argnum = parsit(line, &argp)) == 0)
+	X  			continue;
+	X  
+	X***************
+	X*** 290,299
+	X  #endif
+	X  
+	X  		if ((argnum = parsit(line, &argp)) == 0)
+	X! 			continue;		/* Null command */
+	X! 		else {
+	X! 			/* a motion to adjourn is always in order */
+	X! 			if (!strcasecmp(argp[0], "quit"))
+	X  				break;
+	X  			for (i = 0; i < NUMCMDS; ++i)
+	X  				if (!strcasecmp(cmdtbl[i].cmd_name, argp[0]))
+	X
+	X--- 280,293 -----
+	X  
+	X  		/* Null command */
+	X  		if ((argnum = parsit(line, &argp)) == 0)
+	X! 			continue;
+	X! 
+	X! 		/* a motion to adjourn is always in order */
+	X! 		if (!strcasecmp(argp[0], "quit"))
+	X! 			break;
+	X! 
+	X! 		for (i = 0; i < NUMCMDS; ++i)
+	X! 			if (!strcasecmp(cmdtbl[i].cmd_name, argp[0]))
+	X  				break;
+	X  
+	X  		if (i < NUMCMDS) {
+	X***************
+	X*** 295,305
+	X  			/* a motion to adjourn is always in order */
+	X  			if (!strcasecmp(argp[0], "quit"))
+	X  				break;
+	X! 			for (i = 0; i < NUMCMDS; ++i)
+	X! 				if (!strcasecmp(cmdtbl[i].cmd_name, argp[0]))
+	X! 					break;
+	X! 			if (i < NUMCMDS)
+	X! 				{
+	X  #ifdef AUTH
+	X  				/* authentication required? */
+	X  				if (cmdtbl[i].authreq == 1 && Needauth)
+	X
+	X--- 289,299 -----
+	X  		for (i = 0; i < NUMCMDS; ++i)
+	X  			if (!strcasecmp(cmdtbl[i].cmd_name, argp[0]))
+	X  				break;
+	X! 
+	X! 		if (i < NUMCMDS) {
+	X! #ifdef SETPROCTITLE
+	X! 			setproctitle("%s %s", hostname, argp[0]);
+	X! #endif
+	X  #ifdef AUTH
+	X  			/* authentication required? */
+	X  			if (cmdtbl[i].authreq == 1 && Needauth)
+	X***************
+	X*** 301,315
+	X  			if (i < NUMCMDS)
+	X  				{
+	X  #ifdef AUTH
+	X! 				/* authentication required? */
+	X! 				if (cmdtbl[i].authreq == 1 && Needauth)
+	X! 					{
+	X! 	printf("%d Authentication required for command\r\n", ERR_NOAUTH);
+	X! 					(void) fflush(stdout);
+	X! 					continue;
+	X! 					}
+	X! #endif AUTH
+	X! 				(*cmdtbl[i].cmd_fctn)(argnum, argp);
+	X  				}
+	X  			else {
+	X  #ifdef LOG
+	X
+	X--- 295,306 -----
+	X  			setproctitle("%s %s", hostname, argp[0]);
+	X  #endif
+	X  #ifdef AUTH
+	X! 			/* authentication required? */
+	X! 			if (cmdtbl[i].authreq == 1 && Needauth)
+	X! 				{
+	X! printf("%d Authentication required for command\r\n", ERR_NOAUTH);
+	X! 				(void) fflush(stdout);
+	X! 				continue;
+	X  				}
+	X  #endif AUTH
+	X  			(*cmdtbl[i].cmd_fctn)(argnum, argp);
+	X***************
+	X*** 311,321
+	X  #endif AUTH
+	X  				(*cmdtbl[i].cmd_fctn)(argnum, argp);
+	X  				}
+	X! 			else {
+	X! #ifdef LOG
+	X! 				syslog(LOG_INFO, "%s unrecognized %s",
+	X! 					hostname,
+	X! 					line);
+	X  #endif
+	X  				printf("%d Command unrecognized.\r\n",
+	X  					ERR_COMMAND);
+	X
+	X--- 302,312 -----
+	X  				(void) fflush(stdout);
+	X  				continue;
+	X  				}
+	X! #endif AUTH
+	X! 			(*cmdtbl[i].cmd_fctn)(argnum, argp);
+	X! 		} else {
+	X! #ifdef SYSLOG
+	X! 			syslog(LOG_INFO, "%s unrecognized %s", hostname, line);
+	X  #endif
+	X  			printf("%d Command unrecognized.\r\n", ERR_COMMAND);
+	X  			(void) fflush(stdout);
+	X***************
+	X*** 317,326
+	X  					hostname,
+	X  					line);
+	X  #endif
+	X! 				printf("%d Command unrecognized.\r\n",
+	X! 					ERR_COMMAND);
+	X! 				(void) fflush(stdout);
+	X! 			}
+	X  		}
+	X  	}
+	X  
+	X
+	X--- 308,315 -----
+	X  #ifdef SYSLOG
+	X  			syslog(LOG_INFO, "%s unrecognized %s", hostname, line);
+	X  #endif
+	X! 			printf("%d Command unrecognized.\r\n", ERR_COMMAND);
+	X! 			(void) fflush(stdout);
+	X  		}
+	X  	}
+	X  
+	X***************
+	X*** 324,331
+	X  		}
+	X  	}
+	X  
+	X! 	printf("%d %s closing connection.  Goodbye.\r\n",
+	X! 		OK_GOODBYE, host);
+	X  
+	X  	(void) fflush(stdout);
+	X  
+	X
+	X--- 313,319 -----
+	X  		}
+	X  	}
+	X  
+	X! 	printf("%d %s closing connection.  Goodbye.\r\n", OK_GOODBYE, host);
+	X  
+	X  	(void) fflush(stdout);
+	X  
+	X***************
+	X*** 329,336
+	X  
+	X  	(void) fflush(stdout);
+	X  
+	X! #ifdef notdef
+	X! 	/* XXX why do this twice? */
+	X  	(void) fflush(stdout);
+	X  #endif
+	X  
+	X
+	X--- 317,354 -----
+	X  
+	X  	(void) fflush(stdout);
+	X  
+	X! #ifdef BATCHED_INPUT
+	X! 	batchcheck();
+	X! #endif
+	X! 
+	X! #ifdef SYSLOG
+	X! 	if (ferror(stdout))
+	X! 		syslog(LOG_ERR, "%s disconnect: %m", hostname);
+	X! #ifdef LOG
+	X! 	stats_finish();
+	X! #endif
+	X! #endif
+	X! 
+	X! #ifdef PROFILE
+	X! 	profile();
+	X! #endif
+	X! 	exit(0);
+	X! }
+	X! 
+	X! #ifdef TIMEOUT
+	X! /*
+	X!  * Called after TIMEOUT seconds of idle time to shut things down.
+	X!  * XXX stats are not reported when this occurs
+	X!  */
+	X! static void
+	X! timeout()
+	X! {
+	X! 
+	X! 	printf("%d Timeout after %d seconds, closing connection.\r\n",
+	X! 	    ERR_FAULT, TIMEOUT);
+	X! #ifdef SYSLOG
+	X! 	syslog(LOG_NOTICE, "%s timeout", hostname);
+	X! #endif
+	X  	(void) fflush(stdout);
+	X  #ifdef BATCHED_INPUT
+	X  	batchcheck();
+	X***************
+	X*** 332,337
+	X  #ifdef notdef
+	X  	/* XXX why do this twice? */
+	X  	(void) fflush(stdout);
+	X  #endif
+	X  
+	X  #ifdef BATCHED_INPUT
+	X
+	X--- 350,357 -----
+	X  	syslog(LOG_NOTICE, "%s timeout", hostname);
+	X  #endif
+	X  	(void) fflush(stdout);
+	X+ #ifdef BATCHED_INPUT
+	X+ 	batchcheck();
+	X  #endif
+	X  #ifdef LOG
+	X  	stats_finish();
+	X***************
+	X*** 333,338
+	X  	/* XXX why do this twice? */
+	X  	(void) fflush(stdout);
+	X  #endif
+	X  
+	X  #ifdef BATCHED_INPUT
+	X  	{
+	X
+	X--- 353,367 -----
+	X  #ifdef BATCHED_INPUT
+	X  	batchcheck();
+	X  #endif
+	X+ #ifdef LOG
+	X+ 	stats_finish();
+	X+ #endif
+	X+ #ifdef PROFILE
+	X+ 	profile();
+	X+ #endif
+	X+ 	exit(1);
+	X+ }
+	X+ #endif
+	X  
+	X  #ifdef LOGINCHECK
+	X  /*
+	X***************
+	X*** 334,339
+	X  	(void) fflush(stdout);
+	X  #endif
+	X  
+	X  #ifdef BATCHED_INPUT
+	X  	{
+	X  		char errbuf[2 * NNTP_STRLEN];
+	X
+	X--- 363,390 -----
+	X  }
+	X  #endif
+	X  
+	X+ #ifdef LOGINCHECK
+	X+ /*
+	X+  * Called ever LOGINCHECK seconds to see if logins have been disabled.
+	X+  * If so, shut down.
+	X+  * XXX stats are not reported when this occurs
+	X+  */
+	X+ static void
+	X+ logincheck()
+	X+ {
+	X+ 	char host[MAXHOSTNAMELEN];
+	X+ 
+	X+ 	if (access(NOLOGIN, F_OK) < 0)
+	X+ 		return;
+	X+ 	if (gethostname(host, sizeof(host)) < 0)
+	X+ 		(void) strcpy(host, "Amnesiac");
+	X+ 	printf("%d Logins are disabled on NNTP server %s. Try again later.\r\n",
+	X+ 	    ERR_ACCESS, host);
+	X+ 	(void) fflush(stdout);
+	X+ #ifdef SYSLOG
+	X+ 	syslog(LOG_INFO, "%s logins disabled%s",
+	X+ 	    hostname, firstlogincheck ? "" : " (kicked out)");
+	X+ #endif
+	X  #ifdef BATCHED_INPUT
+	X  	batchcheck();
+	X  #endif
+	X***************
+	X*** 335,342
+	X  #endif
+	X  
+	X  #ifdef BATCHED_INPUT
+	X! 	{
+	X! 		char errbuf[2 * NNTP_STRLEN];
+	X  
+	X  		enqpartbatch(CONT_XFER, ERR_XFERFAIL, errbuf);
+	X  	}
+	X
+	X--- 386,402 -----
+	X  	    hostname, firstlogincheck ? "" : " (kicked out)");
+	X  #endif
+	X  #ifdef BATCHED_INPUT
+	X! 	batchcheck();
+	X! #endif
+	X! #ifdef LOG
+	X! 	stats_finish();
+	X! #endif
+	X! #ifdef PROFILE
+	X! 	profile();
+	X! #endif
+	X! 	exit(1);
+	X! }
+	X! #endif
+	X  
+	X  #ifdef BATCHED_INPUT
+	X  /*
+	X***************
+	X*** 338,345
+	X  	{
+	X  		char errbuf[2 * NNTP_STRLEN];
+	X  
+	X! 		enqpartbatch(CONT_XFER, ERR_XFERFAIL, errbuf);
+	X! 	}
+	X  #endif
+	X  
+	X  
+	X
+	X--- 398,415 -----
+	X  }
+	X  #endif
+	X  
+	X! #ifdef BATCHED_INPUT
+	X! /*
+	X!  * Called after BATCHCHECK seconds of idle time and at the end
+	X!  * of a session to see if a batch needs to be launched.
+	X!  */
+	X! static void
+	X! batchcheck()
+	X! {
+	X! 	char errbuf[2 * NNTP_STRLEN];
+	X! 
+	X! 	enqpartbatch(CONT_XFER, ERR_XFERFAIL, errbuf);
+	X! }
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 342,347
+	X  	}
+	X  #endif
+	X  
+	X  
+	X  #ifdef LOG
+	X  	if (ferror(stdout))
+	X
+	X--- 412,427 -----
+	X  }
+	X  #endif
+	X  
+	X+ /*
+	X+  * Stats stuff
+	X+  */
+	X+ static double		Tstart, Tfinish;
+	X+ static double		user, sys;
+	X+ #ifdef USG
+	X+ static time_t		start, finish;
+	X+ #else /* not USG */
+	X+ static struct timeval	start, finish;
+	X+ #endif /* not USG */
+	X  
+	X  static char *
+	X  stats_init()
+	X***************
+	X*** 343,348
+	X  #endif
+	X  
+	X  
+	X  #ifdef LOG
+	X  	if (ferror(stdout))
+	X  		syslog(LOG_ERR, "%s disconnect: %m", hostname);
+	X
+	X--- 423,444 -----
+	X  static struct timeval	start, finish;
+	X  #endif /* not USG */
+	X  
+	X+ static char *
+	X+ stats_init()
+	X+ {
+	X+ 	extern char	*ctime();
+	X+ 
+	X+ #ifdef USG
+	X+ 	(void) time(&start);
+	X+ 	Tstart = (double) start;
+	X+ 	return(ctime(&start));
+	X+ #else /* not USG */
+	X+ 	(void) gettimeofday(&start, (struct timezone *)NULL);
+	X+ 	Tstart = (double) start.tv_sec + ((double)start.tv_usec)/1000000.0;
+	X+ 	return(ctime(&start.tv_sec));
+	X+ #endif /* not USG */
+	X+ }
+	X+ 
+	X  #ifdef LOG
+	X  static void
+	X  stats_finish()
+	X***************
+	X*** 344,351
+	X  
+	X  
+	X  #ifdef LOG
+	X! 	if (ferror(stdout))
+	X! 		syslog(LOG_ERR, "%s disconnect: %m", hostname);
+	X  
+	X  #ifdef USG
+	X  	(void) time(&finish);
+	X
+	X--- 440,454 -----
+	X  }
+	X  
+	X  #ifdef LOG
+	X! static void
+	X! stats_finish()
+	X! {
+	X! 	char		buf[NNTP_STRLEN];
+	X! # ifdef USG
+	X! 	struct tms	cpu;
+	X! # else /* not USG */
+	X! 	struct rusage	me, kids;
+	X! # endif /* not USG */
+	X  
+	X  #ifdef USG
+	X  	(void) time(&finish);
+	X***************
+	X*** 353,359
+	X  
+	X  #ifndef HZ
+	X  #define	HZ	60.0	/* typical system clock ticks - param.h */
+	X! #endif not HZ
+	X  
+	X  	(void) times(&cpu);
+	X  	user = (double)(cpu.tms_utime + cpu.tms_cutime) / HZ;
+	X
+	X--- 456,462 -----
+	X  
+	X  #ifndef HZ
+	X  #define	HZ	60.0	/* typical system clock ticks - param.h */
+	X! #endif /* not HZ */
+	X  
+	X  	(void) times(&cpu);
+	X  	user = (double)(cpu.tms_utime + cpu.tms_cutime) / HZ;
+	X***************
+	X*** 358,364
+	X  	(void) times(&cpu);
+	X  	user = (double)(cpu.tms_utime + cpu.tms_cutime) / HZ;
+	X  	sys  = (double)(cpu.tms_stime + cpu.tms_cstime) / HZ;
+	X! #else not USG
+	X  	(void) gettimeofday(&finish, (struct timezone *)NULL);
+	X  	Tfinish = (double) finish.tv_sec + ((double)finish.tv_usec)/1000000.0;
+	X  
+	X
+	X--- 461,467 -----
+	X  	(void) times(&cpu);
+	X  	user = (double)(cpu.tms_utime + cpu.tms_cutime) / HZ;
+	X  	sys  = (double)(cpu.tms_stime + cpu.tms_cstime) / HZ;
+	X! #else /* not USG */
+	X  	(void) gettimeofday(&finish, (struct timezone *)NULL);
+	X  	Tfinish = (double) finish.tv_sec + ((double)finish.tv_usec)/1000000.0;
+	X  
+	X***************
+	X*** 369,375
+	X  		kids.ru_utime.tv_sec + kids.ru_utime.tv_usec/1000000.0;
+	X  	sys = (double) me.ru_stime.tv_sec + me.ru_stime.tv_usec/1000000.0 +
+	X  		kids.ru_stime.tv_sec + kids.ru_stime.tv_usec/1000000.0;
+	X! #endif not USG
+	X  	if (grps_acsd)
+	X  		syslog(LOG_INFO, "%s exit %d articles %d groups",
+	X  			hostname, arts_acsd, grps_acsd);
+	X
+	X--- 472,478 -----
+	X  		kids.ru_utime.tv_sec + kids.ru_utime.tv_usec/1000000.0;
+	X  	sys = (double) me.ru_stime.tv_sec + me.ru_stime.tv_usec/1000000.0 +
+	X  		kids.ru_stime.tv_sec + kids.ru_stime.tv_usec/1000000.0;
+	X! #endif /* not USG */
+	X  	if (grps_acsd)
+	X  		syslog(LOG_INFO, "%s exit %d articles %d groups",
+	X  			hostname, arts_acsd, grps_acsd);
+	X***************
+	X*** 383,389
+	X  			ih_accepted,
+	X  			ih_rejected,
+	X  			ih_failed);
+	X! 	(void) sprintf(line, "user %.3f system %.3f elapsed %.3f",
+	X  		user, sys, Tfinish - Tstart);
+	X  	syslog(LOG_INFO, "%s times %s", hostname, line);
+	X  #endif LOG
+	X
+	X--- 486,492 -----
+	X  			ih_accepted,
+	X  			ih_rejected,
+	X  			ih_failed);
+	X! 	(void) sprintf(buf, "user %.3f system %.3f elapsed %.3f",
+	X  		user, sys, Tfinish - Tstart);
+	X  	syslog(LOG_INFO, "%s times %s", hostname, buf);
+	X  }
+	X***************
+	X*** 385,395
+	X  			ih_failed);
+	X  	(void) sprintf(line, "user %.3f system %.3f elapsed %.3f",
+	X  		user, sys, Tfinish - Tstart);
+	X! 	syslog(LOG_INFO, "%s times %s", hostname, line);
+	X! #endif LOG
+	X! 
+	X! #ifdef PROFILE
+	X! 	profile();
+	X! #endif
+	X! 	exit(0);
+	X  }
+	X
+	X--- 488,493 -----
+	X  			ih_failed);
+	X  	(void) sprintf(buf, "user %.3f system %.3f elapsed %.3f",
+	X  		user, sys, Tfinish - Tstart);
+	X! 	syslog(LOG_INFO, "%s times %s", hostname, buf);
+	X  }
+	X  #endif LOG
+	X***************
+	X*** 393,395
+	X  #endif
+	X  	exit(0);
+	X  }
+	X
+	X--- 490,493 -----
+	X  		user, sys, Tfinish - Tstart);
+	X  	syslog(LOG_INFO, "%s times %s", hostname, buf);
+	X  }
+	X+ #endif LOG
+	XIndex: spawn.c
+	XPrereq: 1.15
+	X*** spawn.c	Sat Aug 18 17:17:03 1990
+	X--- ../../nntp/server/spawn.c	Fri Feb  8 18:30:43 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static	char	*sccsid = "@(#)$Header: spawn.c,v 1.15 90/08/18 17:16:47 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static	char	*sccsid = "@(#)$Header: spawn.c,v 1.22 91/02/08 18:30:30 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 13,21
+	X  static int	old_xfer_lines;
+	X  #endif
+	X  
+	X- /* imports */
+	X- extern char **myenviron;
+	X- 
+	X  static char	tempfile[256];
+	X  static char	badfile[256];
+	X  
+	X
+	X--- 13,18 -----
+	X  static int	old_xfer_lines;
+	X  #endif
+	X  
+	X  static char	tempfile[256];
+	X  #ifndef CNEWS
+	X  static char	badfile[256];
+	X***************
+	X*** 17,22
+	X  extern char **myenviron;
+	X  
+	X  static char	tempfile[256];
+	X  static char	badfile[256];
+	X  
+	X  /*
+	X
+	X--- 14,20 -----
+	X  #endif
+	X  
+	X  static char	tempfile[256];
+	X+ #ifndef CNEWS
+	X  static char	badfile[256];
+	X  #endif
+	X  
+	X***************
+	X*** 18,23
+	X  
+	X  static char	tempfile[256];
+	X  static char	badfile[256];
+	X  
+	X  /*
+	X   * spawn -- create a child process with the input from the client
+	X
+	X--- 16,22 -----
+	X  static char	tempfile[256];
+	X  #ifndef CNEWS
+	X  static char	badfile[256];
+	X+ #endif
+	X  
+	X  /*
+	X   * spawn -- create a child process with the input from the client
+	X***************
+	X*** 40,46
+	X   *			Can time out if XFER_TIMEOUT is defined.
+	X   */
+	X  
+	X! spawn(path, name, flag, cont_code, err_code, errbuf)
+	X  	char		*path;
+	X  	char		*name;
+	X  	char		*flag;
+	X
+	X--- 39,45 -----
+	X   *			Can time out if XFER_TIMEOUT is defined.
+	X   */
+	X  
+	X! spawn(path, name, flag, cont_code, err_code, errbuf, msg_id)
+	X  	char		*path;
+	X  	char		*name;
+	X  	char		*flag;
+	X***************
+	X*** 47,52
+	X  	int		cont_code;
+	X  	int		err_code;
+	X  	char		*errbuf;
+	X  {
+	X  	char		line[NNTP_STRLEN];
+	X  	register char	*cp;
+	X
+	X--- 46,52 -----
+	X  	int		cont_code;
+	X  	int		err_code;
+	X  	char		*errbuf;
+	X+ 	char		*msg_id;
+	X  {
+	X  	char		line[NNTP_STRLEN];
+	X  	register char	*cp;
+	X***************
+	X*** 53,59
+	X  	int		i, fd;
+	X  	int		fds[2];
+	X  	int		pid, npid;
+	X! 	int		exit_status;
+	X  #ifdef XFER_TIMEOUT
+	X  	int		xfer_timeout();
+	X  #endif
+	X
+	X--- 53,65 -----
+	X  	int		i, fd;
+	X  	int		fds[2];
+	X  	int		pid, npid;
+	X! 	int		exit_status = 1;
+	X! #ifdef POSTER
+	X! 	char *envp[4], user[sizeof(POSTER) + 5], logname[sizeof(POSTER) + 8];
+	X! 	char *home;
+	X! #else
+	X! 	char *envp[1];
+	X! #endif
+	X  #ifdef XFER_TIMEOUT
+	X  	int		xfer_timeout();
+	X  #endif
+	X***************
+	X*** 127,134
+	X  		(void) unlink(tempfile);
+	X  #ifdef SYSLOG
+	X  # ifdef LOG
+	X! 		syslog(LOG_ERR, "%s spawn: EOF before period on line by itself",
+	X! 			hostname);
+	X  # else
+	X  		syslog(LOG_ERR, "spawn: EOF before period on line by itself");
+	X  # endif
+	X
+	X--- 133,141 -----
+	X  		(void) unlink(tempfile);
+	X  #ifdef SYSLOG
+	X  # ifdef LOG
+	X! 		syslog(LOG_ERR,
+	X! 		    "%s spawn: EOF before period on line by itself %s",
+	X! 		    hostname, msg_id);
+	X  # else
+	X  		syslog(LOG_ERR,
+	X  		    "spawn: EOF before period on line by itself %s", msg_id);
+	X***************
+	X*** 130,136
+	X  		syslog(LOG_ERR, "%s spawn: EOF before period on line by itself",
+	X  			hostname);
+	X  # else
+	X! 		syslog(LOG_ERR, "spawn: EOF before period on line by itself");
+	X  # endif
+	X  #endif
+	X  		return (0);
+	X
+	X--- 137,144 -----
+	X  		    "%s spawn: EOF before period on line by itself %s",
+	X  		    hostname, msg_id);
+	X  # else
+	X! 		syslog(LOG_ERR,
+	X! 		    "spawn: EOF before period on line by itself %s", msg_id);
+	X  # endif
+	X  #endif
+	X  		return (0);
+	X***************
+	X*** 157,162
+	X  	 * whatever), open "tempfile" for input, thus making
+	X  	 * it stdin, and then execle the inews.  We think.
+	X  	 */
+	X  
+	X  	pid = vfork();
+	X  	if (pid == 0) {		/* We're in child */
+	X
+	X--- 165,179 -----
+	X  	 * whatever), open "tempfile" for input, thus making
+	X  	 * it stdin, and then execle the inews.  We think.
+	X  	 */
+	X+ #ifdef SYSLOG
+	X+ 	/*
+	X+ 	 * Close in such a way that syslog() will know to reopen.
+	X+ 	 * We must do this before the vfork() otherwise the parent
+	X+ 	 * will think the syslog fd is closed and open a new one,
+	X+ 	 * eventually using up all the available file descriptors.
+	X+ 	 */
+	X+ 	closelog();
+	X+ #endif
+	X  
+	X  	pid = vfork();
+	X  	if (pid == 0) {		/* We're in child */
+	X***************
+	X*** 164,170
+	X  #ifndef USG
+	X  		if (getuid() == 0) initgroups(POSTER,gid_poster);
+	X  #endif
+	X- 		(void) setuid(uid_poster);
+	X  		(void) setgid(gid_poster);
+	X  #endif
+	X  
+	X
+	X--- 181,186 -----
+	X  #ifndef USG
+	X  		if (getuid() == 0) initgroups(POSTER,gid_poster);
+	X  #endif
+	X  		(void) setgid(gid_poster);
+	X  		(void) setuid(uid_poster);
+	X  #endif
+	X***************
+	X*** 166,171
+	X  #endif
+	X  		(void) setuid(uid_poster);
+	X  		(void) setgid(gid_poster);
+	X  #endif
+	X  
+	X  		/* Set up stdout and stderr for child */
+	X
+	X--- 182,188 -----
+	X  		if (getuid() == 0) initgroups(POSTER,gid_poster);
+	X  #endif
+	X  		(void) setgid(gid_poster);
+	X+ 		(void) setuid(uid_poster);
+	X  #endif
+	X  
+	X  		/* Set up stdout and stderr for child */
+	X***************
+	X*** 176,185
+	X  		}
+	X  		(void) dup2(1, 2);
+	X  
+	X- #ifdef SYSLOG
+	X- 		/* Close in such a way that syslog() will know to reopen */
+	X- 		closelog();
+	X- #endif
+	X  		for (i = 3; i < 10; ++i) /* XXX but getdtablesize is too big */
+	X  			(void) close(i);
+	X  
+	X
+	X--- 193,198 -----
+	X  		}
+	X  		(void) dup2(1, 2);
+	X  
+	X  		for (i = 3; i < 10; ++i) /* XXX but getdtablesize is too big */
+	X  			(void) close(i);
+	X  
+	X***************
+	X*** 189,195
+	X  			(void) close(fd);
+	X  		}
+	X  
+	X! 		execle(path, name, flag, (char *) NULL, myenviron);
+	X  		fprintf(stderr, "spawn: execle(%s)", path);
+	X  		perror(path);
+	X  #ifdef SYSLOG
+	X
+	X--- 202,227 -----
+	X  			(void) close(fd);
+	X  		}
+	X  
+	X! 		/* Empty environment keeps cnews inews from telling lies */
+	X! #ifdef POSTER
+	X! 		sprintf(user, "USER=%s", POSTER);
+	X! 		sprintf(logname, "LOGNAME=%s", POSTER);
+	X! 		if ((home = (char *)malloc(strlen(home_poster)+5)) != NULL)
+	X! 			sprintf(home, "HOME=%s", home_poster);
+	X! 		envp[0] = user;
+	X! 		envp[1] = logname;
+	X! 		envp[2] = home;
+	X! 		envp[3] = 0;
+	X! #else
+	X! 		envp[0] = 0;
+	X! #endif
+	X! 
+	X! #ifdef USG
+	X!  		/* execle() fails if name is a shell procedure */
+	X!  		execle("/bin/sh", "sh", path, flag, (char *)NULL, envp);
+	X! #else
+	X! 		execle(path, name, flag, (char *) NULL, envp);
+	X! #endif
+	X  		fprintf(stderr, "spawn: execle(%s)", path);
+	X  		perror(path);
+	X  #ifdef SYSLOG
+	X***************
+	X*** 231,237
+	X  					(void) strcat(errbuf, line);
+	X  				}
+	X  #ifdef SYSLOG
+	X! 				syslog(LOG_ERR, "%s: %s", path, line);
+	X  #endif
+	X  			}
+	X  		}
+	X
+	X--- 263,269 -----
+	X  					(void) strcat(errbuf, line);
+	X  				}
+	X  #ifdef SYSLOG
+	X! 				syslog(LOG_INFO, "%s: %s", path, line);
+	X  #endif
+	X  			}
+	X  		}
+	X***************
+	X*** 308,310
+	X  }
+	X  
+	X  #endif XFER_TIMEOUT
+	X
+	X--- 340,343 -----
+	X  }
+	X  
+	X  #endif XFER_TIMEOUT
+	X+ 
+	XIndex: subnet.c
+	XPrereq: 1.6
+	X*** subnet.c	Thu Jul  5 02:29:20 1990
+	X--- ../../nntp/server/subnet.c	Wed Dec 12 02:21:48 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static	char	*sccsid = "@(#)subnet.c	1.6	(Berkeley) 8/27/89";
+	X  #endif
+	X  
+	X  #include "../common/conf.h"
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static	char	*sccsid = "@(#)$Header: subnet.c,v 1.8 90/12/12 02:21:38 sob Exp $";
+	X  #endif
+	X  
+	X  #include "../common/conf.h"
+	X***************
+	X*** 66,72
+	X  
+	X  /*
+	X   * Table (eventually, once we malloc) of
+	X!  * internet interface subnet informaiton.
+	X   */
+	X  static	struct in_if	*in_ifsni;
+	X  
+	X
+	X--- 66,72 -----
+	X  
+	X  /*
+	X   * Table (eventually, once we malloc) of
+	X!  * internet interface subnet information.
+	X   */
+	X  static	struct in_if	*in_ifsni;
+	X  
+	X***************
+	X*** 144,150
+	X  		s_in = (struct sockaddr_in *) &ifr->ifr_addr;
+	X  		in_ifsni[j].i_subnetmask = ntohl(s_in->sin_addr.s_addr);
+	X  		/*
+	X! 		 * The following should "never happen".  But under SunOs
+	X  		 * 3.4, along with the rest of their broken networking code,
+	X  		 * SIOCGIFNETMASK can get a netmask which is 0.  There
+	X  		 * really isn't anything that "right" that we can do
+	X
+	X--- 144,150 -----
+	X  		s_in = (struct sockaddr_in *) &ifr->ifr_addr;
+	X  		in_ifsni[j].i_subnetmask = ntohl(s_in->sin_addr.s_addr);
+	X  		/*
+	X! 		 * The following should "never happen".  But under SunOS
+	X  		 * 3.4, along with the rest of their broken networking code,
+	X  		 * SIOCGIFNETMASK can get a netmask which is 0.  There
+	X  		 * really isn't anything that "right" that we can do
+	X***************
+	X*** 231,237
+	X  
+	X  /*
+	X   * Return the number of bits required to
+	X!  * shift right a mask into a getnetent-able entitity.
+	X   */
+	X  
+	X  bsr(mask)
+	X
+	X--- 231,237 -----
+	X  
+	X  /*
+	X   * Return the number of bits required to
+	X!  * shift right a mask into a getnetent-able entity.
+	X   */
+	X  
+	X  bsr(mask)
+	X***************
+	X*** 239,245
+	X  {
+	X  	register int	count = 0;
+	X  
+	X! 	if (mask == 0)		/* "never happen", except with SunOs 3.4 */
+	X  		return (0);
+	X  
+	X  	while ((mask & 1) == 0) {
+	X
+	X--- 239,245 -----
+	X  {
+	X  	register int	count = 0;
+	X  
+	X! 	if (mask == 0)		/* "never happen", except with SunOS 3.4 */
+	X  		return (0);
+	X  
+	X  	while ((mask & 1) == 0) {
+	XIndex: time.c
+	XPrereq: 1.11
+	X*** time.c	Thu Jul  5 02:29:20 1990
+	X--- ../../nntp/server/time.c	Sun Jan 13 03:27:23 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: time.c,v 1.11 90/01/15 01:05:05 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: time.c,v 1.13 91/01/13 03:27:14 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 7,17
+	X   * These may actually be useful in their own right.
+	X   */
+	X  
+	X! #include "../common/conf.h"
+	X! 
+	X! #include <stdio.h>
+	X! #include <sys/types.h>
+	X! #include <ctype.h>
+	X  #ifdef USG
+	X  #include <time.h>
+	X  #else not USG
+	X
+	X--- 7,13 -----
+	X   * These may actually be useful in their own right.
+	X   */
+	X  
+	X! #include "common.h"
+	X  #ifdef USG
+	X  #include <time.h>
+	X  #else not USG
+	X***************
+	X*** 15,21
+	X  #ifdef USG
+	X  #include <time.h>
+	X  #else not USG
+	X- #include <strings.h>
+	X  #include <sys/time.h>
+	X  #endif not USG
+	X  
+	X
+	X--- 11,16 -----
+	X  #ifdef USG
+	X  #include <time.h>
+	X  #else not USG
+	X  #include <sys/time.h>
+	X  #endif not USG
+	X  
+	X***************
+	X*** 58,65
+	X  	(void) strcpy(date, date_ascii);
+	X  	date_str = date;
+	X  
+	X! #ifdef debug
+	X! 	printf("date_str = %s\n", date_str);
+	X  #endif
+	X  	rhs = date_str + len - 1;
+	X  	lhs = date_str;
+	X
+	X--- 53,61 -----
+	X  	(void) strcpy(date, date_ascii);
+	X  	date_str = date;
+	X  
+	X! #ifdef DEBUG
+	X! 	if (debug > 1)
+	X! 		syslog(LOG_DEBUG, "(1) date_str = \"%s\"", date_str);
+	X  #endif
+	X  	rhs = date_str + len - 1;
+	X  	lhs = date_str;
+	X***************
+	X*** 73,80
+	X  	}
+	X  
+	X  	lhs = date_str;
+	X! #ifdef debug
+	X! 	printf("date_str = %s\n", date_str);
+	X  #endif
+	X  
+	X  	secs = twodigtoi(lhs);
+	X
+	X--- 69,77 -----
+	X  	}
+	X  
+	X  	lhs = date_str;
+	X! #ifdef DEBUG
+	X! 	if (debug > 1)
+	X! 		syslog(LOG_DEBUG, "(2) date_str = \"%s\"", date_str);
+	X  #endif
+	X  
+	X  	secs = twodigtoi(lhs);
+	X***************
+	X*** 168,174
+	X  {
+	X  #ifdef USG
+	X  #if !defined(dgux) && !defined(M_XENIX)
+	X! 	extern	int	timezone;
+	X  #endif
+	X  	tzset();
+	X  	date += timezone;
+	X
+	X--- 165,171 -----
+	X  {
+	X  #ifdef USG
+	X  #if !defined(dgux) && !defined(M_XENIX)
+	X! 	extern	long	timezone;
+	X  #endif
+	X  	tzset();
+	X  	date += timezone;
+	X***************
+	X*** 172,178
+	X  #endif
+	X  	tzset();
+	X  	date += timezone;
+	X! #else not USG
+	X  	struct	timeval	tv;
+	X  	struct	timezone tz;
+	X  
+	X
+	X--- 169,175 -----
+	X  #endif
+	X  	tzset();
+	X  	date += timezone;
+	X! #else /* not USG */
+	X  	struct	timeval	tv;
+	X  	struct	timezone tz;
+	X  
+	X***************
+	X*** 178,184
+	X  
+	X  	(void) gettimeofday(&tv, &tz);
+	X  	date += (long) tz.tz_minuteswest * 60;
+	X! #endif not USG
+	X  
+	X  	/* now fix up local daylight time */
+	X  	if (localtime((time_t *)&date)->tm_isdst)
+	X
+	X--- 175,181 -----
+	X  
+	X  	(void) gettimeofday(&tv, &tz);
+	X  	date += (long) tz.tz_minuteswest * 60;
+	X! #endif /* not USG */
+	X  
+	X  	/* now fix up local daylight time */
+	X  	if (localtime((time_t *)&date)->tm_isdst)
+	X***************
+	X*** 203,209
+	X  {
+	X  #ifdef USG
+	X  #if !defined(dgux) && !defined(M_XENIX)
+	X! 	extern	int	timezone;
+	X  #endif
+	X  	tzset();
+	X  	date -= timezone;
+	X
+	X--- 200,206 -----
+	X  {
+	X  #ifdef USG
+	X  #if !defined(dgux) && !defined(M_XENIX)
+	X! 	extern	long	timezone;
+	X  #endif
+	X  	tzset();
+	X  	date -= timezone;
+	X***************
+	X*** 207,213
+	X  #endif
+	X  	tzset();
+	X  	date -= timezone;
+	X! #else not USG
+	X  	struct	timeval	tv;
+	X  	struct	timezone tz;
+	X  
+	X
+	X--- 204,210 -----
+	X  #endif
+	X  	tzset();
+	X  	date -= timezone;
+	X! #else /* not USG */
+	X  	struct	timeval	tv;
+	X  	struct	timezone tz;
+	X  
+	X***************
+	X*** 213,219
+	X  
+	X  	(void) gettimeofday(&tv, &tz);
+	X  	date -= (long) tz.tz_minuteswest * 60;
+	X! #endif not USG
+	X  
+	X  	/* now fix up local daylight time */
+	X  	if (localtime((time_t *)&date)->tm_isdst)
+	X
+	X--- 210,216 -----
+	X  
+	X  	(void) gettimeofday(&tv, &tz);
+	X  	date -= (long) tz.tz_minuteswest * 60;
+	X! #endif /* not USG */
+	X  
+	X  	/* now fix up local daylight time */
+	X  	if (localtime((time_t *)&date)->tm_isdst)
+	XIndex: xhdr.c
+	XPrereq: 1.10
+	X*** xhdr.c	Thu Jul  5 02:29:22 1990
+	X--- ../../nntp/server/xhdr.c	Tue Dec 11 23:59:56 1990
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: xhdr.c,v 1.10 90/03/09 22:26:05 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char	*sccsid = "@(#)$Header: xhdr.c,v 1.11 90/12/11 23:59:53 sob Exp $";
+	X  #endif
+	X  
+	X  #include "common.h"
+	X***************
+	X*** 23,29
+	X   * XHDR subject 5589		retrieve subject of art 5589 only
+	X   * XHDR subject <123@ucbvax>	retrieve subject of art <123@ucbvax>
+	X   *
+	X!  * This command is an extention, and not included in RFC 977.
+	X   */
+	X  
+	X  xhdr(argc, argv)
+	X
+	X--- 23,29 -----
+	X   * XHDR subject 5589		retrieve subject of art 5589 only
+	X   * XHDR subject <123@ucbvax>	retrieve subject of art <123@ucbvax>
+	X   *
+	X!  * This command is an extension, and not included in RFC 977.
+	X   */
+	X  
+	X  xhdr(argc, argv)
+SHAR_EOF
+if test 55179 -ne "`wc -c < 'server.pt1.diff'`"
+then
+	echo shar: error transmitting "'server.pt1.diff'" '(should have been 55179 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'server'"
+cd ..
+#	End of shell archive
+exit 0

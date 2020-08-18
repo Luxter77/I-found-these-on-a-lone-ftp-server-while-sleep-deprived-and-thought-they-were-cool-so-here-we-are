@@ -1,0 +1,2050 @@
+Xref: news-server.csri.toronto.edu news.software.b:7114 comp.sources.bugs:2866
+Newsgroups: news.software.b,comp.sources.bugs
+Path: news-server.csri.toronto.edu!utzoo!henry
+From: henry@zoo.toronto.edu (Henry Spencer)
+Subject: C News patch of 17-Mar-1991
+Message-ID: <1991Mar20.224941.19240@zoo.toronto.edu>
+Date: Wed, 20 Mar 1991 22:49:41 GMT
+Organization: U of Toronto Zoology
+
+Second of the set; at least one more is yet to come.  Reminder:  your
+warranty is void if you install only part of the set.
+
+This one is libraries and manpages.  (Hey, that's the way alphabetical
+order works...)  Lots of touchup work to rely on <stdio.h> and <string.h>
+rather than explicit declarations of NULL and string functions.  More
+careful handling of errno in the warning-message functions.  Greater
+fussiness about header syntax; in particular, the white space after the
+colon is *not* optional even if the header is empty [!].  Revisions to
+the manual pages to cover (most of) the other changes in the set.  And
+a pile of newer and much faster date-conversion routines, not yet in use
+uniformly throughout but important for relaynews in particular.  Plus the
+usual odds and ends of cleanup.
+
+start of patch 17-Mar-1991
+(suggested archive name: `pch17Mar91.Z')
+this should be run with   patch -p0 <thisfile
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+Prereq: 13-Dec-1990
+Prereq: 14-Dec-1990
+Prereq: 15-Dec-1990
+Prereq: 16-Mar-1991
+*** PATCHDATES.old	Sun Mar 17 00:41:11 1991
+--- PATCHDATES	Sun Mar 17 00:41:11 1991
+***************
+*** 1,24 ****
+--- 1,25 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
+  13-Dec-1990
+  14-Dec-1990
+  15-Dec-1990
+  16-Mar-1991
++ 17-Mar-1991
+
+Changed files, if any:
+
+*** cnpatch/old/libbsd42/getcwd.c	Sun Mar 17 00:41:23 1991
+--- libbsd42/getcwd.c	Tue Mar 12 17:53:19 1991
+***************
+*** 4,7 ****
+--- 4,8 ----
+  
+  #include <stdio.h>
++ #include <string.h>
+  #include <sys/param.h>
+  
+***************
+*** 8,12 ****
+  /* imports from libc */
+  extern char *getwd();
+- extern char *strncpy();
+  
+  char *
+--- 9,12 ----
+
+*** cnpatch/old/libc/Makefile	Sun Mar 17 00:41:25 1991
+--- libc/Makefile	Mon Mar  4 00:24:01 1991
+***************
+*** 7,11 ****
+  
+  OBJS = closeall.o efopen.o error.o fgetmfs.o getdate.o nfclose.o \
+! 	standard.o stdfdopen.o warning.o emalloc.o split.o
+  
+  u:	$(OBJS)
+--- 7,12 ----
+  
+  OBJS = closeall.o efopen.o error.o fgetmfs.o getdate.o nfclose.o \
+! 	standard.o stdfdopen.o warning.o emalloc.o split.o \
+! 	getabsdate.o getindate.o datetok.o dateconv.o qmktime.o
+  
+  u:	$(OBJS)
+
+*** cnpatch/old/libc/README	Sun Mar 17 00:41:27 1991
+--- libc/README	Thu Feb 28 09:16:23 1991
+***************
+*** 3,6 ****
+  just put the ones not in your C library into libc.a in this directory.
+  
+! They were all written by either Henry Spencer, Geoff Collyer or Brian
+! Kernighan & Rob Pike.
+--- 3,6 ----
+  just put the ones not in your C library into libc.a in this directory.
+  
+! They were all written by either Henry Spencer, Geoff Collyer, Mark Moraes
+! or Brian Kernighan & Rob Pike.
+
+*** cnpatch/old/libc/efopen.c	Sun Mar 17 00:41:31 1991
+--- libc/efopen.c	Tue Mar 12 17:53:45 1991
+***************
+*** 4,7 ****
+--- 4,8 ----
+  
+  #include <stdio.h>
++ #include <string.h>
+  #include <errno.h>
+  #ifndef __STDC__
+***************
+*** 10,14 ****
+  
+  /* imports from libc */
+- extern char *strcpy(), *strncat();
+  extern void error();
+  
+--- 11,14 ----
+
+*** cnpatch/old/libc/getdate.y	Sun Mar 17 00:41:39 1991
+--- libc/getdate.y	Mon Mar  4 02:05:23 1991
+***************
+*** 6,9 ****
+--- 6,10 ----
+  	/*	@(#)getdate.y	2.13	9/16/86 */
+  
++ #include <stdio.h>
+  #include <sys/types.h>
+  #include <sys/timeb.h>
+***************
+*** 11,16 ****
+  #include <time.h>
+  
+- #define	NULL	0
+- 
+  #define daysec (24L*60L*60L)
+  
+--- 12,15 ----
+***************
+*** 113,117 ****
+  
+  extern struct tm *localtime();
+! time_t dateconv(mm, dd, yy, h, m, s, mer, zone, dayflag)
+  int mm, dd, yy, h, m, s, mer, zone, dayflag;
+  {
+--- 112,118 ----
+  
+  extern struct tm *localtime();
+! 
+! static time_t
+! dateconv(mm, dd, yy, h, m, s, mer, zone, dayflag)
+  int mm, dd, yy, h, m, s, mer, zone, dayflag;
+  {
+***************
+*** 137,141 ****
+  }
+  
+! time_t dayconv(ord, day, now) int ord, day; time_t now;
+  {
+  	register struct tm *loctime;
+--- 138,144 ----
+  }
+  
+! static time_t
+! dayconv(ord, day, now)
+! int ord, day; time_t now;
+  {
+  	register struct tm *loctime;
+***************
+*** 150,154 ****
+  }
+  
+! time_t timeconv(hh, mm, ss, mer) register int hh, mm, ss, mer;
+  {
+  	if (mm < 0 || mm > 59 || ss < 0 || ss > 59) return (-1);
+--- 153,159 ----
+  }
+  
+! static time_t
+! timeconv(hh, mm, ss, mer)
+! register int hh, mm, ss, mer;
+  {
+  	if (mm < 0 || mm > 59 || ss < 0 || ss > 59) return (-1);
+***************
+*** 163,167 ****
+  	}
+  }
+! time_t monthadd(sdate, relmonth) time_t sdate, relmonth;
+  {
+  	struct tm *ltime;
+--- 168,175 ----
+  	}
+  }
+! 
+! static time_t
+! monthadd(sdate, relmonth)
+! time_t sdate, relmonth;
+  {
+  	struct tm *ltime;
+***************
+*** 179,183 ****
+  }
+  
+! time_t daylcorr(future, now) time_t future, now;
+  {
+  	int fdayl, nowdayl;
+--- 187,193 ----
+  }
+  
+! static time_t
+! daylcorr(future, now)
+! time_t future, now;
+  {
+  	int fdayl, nowdayl;
+***************
+*** 246,250 ****
+  };
+  
+! struct table mdtab[] = {
+  	{"January", MONTH, 1},
+  	{"February", MONTH, 2},
+--- 256,260 ----
+  };
+  
+! static struct table mdtab[] = {
+  	{"January", MONTH, 1},
+  	{"February", MONTH, 2},
+***************
+*** 276,280 ****
+  #define HRS *60
+  #define HALFHR 30
+! struct table mztab[] = {
+  	{"a.m.", MERIDIAN, AM},
+  	{"am", MERIDIAN, AM},
+--- 286,290 ----
+  #define HRS *60
+  #define HALFHR 30
+! static struct table mztab[] = {
+  	{"a.m.", MERIDIAN, AM},
+  	{"am", MERIDIAN, AM},
+***************
+*** 345,349 ****
+  	{0, 0, 0}};
+  
+! struct table unittb[] = {
+  	{"year", MUNIT, 12},
+  	{"month", MUNIT, 1},
+--- 355,359 ----
+  	{0, 0, 0}};
+  
+! static struct table unittb[] = {
+  	{"year", MUNIT, 12},
+  	{"month", MUNIT, 1},
+***************
+*** 358,362 ****
+  	{0, 0, 0}};
+  
+! struct table othertb[] = {
+  	{"tomorrow", UNIT, 1*24*60},
+  	{"yesterday", UNIT, -1*24*60},
+--- 368,372 ----
+  	{0, 0, 0}};
+  
+! static struct table othertb[] = {
+  	{"tomorrow", UNIT, 1*24*60},
+  	{"yesterday", UNIT, -1*24*60},
+***************
+*** 381,385 ****
+  	{0, 0, 0}};
+  
+! struct table milzone[] = {
+  	{"a", ZONE, 1 HRS},
+  	{"b", ZONE, 2 HRS},
+--- 391,395 ----
+  	{0, 0, 0}};
+  
+! static struct table milzone[] = {
+  	{"a", ZONE, 1 HRS},
+  	{"b", ZONE, 2 HRS},
+***************
+*** 409,413 ****
+  	{0, 0, 0}};
+  
+! lookup(id) char *id;
+  {
+  #define gotit (yylval=i->value,  i->type)
+--- 419,425 ----
+  	{0, 0, 0}};
+  
+! static
+! lookup(id)
+! char *id;
+  {
+  #define gotit (yylval=i->value,  i->type)
+***************
+*** 469,473 ****
+  }
+  
+! time_t getdate(p, now) char *p; struct timeb *now;
+  {
+  #define mcheck(f)	if (f>1) err++
+--- 481,488 ----
+  }
+  
+! time_t
+! getdate(p, now)
+! char *p;
+! struct timeb *now;
+  {
+  #define mcheck(f)	if (f>1) err++
+
+*** cnpatch/old/libc/warning.c	Sun Mar 17 00:41:46 1991
+--- libc/warning.c	Wed Jan  9 14:12:55 1991
+***************
+*** 16,20 ****
+  {
+  	char *cmdname;
+! 	register char *message = strerror(errno);
+  	extern char *progname;
+  	extern char *getenv();
+--- 16,20 ----
+  {
+  	char *cmdname;
+! 	register int saverrno = errno;
+  	extern char *progname;
+  	extern char *getenv();
+***************
+*** 27,32 ****
+  		fprintf(stderr, "%s: ", progname);
+  	fprintf(stderr, s1, s2);
+! 	if (message != NULL)
+! 		fprintf(stderr, " (%s)", message);
+  	fprintf(stderr, "\n");
+  	(void) fflush(stderr);
+--- 27,32 ----
+  		fprintf(stderr, "%s: ", progname);
+  	fprintf(stderr, s1, s2);
+! 	if (saverrno != 0)
+! 		fprintf(stderr, " (%s)", strerror(saverrno));
+  	fprintf(stderr, "\n");
+  	(void) fflush(stderr);
+
+*** cnpatch/old/libcnews/config.c	Sun Mar 17 00:41:49 1991
+--- libcnews/config.c	Tue Mar 12 17:54:13 1991
+***************
+*** 48,53 ****
+  #define	DIRS()	if (!dirsset) setdirs()
+  
+- extern char *strcpy();
+- extern char *strcat();
+  extern char *getenv();
+  
+--- 48,51 ----
+
+*** cnpatch/old/libcnews/gethdr.c	Sun Mar 17 00:41:51 1991
+--- libcnews/gethdr.c	Wed Feb 20 06:56:03 1991
+***************
+*** 1,4 ****
+  /*
+!  * gethdr - read an entire RFC 822 header "line", including continuations
+   */
+  
+--- 1,5 ----
+  /*
+!  * gethdr - read an entire RFC 822 or 1036 header "line",
+!  * including continuations
+   */
+  
+***************
+*** 10,13 ****
+--- 11,16 ----
+  #include "libc.h"
+  
++ #define RFC1036
++ 
+  /*
+   * Read the first line; if it's a header, repeatedly read lines until a
+***************
+*** 61,65 ****
+  
+  /*
+!  * Is s an RFC 822 header line?
+   * If a colon is seen before whitespace, it is.
+   */
+--- 64,68 ----
+  
+  /*
+!  * Is s an RFC 822 (or 1036) header line?
+   * If a colon is seen before whitespace, it is.
+   */
+***************
+*** 73,77 ****
+  	while ((c = *cp) != '\0' && !(isascii(c) && isspace(c)) && c != ':')
+  		++cp;
+! 	return c == ':' && cp > s;
+  }
+  
+--- 76,84 ----
+  	while ((c = *cp) != '\0' && !(isascii(c) && isspace(c)) && c != ':')
+  		++cp;
+! 	return c == ':' && cp > s
+! #ifdef RFC1036
+! 		&& cp[1] == ' '
+! #endif
+! 		;
+  }
+  
+
+*** cnpatch/old/libcnews/ngmatch.c	Sun Mar 17 00:41:55 1991
+--- libcnews/ngmatch.c	Tue Mar 12 17:55:04 1991
+***************
+*** 237,241 ****
+  	register int ng1brk;
+  	static char delimstr[] = { NGSEP, NGDELIM, '\0' };
+- 	extern int strcspn();
+  
+  	ng1brk = strcspn(ng1, delimstr);
+--- 237,240 ----
+
+*** cnpatch/old/libcnews/string.c	Sun Mar 17 00:41:58 1991
+--- libcnews/string.c	Tue Mar 12 17:42:36 1991
+***************
+*** 6,9 ****
+--- 6,10 ----
+  #include <ctype.h>
+  #include <sys/types.h>
++ #include <string.h>
+  #include "libc.h"
+  #include "news.h"
+
+*** cnpatch/old/libfake/README	Sun Mar 17 00:42:02 1991
+--- libfake/README	Wed Jan 16 18:28:14 1991
+***************
+*** 3,8 ****
+  some are freely-redistributable portable implementations of the real thing.
+  
+! The dbm imitation is exceedingly crude and inefficient but provides full
+! functionality.
+  
+  Fsync and symlink are C-News-specific fakes.
+--- 3,7 ----
+  some are freely-redistributable portable implementations of the real thing.
+  
+! Dbz is a wrapper that imitates dbz's extra functionality using dbm.
+  
+  Fsync and symlink are C-News-specific fakes.
+
+*** cnpatch/old/libfake/getopt.c	Sun Mar 17 00:42:08 1991
+--- libfake/getopt.c	Tue Mar 12 17:55:25 1991
+***************
+*** 4,7 ****
+--- 4,8 ----
+  
+  #include <stdio.h>
++ #include <string.h>
+  
+  char	*optarg;	/* Global argument pointer. */
+***************
+*** 9,14 ****
+  
+  static char	*scan = NULL;	/* Private scan pointer. */
+- 
+- extern char	*strchr();
+  
+  int
+--- 10,13 ----
+
+*** cnpatch/old/libusg/ftime.c	Sun Mar 17 00:42:28 1991
+--- libusg/ftime.c	Sun Dec 30 00:19:39 1990
+***************
+*** 3,6 ****
+--- 3,7 ----
+   */
+  
++ #include <stdio.h>
+  #include <ctype.h>
+  #include <sys/types.h>
+***************
+*** 8,12 ****
+  #include <sys/times.h>
+  
+- #define NULL 0
+  #ifndef HZ
+  #define HZ 60
+--- 9,12 ----
+
+*** cnpatch/old/libv7/getcwd.c	Sun Mar 17 00:42:32 1991
+--- libv7/getcwd.c	Tue Mar 12 17:56:18 1991
+***************
+*** 4,11 ****
+  
+  #include <stdio.h>
+  
+  /* imports from libc */
+  extern FILE *popen();
+- extern char *strrchr();
+  
+  char *
+--- 4,11 ----
+  
+  #include <stdio.h>
++ #include <string.h>
+  
+  /* imports from libc */
+  extern FILE *popen();
+  
+  char *
+
+*** cnpatch/old/libv7/gethostname.c	Sun Mar 17 00:42:33 1991
+--- libv7/gethostname.c	Tue Mar 12 17:55:58 1991
+***************
+*** 5,11 ****
+  
+  #include <stdio.h>
+  
+  /* imports from libc */
+- extern char *strchr(), *strncpy();
+  extern FILE *fopen(), *popen();
+  
+--- 5,11 ----
+  
+  #include <stdio.h>
++ #include <string.h>
+  
+  /* imports from libc */
+  extern FILE *fopen(), *popen();
+  
+
+*** cnpatch/old/man/expire.8	Sun Mar 17 00:42:43 1991
+--- man/expire.8	Tue Jan 15 14:07:45 1991
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH EXPIRE 8 "28 Oct 1990"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH EXPIRE 8 "15 Jan 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 89,108 ****
+  The third field specifies the expiry period in days.
+  The most general form is three numbers separated by dashes.
+! The units are days; decimal fractions are permitted.
+  The first number gives the retention period:
+  how long must pass after an article's arrival before it is a candidate
+  for expiry.
+! The third number gives the purge date:
+  how long must pass after arrival
+  before the article will be expired unconditionally.
+! The middle number gives the default expiry date:
+  how long after an article's arrival it is expired by default.
+! An explicit expiry date in the article will override the default expiry
+! date but not the retention period or the purge date.
+  If the field contains only two numbers with a dash separating them,
+  the retention period defaults to 0.
+  If the field contains only a number, the retention period defaults to 0
+! and the purge date defaults to `never'.
+  (But see below.)
+  .PP
+  The fourth field is an archiving directory,
+--- 89,111 ----
+  The third field specifies the expiry period in days.
+  The most general form is three numbers separated by dashes.
+! The units are days, decimal fractions are permitted,
+! and ``never'' is shorthand for an extremely large number.
+  The first number gives the retention period:
+  how long must pass after an article's arrival before it is a candidate
+  for expiry.
+! The third number gives the purge period:
+  how long must pass after arrival
+  before the article will be expired unconditionally.
+! The middle number gives the expiry period:
+  how long after an article's arrival it is expired by default.
+! An explicit expiry date in the article will override the expiry
+! period but not the retention period or the purge period.
+  If the field contains only two numbers with a dash separating them,
+  the retention period defaults to 0.
+  If the field contains only a number, the retention period defaults to 0
+! and the purge period defaults to `never'.
+  (But see below.)
++ The retention period must be less than the purge period, and the expiry period
++ must lie between them.
+  .PP
+  The fourth field is an archiving directory,
+***************
+*** 134,140 ****
+  The retention and purge defaults can be overridden by including a
+  \fIbounds\fR line,
+! one with the special first field \fB/bounds/\fR;
+! the retention and purge defaults for following lines will be those of
+  the bounds line.
+  The other fields of a bounds line are ignored but must be present.
+  .PP
+--- 137,146 ----
+  The retention and purge defaults can be overridden by including a
+  \fIbounds\fR line,
+! one with the special first field \fB/bounds/\fR.
+! The retention and purge defaults for following lines will be those of
+  the bounds line.
++ The defaults ``stretch'' as necessary to
++ ensure that the purge period is never less than the expiry period
++ and the retention period is never greater than the expiry period.
+  The other fields of a bounds line are ignored but must be present.
+  .PP
+
+*** cnpatch/old/man/inews.1	Sun Mar 17 00:42:45 1991
+--- man/inews.1	Wed Feb 20 23:43:20 1991
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH INEWS 1 "29 Aug 1989"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH INEWS 1 "20 February 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 252,253 ****
+--- 252,264 ----
+  .I relaynews
+  directly.
++ .PP
++ .I Inews
++ is an enormous shell script currently
++ and can fail if any of the underlying Unix tools fail.
++ This typically happens with very long input lines.
++ Parts of
++ .I inews
++ are due to be replaced at the first available opportunity,
++ so
++ .I some
++ of these problems may vanish in future.
+
+*** cnpatch/old/man/newsaux.8	Sun Mar 17 00:42:48 1991
+--- man/newsaux.8	Mon Mar  4 03:19:38 1991
+***************
+*** 36,39 ****
+--- 36,42 ----
+  .br
+  .B \*b/ctime
++ [
++ .B \-u
++ ]
+  decimaldate
+  .br
+***************
+*** 41,44 ****
+--- 44,50 ----
+  printabledate
+  .br
++ .B \*b/getabsdate
++ absolute-printable-date
++ .br
+  .B \*b/newshostname
+  .br
+***************
+*** 77,87 ****
+  varies between systems and \fIsizeof\fR looks after all that.)
+  .PP
+! .I Ctime
+! and
+  .I getdate
+  convert dates in human-readable form
+! to (\fIgetdate\fR) and from (\fIctime\fR) decimal ASCII representations
+  of Unix's internal integer dates.
+  Their functionality resembles that of their namesakes in the C library.
+  .PP
+  .I Newshostname
+--- 83,105 ----
+  varies between systems and \fIsizeof\fR looks after all that.)
+  .PP
+! .IR Ctime ,
+  .I getdate
++ and
++ .I getabsdate
+  convert dates in human-readable form
+! to
+! .RI ( getdate
+! and
+! .IR getabsdate )
+! and from (\fIctime\fR) decimal ASCII representations
+  of Unix's internal integer dates.
+  Their functionality resembles that of their namesakes in the C library.
++ .I getabsdate
++ parses only absolute dates,
++ not relative dates.
++ Under
++ .BR \-u ,
++ .I ctime
++ will print GMT instead of local time.
+  .PP
+  .I Newshostname
+
+*** cnpatch/old/man/newsmaint.8	Sun Mar 17 00:42:51 1991
+--- man/newsmaint.8	Mon Jan  7 19:40:41 1991
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH NEWSMAINT 8 "13 Oct 1990"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH NEWSMAINT 8 "7 Jan 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 237,245 ****
+  .PP
+  .I Addmissing
+! does not cope properly with articles which are
+  already in history but with an incomplete
+! list of pathnames;
+! the result is duplicate message-IDs in history until the article(s) expire,
+! which is relatively harmless but may interfere with access to those articles.
+  .PP
+  Various nuisances can result if the maintenance utilities are run as
+--- 237,244 ----
+  .PP
+  .I Addmissing
+! balks at dealing with
+! articles which are
+  already in history but with an incomplete
+! list of pathnames.
+  .PP
+  Various nuisances can result if the maintenance utilities are run as
+
+*** cnpatch/old/man/relaynews.8	Sun Mar 17 00:42:54 1991
+--- man/relaynews.8	Sat Mar 16 22:31:35 1991
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH RELAYNEWS 8 "2 January 1990"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH RELAYNEWS 8 "16 March 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 21,24 ****
+--- 21,28 ----
+  ]
+  [
++ .B \-o
++ days
++ ]
++ [
+  .B \-x
+  excluded-site
+***************
+*** 68,71 ****
+--- 72,84 ----
+  justifying a non-zero exit status (for the benefit of
+  .IR inews ).
++ .B \-o
++ causes articles with dates
++ (in
++ .B Date:
++ headers)
++ more than
++ .I days
++ old to be dropped
++ (usually to stop accidentally-retransmitted old articles).
+  .B \-x
+  excludes
+***************
+*** 302,303 ****
+--- 315,327 ----
+  .B Also-Control:
+  should be supported.
++ .PP
++ Use of the
++ .B =
++ .I active
++ file flag
++ can result in a cross-posted article being filed multiple times
++ in the same group,
++ though with the
++ .B Xref:
++ header set appropriately so that newsreaders should
++ suppress showing the redundant links.
+
+*** cnpatch/old/man/rnews.8	Sun Mar 17 00:42:56 1991
+--- man/rnews.8	Sun Mar  3 01:21:51 1991
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH RNEWS 8 "13 Dec 1990"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH RNEWS 8 "3 March 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 22,25 ****
+--- 22,27 ----
+  .B \*b/input/newsspool
+  [
++ .B \-g
++ grade ] [
+  .B \-i
+  ] [ file ... ]
+***************
+*** 26,29 ****
+--- 28,32 ----
+  .br
+  .B \*b/input/newsrun
++ [ grades ]
+  .br
+  .B \*b/input/c7decode
+***************
+*** 54,65 ****
+  .I Newsspool
+  is the actual spooling program.
+! It creates a spool file with a name based on the current time
+! (which avoids the need for locking) in the spooling directory
+! \fI\*a/in.coming\fR and copies the input \fIfile\fR(s) (standard input
+! default) to it, stripping off any `\fB#!\ cunbatch\fR'
+  or `\fB#!\ c7unbatch\fR' header as it does so.
+  If invoked with the
+  .B \-i
+! option, when finished it attempts to start
+  .I newsrun
+  to process the new news immediately.
+--- 57,78 ----
+  .I Newsspool
+  is the actual spooling program.
+! It copies the input \fIfile\fR(s) (standard input
+! default) to a file in the input-spooling directory
+! \fI\*a/in.coming\fR,
+! stripping off any `\fB#!\ cunbatch\fR'
+  or `\fB#!\ c7unbatch\fR' header as it does so.
++ The filename is based on the current time,
++ plus a suffix classifying the file by type (compressed, \fIc7encode\fRd,
++ or plain text),
++ plus a possible prefix denoting the one-digit numeric \fIgrade\fR (if the
++ .B \-g
++ option is given;
++ .I rnews
++ does not use this option).
+  If invoked with the
+  .B \-i
+! option, when finished
+! .I newsspool
+! attempts to start
+  .I newsrun
+  to process the new news immediately.
+***************
+*** 76,79 ****
+--- 89,95 ----
+  `\fBnewsrunning off\fR' instructs any currently-running \fInewsrun\fR to
+  stop as soon as possible, and prevents later ones from running.
++ (This is a slight oversimplification; see the discussion of
++ .I grades
++ below.)
+  `\fBnewsrunning on\fR' removes the inhibition (but does not actually
+  start a new \fInewsrun\fR).
+***************
+*** 86,89 ****
+--- 102,129 ----
+  verifies that there is enough disk space for processing,
+  and then starts processing spooled news.
++ News is processed in order by \fIgrade\fR:
++ if the name of the spooled file starts with a digit followed by a period,
++ the digit is the file's \fIgrade\fR.
++ Files without a grade are considered to have a grade just after grade 9.
++ Lower-numbered grades are processed first, with processing within
++ a grade in chronological order.
++ .PP
++ If
++ .I newsrun
++ is invoked with a
++ .I grades
++ argument, that specifies the grades to be processed.
++ A
++ .I grades
++ argument can be a single grade (`1'), a list (`123'), or a range (`1-5').
++ In the absence of the argument,
++ .IR newsrun 's
++ default is all grades if there is no \fIstop\fR file present, and just
++ grade 0 if there is a \fIstop\fR file.
++ If a \fIstop\fR file appears during processing,
++ .I newsrun
++ will stop processing all but grade 0 and will exit when there is no
++ grade-0 news left.
++ .PP
+  Each batch is
+  run through \fIc7decode\fR (if necessary),
+***************
+*** 90,95 ****
+  de\fIcompress\fRed (if necessary), and then fed
+  to
+! \fIrelaynews\fR
+! (on the server, if \fI\*c/server\fR exists and contains its name).
+  If \fIrelaynews\fR fails,
+  \fInewsrun\fR reports this (by mail to \fB\*m\fR) and attempts to save
+--- 130,137 ----
+  de\fIcompress\fRed (if necessary), and then fed
+  to
+! \fIrelaynews\fR.
+! (Files that lack a classification suffix, typically because they arrived
+! by some means other than \fInewsspool\fR,
+! are tried first as compressed and then as plain text.)
+  If \fIrelaynews\fR fails,
+  \fInewsrun\fR reports this (by mail to \fB\*m\fR) and attempts to save
+***************
+*** 109,113 ****
+  .sp
+  .ta 2.5c
+! 000000000	(etc.) spooled news
+  stop	\fInewsrun\fR disable file
+  bad	directory for failed news
+--- 151,159 ----
+  .sp
+  .ta 2.5c
+! 000000000	(etc.) unclassified ungraded spooled news
+! 000000000.Z	ungraded compressed spooled news
+! 000000000.t	ungraded plain-text spooled news
+! 000000000.7	ungraded compressed \fIc7encode\fRd spooled news
+! 1.000000000.Z	grade 1 compressed spooled news, etc.
+  stop	\fInewsrun\fR disable file
+  bad	directory for failed news
+***************
+*** 132,133 ****
+--- 178,182 ----
+  in \fIbad\fR for no terribly good reason.
+  Actually, it's rare for the contents of \fIbad\fR to be very interesting.
++ .PP
++ The grading mechanism relies slightly on collating sequence, and in
++ particular on `.' collating before the digits.
+
+Files that are new:
+
+new libc/dateconv.c (patch can't create, so diff against null):
+Index: libc/dateconv.c
+*** cnpatch/old/libc/dateconv.c	Sun Mar 17 00:42:57 1991
+--- libc/dateconv.c	Tue Feb 26 07:27:00 1991
+***************
+*** 0 ****
+--- 1,35 ----
++ /*
++  * dateconv - convert a split-out date back into a time_t
++  */
++ 
++ #include <time.h>
++ #include <sys/types.h>
++ #include <sys/timeb.h>
++ 
++ /* imports */
++ extern time_t qmktime();
++ 
++ /* turn a (struct tm) and a few variables into a time_t, with range checking */
++ time_t
++ dateconv(tm, zone)
++ register struct tm *tm;
++ int zone;
++ {
++ 	tm->tm_wday = tm->tm_yday = 0;
++ 
++ 	/* validate, before going out of range on some members */
++ 	if (tm->tm_year < 0 || tm->tm_mon < 1 || tm->tm_mon > 12 ||
++ 	    tm->tm_mday < 1 || tm->tm_hour < 0 || tm->tm_hour >= 24 ||
++ 	    tm->tm_min < 0 || tm->tm_min > 59 ||
++ 	    tm->tm_sec < 0 || tm->tm_sec > 59)
++ 		return -1;
++ 
++ 	/*
++ 	 * zone should really be -zone, and tz should be set to tp->value, not
++ 	 * -tp->value.  Or the table could be fixed.
++ 	 */
++ 	tm->tm_min += zone;		/* mktime lets it be out of range */
++ 
++ 	/* convert to seconds */
++ 	return qmktime(tm);
++ }
+
+new libc/dateconv.h (patch can't create, so diff against null):
+Index: libc/dateconv.h
+*** cnpatch/old/libc/dateconv.h	Sun Mar 17 00:42:58 1991
+--- libc/dateconv.h	Tue Feb 26 07:22:32 1991
+***************
+*** 0 ****
+--- 1,10 ----
++ /* interface to dateconv() */
++ 
++ extern time_t dateconv();
++ 
++ /*
++  *  Meridian:  am, pm, or 24-hour style.
++  */
++ #define AM 0
++ #define PM 1
++ #define HR24 2
+
+new libc/datetok.c (patch can't create, so diff against null):
+Index: libc/datetok.c
+*** cnpatch/old/libc/datetok.c	Sun Mar 17 00:42:58 1991
+--- libc/datetok.c	Thu Feb 28 06:47:04 1991
+***************
+*** 0 ****
+--- 1,278 ----
++ /*
++  * datetok - date tokenisation
++  */
++ 
++ #include <stdio.h>
++ #include <ctype.h>
++ #include <string.h>
++ #include <sys/types.h>		/* for dateconv.h */
++ #include "dateconv.h"
++ #include "datetok.h"
++ 
++ /* imports */
++ int dtok_numparsed;
++ 
++ /* forwards */
++ extern datetkn datetktbl[];
++ extern unsigned szdatetktbl;
++ 
++ datetkn *
++ datetoktype(s, bigvalp)
++ char *s;
++ int *bigvalp;
++ {
++ 	register char *cp = s;
++ 	register char c = *cp;
++ 	static datetkn t;
++ 	register datetkn *tp = &t;
++ 
++ 	if (isascii(c) && isdigit(c)) {
++ 		register int len = strlen(cp);
++ 
++ 		if (len > 3 && (cp[1] == ':' || cp[2] == ':'))
++ 			tp->type = TIME;
++ 		else {
++ 			if (bigvalp != NULL)
++ 				/* won't fit in tp->value */
++ 				*bigvalp = atoi(cp);
++ 			if (len == 4)
++ 				tp->type = YEAR;
++ 			else if (++dtok_numparsed == 1)
++ 				tp->type = DAY;
++ 			else
++ 				tp->type = YEAR;
++ 		}
++ 	} else if (c == '-' || c == '+') {
++ 		register int val = atoi(cp + 1);
++ 		register int hr =  val / 100;
++ 		register int min = val % 100;
++ 
++ 		val = hr*60 + min;
++ 		if (c == '-')
++ 			val = -val;
++ 		tp->type = TZ;
++ 		TOVAL(tp, val);
++ 	} else {
++ 		char lowtoken[TOKMAXLEN+1];
++ 		register char *ltp = lowtoken, *endltp = lowtoken+TOKMAXLEN;
++ 
++ 		/* copy to lowtoken to avoid modifying s */
++ 		while ((c = *cp++) != '\0' && ltp < endltp)
++ 			*ltp++ = (isascii(c) && isupper(c)? tolower(c): c);
++ 		*ltp = '\0';
++ 		tp = datebsearch(lowtoken, datetktbl, szdatetktbl);
++ 		if (tp == NULL) {
++ 			tp = &t;
++ 			tp->type = IGNORE;
++ 		}
++ 	}
++ 	return tp;
++ }
++ 
++ /*
++  * Binary search -- from Knuth (6.2.1) Algorithm B.  Special case like this
++  * is WAY faster than the generic bsearch().
++  */
++ datetkn *
++ datebsearch(key, base, nel)
++ register char *key;
++ register datetkn *base;
++ unsigned int nel;
++ {
++ 	register datetkn *last = base + nel - 1, *position;
++ 	register int result;
++ 
++ 	while (last >= base) {
++ 		position = base + ((last - base) >> 1);
++ 		result = key[0] - position->token[0];
++ 		if (result == 0) {
++ 			result = strncmp(key, position->token, TOKMAXLEN);
++ 			if (result == 0)
++ 				return position;
++ 		}
++ 		if (result < 0)
++ 			last = position - 1;
++ 		else
++ 			base = position + 1;
++ 	}
++ 	return 0;
++ }
++ 
++ 
++ /*
++  * to keep this table reasonably small, we divide the lexval for TZ and DTZ
++  * entries by 10 and truncate the text field at MAXTOKLEN characters.
++  * the text field is not guaranteed to be NUL-terminated.
++  */
++ static datetkn datetktbl[] = {
++ /*	text		token	lexval */
++ 	"acsst",	DTZ,	63,		/* Cent. Australia */
++ 	"acst",		TZ,	57,		/* Cent. Australia */
++ 	"adt",		DTZ,	NEG(18),	/* Atlantic Daylight Time */
++ 	"aesst",	DTZ,	66,		/* E. Australia */
++ 	"aest",		TZ,	60,		/* Australia Eastern Std Time */
++ 	"ahst",		TZ,	60,		/* Alaska-Hawaii Std Time */
++ 	"am",		AMPM,	AM,
++ 	"apr",		MONTH,	4,
++ 	"april",	MONTH,	4,
++ 	"ast",		TZ,	NEG(24),	/* Atlantic Std Time (Canada) */
++ 	"at",		IGNORE,	0,		/* "at" (throwaway) */
++ 	"aug",		MONTH,	8,
++ 	"august",	MONTH,	8,
++ 	"awsst",	DTZ,	54,		/* W. Australia */
++ 	"awst",		TZ,	48,		/* W. Australia */
++ 	"bst",		TZ,	6,		/* British Summer Time */
++ 	"bt",		TZ,	18,		/* Baghdad Time */
++ 	"cadt",		DTZ,	63,		/* Central Australian DST */
++ 	"cast",		TZ,	57,		/* Central Australian ST */
++ 	"cat",		TZ,	NEG(60),	/* Central Alaska Time */
++ 	"cct",		TZ,	48,		/* China Coast */
++ 	"cdt",		DTZ,	NEG(30),	/* Central Daylight Time */
++ 	"cet",		TZ,	6,		/* Central European Time */
++ 	"cetdst",	DTZ,	12,		/* Central European Dayl.Time */
++ 	"cst",		TZ,	NEG(36),	/* Central Standard Time */
++ 	"dec",		MONTH,	12,
++ 	"decemb",	MONTH,	12,
++ 	"dnt",		TZ,	6,		/* Dansk Normal Tid */
++ 	"dst",		IGNORE,	0,
++ 	"east",		TZ,	NEG(60),	/* East Australian Std Time */
++ 	"edt",		DTZ,	NEG(24),	/* Eastern Daylight Time */
++ 	"eet",		TZ,	12,		/* East. Europe, USSR Zone 1 */
++ 	"eetdst",	DTZ,	18,		/* Eastern Europe */
++ 	"est",		TZ,	NEG(30),	/* Eastern Standard Time */
++ 	"feb",		MONTH,	2,
++ 	"februa",	MONTH,	2,
++ 	"fri",		IGNORE,	5,
++ 	"friday",	IGNORE,	5,
++ 	"fst",		TZ,	6,		/* French Summer Time */
++ 	"fwt",		DTZ,	12,		/* French Winter Time  */
++ 	"gmt",		TZ,	0,		/* Greenwish Mean Time */
++ 	"gst",		TZ,	60,		/* Guam Std Time, USSR Zone 9 */
++ 	"hdt",		DTZ,	NEG(54),	/* Hawaii/Alaska */
++ 	"hmt",		DTZ,	18,		/* Hellas ? ? */
++ 	"hst",		TZ,	NEG(60),	/* Hawaii Std Time */
++ 	"idle",		TZ,	72,		/* Intl. Date Line, East */
++ 	"idlw",		TZ,	NEG(72),	/* Intl. Date Line, West */
++ 	"ist",		TZ,	12,		/* Israel */
++ 	"it",		TZ,	22,		/* Iran Time */
++ 	"jan",		MONTH,	1,
++ 	"januar",	MONTH,	1,
++ 	"jst",		TZ,	54,		/* Japan Std Time,USSR Zone 8 */
++ 	"jt",		TZ,	45,		/* Java Time */
++ 	"jul",		MONTH,	7,
++ 	"july",		MONTH,	7,
++ 	"jun",		MONTH,	6,
++ 	"june",		MONTH,	6,
++ 	"kst",		TZ,	54,		/* Korea Standard Time */
++ 	"ligt",		TZ,	60,		/* From Melbourne, Australia */
++ 	"mar",		MONTH,	3,
++ 	"march",	MONTH,	3,
++ 	"may",		MONTH,	5,
++ 	"mdt",		DTZ,	NEG(36),	/* Mountain Daylight Time */
++ 	"mest",		DTZ,	12,		/* Middle Europe Summer Time */
++ 	"met",		TZ,	6,		/* Middle Europe Time */
++ 	"metdst",	DTZ,	12,		/* Middle Europe Daylight Time*/
++ 	"mewt",		TZ,	6,		/* Middle Europe Winter Time */
++ 	"mez",		TZ,	6,		/* Middle Europe Zone */
++ 	"mon",		IGNORE,	1,
++ 	"monday",	IGNORE,	1,
++ 	"mst",		TZ,	NEG(42),	/* Mountain Standard Time */
++ 	"mt",		TZ,	51,		/* Moluccas Time */
++ 	"ndt",		DTZ,	NEG(15),	/* Nfld. Daylight Time */
++ 	"nft",		TZ,	NEG(21),	/* Newfoundland Standard Time */
++ 	"nor",		TZ,	6,		/* Norway Standard Time */
++ 	"nov",		MONTH,	11,
++ 	"novemb",	MONTH,	11,
++ 	"nst",		TZ,	NEG(21),	/* Nfld. Standard Time */
++ 	"nt",		TZ,	NEG(66),	/* Nome Time */
++ 	"nzdt",		DTZ,	78,		/* New Zealand Daylight Time */
++ 	"nzst",		TZ,	72,		/* New Zealand Standard Time */
++ 	"nzt",		TZ,	72,		/* New Zealand Time */
++ 	"oct",		MONTH,	10,
++ 	"octobe",	MONTH,	10,
++ 	"on",		IGNORE,	0,		/* "on" (throwaway) */
++ 	"pdt",		DTZ,	NEG(42),	/* Pacific Daylight Time */
++ 	"pm",		AMPM,	PM,
++ 	"pst",		TZ,	NEG(48),	/* Pacific Standard Time */
++ 	"sadt",		DTZ,	63,		/* S. Australian Dayl. Time */
++ 	"sast",		TZ,	57,		/* South Australian Std Time */
++ 	"sat",		IGNORE,	6,
++ 	"saturd",	IGNORE,	6,
++ 	"sep",		MONTH,	9,
++ 	"sept",		MONTH,	9,
++ 	"septem",	MONTH,	9,
++ 	"set",		TZ,	NEG(6),		/* Seychelles Time ?? */
++ 	"sst",		DTZ,	12,		/* Swedish Summer Time */
++ 	"sun",		IGNORE,	0,
++ 	"sunday",	IGNORE,	0,
++ 	"swt",		TZ,	6,		/* Swedish Winter Time  */
++ 	"thu",		IGNORE,	4,
++ 	"thur",		IGNORE,	4,
++ 	"thurs",	IGNORE,	4,
++ 	"thursd",	IGNORE,	4,
++ 	"tue",		IGNORE,	2,
++ 	"tues",		IGNORE,	2,
++ 	"tuesda",	IGNORE,	2,
++ 	"ut",		TZ,	0,
++ 	"utc",		TZ,	0,
++ 	"wadt",		DTZ,	48,		/* West Australian DST */
++ 	"wast",		TZ,	42,		/* West Australian Std Time */
++ 	"wat",		TZ,	NEG(6),		/* West Africa Time */
++ 	"wdt",		DTZ,	54,		/* West Australian DST */
++ 	"wed",		IGNORE,	3,
++ 	"wednes",	IGNORE,	3,
++ 	"weds",		IGNORE,	3,
++ 	"wet",		TZ,	0,		/* Western Europe */
++ 	"wetdst",	DTZ,	6,		/* Western Europe */
++ 	"wst",		TZ,	48,		/* West Australian Std Time */
++ 	"ydt",		DTZ,	NEG(48),	/* Yukon Daylight Time */
++ 	"yst",		TZ,	NEG(54),	/* Yukon Standard Time */
++ 	"zp4",		TZ,	NEG(24),	/* GMT +4  hours. */
++ 	"zp5",		TZ,	NEG(30),	/* GMT +5  hours. */
++ 	"zp6",		TZ,	NEG(36),	/* GMT +6  hours. */
++ };
++ 
++ #if	0
++ /*
++  * these time zones are orphans, i.e. the name is also used by a more
++  * likely-to-appear time zone
++  */
++ 	"at",		TZ,	NEG(12),	/* Azores Time */
++ 	"bst",		TZ,	NEG(18),	/* Brazil Std Time */
++ 	"bt",		TZ,	NEG(66),	/* Bering Time */
++ 	"edt",		TZ,	66,		/* Australian Eastern DaylTime*/
++ 	"est",		TZ,	60,		/* Australian Eastern Std Time*/
++ 	"ist",		TZ,	33,		/* Indian Standard Time */
++ 	"nst",		TZ,	51,		/* North Sumatra Time */
++ 	"sst",		TZ,	42,		/* South Sumatra, USSR Zone 6 */
++ 	"sst",		TZ,	48,		/* Singapore Std Time */
++ 	"wet",		TZ,	6,		/* Western European Time */
++ /* military timezones are deprecated by RFC 1123 section 5.2.14 */
++ 	"a",		TZ,	6,		/* UTC+1h */
++ 	"b",		TZ,	12,		/* UTC+2h */
++ 	"c",		TZ,	18,		/* UTC+3h */
++ 	"d",		TZ,	24,		/* UTC+4h */
++ 	"e",		TZ,	30,		/* UTC+5h */
++ 	"f",		TZ,	36,		/* UTC+6h */
++ 	"g",		TZ,	42,		/* UTC+7h */
++ 	"h",		TZ,	48,		/* UTC+8h */
++ 	"i",		TZ,	54,		/* UTC+9h */
++ 	"k",		TZ,	60,		/* UTC+10h */
++ 	"l",		TZ,	66,		/* UTC+11h */
++ 	"m",		TZ,	72,		/* UTC+12h */
++ 	"n",		TZ,	NEG(6),		/* UTC-1h */
++ 	"o",		TZ,	NEG(12),	/* UTC-2h */
++ 	"p",		TZ,	NEG(18),	/* UTC-3h */
++ 	"q",		TZ,	NEG(24),	/* UTC-4h */
++ 	"r",		TZ,	NEG(30),	/* UTC-5h */
++ 	"s",		TZ,	NEG(36),	/* UTC-6h */
++ 	"t",		TZ,	NEG(42),	/* UTC-7h */
++ 	"u",		TZ,	NEG(48),	/* UTC-8h */
++ 	"v",		TZ,	NEG(54),	/* UTC-9h */
++ 	"w",		TZ,	NEG(60),	/* UTC-10h */
++ 	"x",		TZ,	NEG(66),	/* UTC-11h */
++ 	"y",		TZ,	NEG(72),	/* UTC-12h */
++ 	"z",		TZ,	0,		/* UTC */
++ #endif
++ 
++ static unsigned int szdatetktbl = sizeof datetktbl / sizeof datetktbl[0];
+
+new libc/datetok.h (patch can't create, so diff against null):
+Index: libc/datetok.h
+*** cnpatch/old/libc/datetok.h	Sun Mar 17 00:42:59 1991
+--- libc/datetok.h	Sun Mar  3 17:50:15 1991
+***************
+*** 0 ****
+--- 1,53 ----
++ #ifndef DATETOK_H__
++ #define DATETOK_H__
++ 
++ #define AM 0
++ #define PM 1
++ 
++ /* can't have more of these than there are bits in an unsigned long */
++ #define MONTH	1
++ #define YEAR	2
++ #define DAY	3
++ #define TIME	4
++ #define TZ	5
++ #define DTZ	6
++ #define IGNORE	7
++ #define AMPM	8
++ /* below here are unused so far */
++ #define SECONDS	9
++ #define MONTHS	10
++ #define YEARS	11
++ #define NUMBER	12
++ /* these are only for relative dates */
++ #define BEFORE	13
++ #define AFTER	14
++ #define AGO	15
++ 
++ 
++ #define SECS(n)		((time_t)(n))
++ #define MINS(n)		((time_t)(n) * SECS(60))
++ #define HOURS(n)	((time_t)(n) * MINS(60))	/* 3600 secs */
++ #define DAYS(n)		((time_t)(n) * HOURS(24))	/* 86400 secs */
++ /* months and years are not constant length, must be specially dealt with */
++ 
++ #define TOKMAXLEN 6	/* only this many chars are stored in datetktbl */
++ 
++ /* definitions for squeezing values into "value" */
++ #define SIGNBIT 0200
++ #define VALMASK 0177
++ #define NEG(n)		((n)|SIGNBIT)
++ #define SIGNEDCHAR(c)	((c)&SIGNBIT? -((c)&VALMASK): (c))
++ #define FROMVAL(tp)	(-SIGNEDCHAR((tp)->value) * 10)	/* uncompress */
++ #define TOVAL(tp, v)	((tp)->value = ((v) < 0? NEG((-(v))/10): (v)/10))
++ 
++ /* keep this struct small; it gets used a lot */
++ typedef struct {
++ 	char token[TOKMAXLEN];
++ 	char type;
++ 	char value;		/* this may be unsigned, alas */
++ } datetkn;
++ 
++ extern datetkn *datetoktype(/* char *s */);
++ extern datetkn *datebsearch(/* char *key, datetkn *base, unsigned int nel */);
++ 
++ #endif /* DATETOK_H__ */ /* Do not add anything after this line */
+
+new libc/getabsdate.3 (patch can't create, so diff against null):
+Index: libc/getabsdate.3
+*** cnpatch/old/libc/getabsdate.3	Sun Mar 17 00:42:59 1991
+--- libc/getabsdate.3	Thu Feb 28 08:38:53 1991
+***************
+*** 0 ****
+--- 1,150 ----
++ .TH GETABSDATE 3 "27 February 1991"
++ .SH NAME
++ getabsdate, prsabsdate, getindate, prsindate \- date and time parsers
++ .SH SYNOPSIS
++ .ft B
++ .nf
++ #include <sys/types.h>
++ #include <sys/timeb.h>
++ .sp 0.3
++ time_t getabsdate(str, now)
++ char *str;
++ struct timeb *now;
++ .sp 0.3
++ time_t getindate(str, now)
++ char *str;
++ struct timeb *now;
++ .sp 0.3
++ #include <time.h>
++ .sp 0.3
++ int prsabsdate(str, now, tm, tzp)
++ char *str;
++ struct timeb *now;
++ struct tm *tm;
++ int *tzp;
++ .sp 0.3
++ int prsindate(str, tm, tzp)
++ char *str;
++ struct tm *tm;
++ int *tzp;
++ .fi
++ .ft
++ .SH DESCRIPTION
++ .I Getabsdate
++ and
++ .I getindate
++ parse dates
++ (in
++ .IR str )
++ and convert them to
++ .I time_t s
++ (seconds since the epoch).
++ .I Prsabsdate
++ and
++ .I prsindate
++ parse dates and produce
++ broken-out time structures and time zones instead.
++ All are faster and smaller than
++ .IR getdate (3).
++ .I Getindate
++ and
++ .I prsindate
++ are faster than
++ .I getabsdate
++ and
++ .IR prsabsdate ,
++ but
++ .I getindate
++ and
++ .I prsindate
++ only parse Internet dates
++ (as specified in Internet RFCs 822 and 1123).
++ .PP
++ .I Getabsdate
++ and
++ .I prsabsdate
++ parse fairly arbitrary absolute dates:
++ each date must contain a day-of-month,
++ English month name,
++ and two- or four-digit year,
++ and may optionally contain
++ a colon-separated time
++ (with optional seconds),
++ weekday name,
++ and signed numeric or alphabetic time zone.
++ The day-of-month must precede the year,
++ but no other ordering is assumed.
++ Four-digit years are encouraged.
++ Delimiters are space,
++ tab,
++ newline,
++ slash,
++ and comma;
++ dashes are only delimiters if the date cannot otherwise be parsed.
++ All-numeric dates are ambiguous and are rejected.
++ Unknown words are assumed to be bogus timezones and are ignored.
++ American military time zones are not supported.
++ Alphabetic time zones other than GMT are deprecated.
++ .PP
++ .I Getindate
++ and
++ .I prsindate
++ parse RFC 822 dates,
++ as amended by RFC 1123
++ (GMT is strongly encouraged).
++ These routines are intended to be used to parse dates
++ suspected to be machine-generated or otherwise likely to be in
++ the right format.
++ Due to their extreme speed,
++ they may be used as a pre-pass before calling
++ .I getabsdate
++ or
++ .I prsabsdate
++ in any case.
++ .\" .SH FILES
++ .SH SEE ALSO
++ .IR ctime (3),
++ .IR mktime (3)
++ .br
++ Internet RFCs 822 and 1123
++ .SH DIAGNOSTICS
++ All return a negative value on error.
++ .SH HISTORY
++ Written at the University of Toronto
++ by Geoff Collyer and Mark Moraes
++ (who regret ever getting involved with date parsing).
++ Bits of code borrowed with permission from
++ .IR getdate (3),
++ Rayan Zachariassen and Rich Wales.
++ .SH BUGS
++ .I Getabsdate
++ and
++ .I prsabsdate
++ modify their
++ .I str
++ arguments.
++ .PP
++ The treatment of dashes in
++ .I getabsdate
++ and
++ .I prsabsdate
++ is a hack to permit parsing of dates in DEC format
++ (31-Jan-91),
++ which is itself a botch,
++ so we're even.
++ .PP
++ Alphabetic time zones are wildly ambiguous;
++ don't use them.
++ .PP
++ The Gregorian calendar is a kludge only an innumerate could love.
++ When will someone impose a metric calendar and free us from the
++ vanity and incompetence of the Roman emperors,
++ notably the random lengths of months?
++ .PP
++ Daylight savings time is a patchwork mess only a politician could love.
++ .PP
++ Weekday names are too long and redundant.
++ Did the Norse have weak memories?
++ .PP
++ Leap years are a pain;
++ the earth should be stabilised.
+
+new libc/getabsdate.c (patch can't create, so diff against null):
+Index: libc/getabsdate.c
+*** cnpatch/old/libc/getabsdate.c	Sun Mar 17 00:43:00 1991
+--- libc/getabsdate.c	Mon Mar  4 00:06:53 1991
+***************
+*** 0 ****
+--- 1,151 ----
++ /*
++  * getabsdate - parse almost any absolute date getdate(3) can (& some it can't)
++  */
++ 
++ #include <stdio.h>
++ #include <ctype.h>
++ #include <string.h>
++ #include <time.h>
++ #include <sys/types.h>
++ #include <sys/timeb.h>
++ #include "dateconv.h"
++ #include "datetok.h"
++ 
++ #define MAXDATEFIELDS 25
++ 
++ /* imports */
++ extern int parsetime();
++ 
++ /* forwards */
++ int prsabsdate();
++ 
++ /* exports */
++ extern int dtok_numparsed;
++ 
++ /*
++  * parse and convert absolute date in timestr (the normal interface)
++  */
++ time_t
++ getabsdate(timestr, now)
++ char *timestr;
++ struct timeb *now;
++ {
++ 	int tz = 0;
++ 	struct tm date;
++ 
++ 	return prsabsdate(timestr, now, &date, &tz) < 0? -1:
++ 		dateconv(&date, tz);
++ }
++ 
++ /*
++  * just parse the absolute date in timestr and get back a broken-out date.
++  */
++ int
++ prsabsdate(timestr, now, tm, tzp)
++ char *timestr;
++ struct timeb *now;
++ register struct tm *tm;
++ int *tzp;
++ {
++ 	register int nf;
++ 	char *fields[MAXDATEFIELDS];
++ 	static char delims[] = "- \t\n/,";
++ 
++ 	nf = split(timestr, fields, MAXDATEFIELDS, delims+1);
++ 	if (nf > MAXDATEFIELDS)
++ 		return -1;
++ 	if (tryabsdate(fields, nf, now, tm, tzp) < 0) {
++ 		register char *p = timestr;
++ 
++ 		/*
++ 		 * could be a DEC-date; glue it all back together, split it
++ 		 * with dash as a delimiter and try again.  Yes, this is a
++ 		 * hack, but so are DEC-dates.
++ 		 */
++ 		while (--nf > 0) {
++ 			while (*p++ != '\0')
++ 				;
++ 			p[-1] = ' ';
++ 		}
++ 		nf = split(timestr, fields, MAXDATEFIELDS, delims);
++ 		if (nf > MAXDATEFIELDS)
++ 			return -1;
++ 		if (tryabsdate(fields, nf, now, tm, tzp) < 0)
++ 			return -1;
++ 	}
++ 	return 0;
++ }
++ 
++ /*
++  * try to parse pre-split timestr as an absolute date
++  */
++ int
++ tryabsdate(fields, nf, now, tm, tzp)
++ char *fields[];
++ int nf;
++ struct timeb *now;
++ register struct tm *tm;
++ int *tzp;
++ {
++ 	register int i;
++ 	register datetkn *tp;
++ 	register long flg = 0, ty;
++ 	int mer = HR24, bigval = -1;
++ 	struct timeb ftz;
++ 
++ 	if (now == NULL) {		/* default to local time (zone) */
++ 		now = &ftz;
++ 		(void) ftime(now);
++ 	}
++ 	*tzp = now->timezone;
++ 
++ 	tm->tm_mday = tm->tm_mon = tm->tm_year = -1;	/* mandatory */
++ 	tm->tm_hour = tm->tm_min = tm->tm_sec = 0;
++ 	tm->tm_isdst = 0;
++ 	dtok_numparsed = 0;
++ 
++ 	for (i = 0; i < nf; i++) {
++ 		if (fields[i][0] == '\0')
++ 			continue;
++ 		tp = datetoktype(fields[i], &bigval);
++ 		ty = (1L << tp->type) & ~(1L << IGNORE);
++ 		if (flg&ty)
++ 			return -1;		/* repeated type */
++ 		flg |= ty;
++ 		switch (tp->type) {
++ 		case YEAR:
++ 			tm->tm_year = bigval;
++ 			break;
++ 		case DAY:
++ 			tm->tm_mday = bigval;
++ 			break;
++ 		case MONTH:
++ 			tm->tm_mon = tp->value;
++ 			break;
++ 		case TIME:
++ 			if (parsetime(fields[i], tm) < 0)
++ 				return -1;
++ 			break;
++ 		case DTZ:
++ #if 0
++ 			tm->tm_isdst++;
++ #endif
++ 			/* FALLTHROUGH */
++ 		case TZ:
++ 			*tzp = FROMVAL(tp);
++ 			break;
++ 		case IGNORE:
++ 			break;
++ 		case AMPM:
++ 			mer = tp->value;
++ 			break;
++ 		default:
++ 			return -1;	/* bad token type: CANTHAPPEN */
++ 		}
++ 	}
++ 	if (tm->tm_year == -1 || tm->tm_mon == -1 || tm->tm_mday == -1)
++ 		return -1;		/* missing component */
++ 	if (mer == PM)
++ 		tm->tm_hour += 12;
++ 	return 0;
++ }
+
+new libc/getindate.c (patch can't create, so diff against null):
+Index: libc/getindate.c
+*** cnpatch/old/libc/getindate.c	Sun Mar 17 00:43:00 1991
+--- libc/getindate.c	Mon Mar  4 01:25:54 1991
+***************
+*** 0 ****
+--- 1,215 ----
++ /*
++  * getindate - parse the common Internet date case (rfc 822 & 1123) *fast*
++  */
++ 
++ #include <stdio.h>
++ #include <ctype.h>
++ #include <string.h>
++ #include <time.h>
++ #include <sys/types.h>
++ #include <sys/timeb.h>
++ #include "dateconv.h"
++ #include "datetok.h"
++ 
++ /* STREQ is an optimised strcmp(a,b)==0 */
++ #define STREQ(a, b) ((a)[0] == (b)[0] && strcmp(a, b) == 0)
++ 
++ #define	PACK_TWO_CHARS(c1, c2)	(((c1)<<8)|(c2))
++ #define ISSPACE(c) ((c) == ' ' || (c) == '\n' || (c) == '\t')
++ #define SKIPTOSPC(s) \
++ 	while ((ch = *(s)++), (!ISSPACE(ch) && ch != '\0')) \
++ 		; \
++ 	(s)--			/* N.B.: no semi-colon */
++ #define SKIPSPC(s) \
++ 	while ((ch = *(s)++), ISSPACE(ch)) \
++ 		; \
++ 	(s)--			/* N.B.: no semi-colon */
++ #define SKIPOVER(s) \
++ 	SKIPTOSPC(s); \
++ 	SKIPSPC(s)		/* N.B.: no semi-colon */
++ 
++ /* this is fast but dirty.  note the return's in the middle. */
++ #define GOBBLE_NUM(cp, c, x, ip) \
++ 	(c) = *(cp)++; \
++ 	if ((c) < '0' || (c) > '9') \
++ 		return -1;		/* missing digit */ \
++ 	(x) = (c) - '0'; \
++ 	(c) = *(cp)++; \
++ 	if ((c) >= '0' && (c) <= '9') { \
++ 		(x) = 10*(x) + (c) - '0'; \
++ 		(c) = *(cp)++; \
++ 	} \
++ 	if ((c) != ':' && (c) != '\0' && !ISSPACE(c)) \
++ 		return -1;		/* missing colon */ \
++ 	*(ip) = (x)			/* N.B.: no semi-colon here */
++ 
++ /*
++  * If the date is in the form
++  *	[Weekday,] dd Mmm [19]yy hh:mm[:ss] Timezone
++  * as most dates in news articles are, then we can parse it much quicker than
++  * getdate and quite a bit faster than getabsdate.
++  *
++  * parse and convert Internet date in timestr (the normal interface)
++  */
++ /* ARGSUSED */
++ time_t
++ getindate(line, now)
++ register char *line;			/* can be modified */
++ struct timeb *now;			/* unused; for getdate compatibility */
++ {
++ 	int tz = 0;
++ 	struct tm date;
++ 
++ 	return prsindate(line, &date, &tz) < 0? -1: dateconv(&date, tz);
++ }
++ 
++ /*
++  * just parse the Internet date in timestr and get back a broken-out date.
++  */
++ int
++ prsindate(line, tm, tzp)
++ register char *line;			/* can be modified */
++ register struct tm *tm;
++ int *tzp;
++ {
++ 	register int c;
++ 	register char ch;		/* used by SKIPTOSPC */
++ 	register char *cp;
++ 	register char c2;
++ 
++ 	tm->tm_isdst = 0;
++ 	SKIPSPC(line);
++ 	if ((ch = *line) < '0' || ch > '9') {
++ 		cp = line;
++ 		while ((ch = *cp++), (!ISSPACE(ch) && ch != ',' && ch != '\0'))
++ 			;
++ 		cp--;
++ 		if (ch == ',') {
++ 			line = cp;
++ 			SKIPOVER(line);		/* skip weekday */
++ 		} else
++ 			return -1;		/* missing comma after weekday */
++ 	}
++ 
++ 	GOBBLE_NUM(line, ch, c, &tm->tm_mday);
++ 
++ 	/*
++ 	 * we have to map to canonical case because RFC 822 requires
++ 	 * case independence, so we pay a performance penalty for the sake
++ 	 * of 0.1% of dates actually seen in Date: headers in news.
++ 	 * Way to go, IETF.
++ 	 */
++ 	ch = *line++;
++ 	if (ch == '\0')
++ 		return -1;		/* no month */
++ 	if (isascii(ch) && islower(ch))
++ 		ch = toupper(ch);
++ 	c2 = *line++;
++ 	if (c2 == '\0')
++ 		return -1;		/* month too short */
++ 	if (isascii(c2) && isupper(c2))
++ 		c2 = tolower(c2);
++ 	switch (PACK_TWO_CHARS(ch, c2)) {
++ 	case PACK_TWO_CHARS('J', 'a'):
++ 		tm->tm_mon = 1;
++ 		break;
++ 	case PACK_TWO_CHARS('F', 'e'):
++ 		tm->tm_mon = 2;
++ 		break;
++ 	case PACK_TWO_CHARS('M', 'a'):	/* March, May */
++ 		tm->tm_mon = ((ch = *line) == 'r' || ch == 'R'? 3: 5);
++ 		break;
++ 	case PACK_TWO_CHARS('A', 'p'):
++ 		tm->tm_mon = 4;
++ 		break;
++ 	case PACK_TWO_CHARS('J', 'u'):
++ 		tm->tm_mon = 6;
++ 		if ((ch = *line) == 'l' || ch == 'L')
++ 			tm->tm_mon++;		/* July */
++ 		break;
++ 	case PACK_TWO_CHARS('A', 'u'):
++ 		tm->tm_mon = 8;
++ 		break;
++ 	case PACK_TWO_CHARS('S', 'e'):
++ 		tm->tm_mon = 9;
++ 		break;
++ 	case PACK_TWO_CHARS('O', 'c'):
++ 		tm->tm_mon = 10;
++ 		break;
++ 	case PACK_TWO_CHARS('N', 'o'):
++ 		tm->tm_mon = 11;
++ 		break;
++ 	case PACK_TWO_CHARS('D', 'e'):
++ 		tm->tm_mon = 12;
++ 		break;
++ 	default:
++ 		return -1;		/* bad month name */
++ 	}
++ 	SKIPOVER(line);			/* skip month */
++ 
++ 	tm->tm_year = atoi(line);
++ 	if (tm->tm_year <= 0)
++ 		return -1;		/* year is non-positive or missing */
++ 	SKIPOVER(line);			/* skip year */
++ 
++ 	if (parsetime(line, tm) < 0)
++ 		return -1;
++ 	SKIPOVER(line);			/* skip time */
++ 
++ 	cp = line;
++ 	if (*cp++ == 'G' && *cp++ == 'M' && *cp++ == 'T' &&
++ 	    (*cp == '\n' || *cp == '\0'))
++ 		*tzp = 0;
++ 	else {				/* weirdo time zone */
++ 		/* this code doesn't recognise the numeric zone case */
++ 		register datetkn *tp;
++ 
++ 		cp = line;		/* time zone start */
++ 		SKIPTOSPC(line);
++ 		c = *line;		/* save old delimiter */
++ 		*line = '\0';		/* terminate time zone */
++ 
++ 		tp = datetoktype(cp, (int *)NULL);
++ 		switch (tp->type) {
++ 		case DTZ:
++ #if 0
++ 			tm->tm_isdst++;
++ #endif
++ 			/* FALLTHROUGH */
++ 		case TZ:
++ 			*tzp = FROMVAL(tp);
++ 			/* FALLTHROUGH */
++ 		case IGNORE:
++ 			break;
++ 		default:
++ 			return -1;	/* bad token type */
++ 		}
++ 
++ 		*line = c;		/* restore old delimiter */
++ 		SKIPSPC(line);
++ 		if (*line != '\0')	/* garbage after the date? */
++ 			return -1;
++ 	}
++ 	return 0;
++ }
++ 
++ /* return -1 on failure */
++ int
++ parsetime(time, tm)
++ register char *time;
++ register struct tm *tm;
++ {
++ 	register char c;
++ 	register int x;
++ 
++ 	tm->tm_sec = 0;
++ 	GOBBLE_NUM(time, c, x, &tm->tm_hour);
++ 	if (c != ':')
++ 		return -1;		/* only hour; too short */
++ 	GOBBLE_NUM(time, c, x, &tm->tm_min);
++ 	if (c != ':')
++ 		return 0;		/* no seconds; okay */
++ 	GOBBLE_NUM(time, c, x, &tm->tm_sec);
++ 	/* this may be considered too strict.  garbage at end of time? */
++ 	return (c == '\0' || ISSPACE(c)? 0: -1);
++ }
+
+new libc/qmktime.c (patch can't create, so diff against null):
+Index: libc/qmktime.c
+*** cnpatch/old/libc/qmktime.c	Sun Mar 17 00:43:01 1991
+--- libc/qmktime.c	Sun Mar  3 17:47:40 1991
+***************
+*** 0 ****
+--- 1,101 ----
++ /*
++  * qmktime - convert a split-out date (struct tm) back into a time_t [ANSI]
++  */
++ 
++ #include <time.h>
++ #include <sys/types.h>
++ #include <sys/timeb.h>
++ 
++ #define EPOCH 1970
++ #define DAYS_PER_400YRS	(time_t)146097
++ #define DAYS_PER_4YRS	(time_t)1461
++ #define DIVBY4(n) ((n) >> 2)
++ #define YRNUM(c, y) (DIVBY4(DAYS_PER_400YRS*(c)) + DIVBY4(DAYS_PER_4YRS*(y)))
++ #define DAYNUM(c,y,mon,d)	(YRNUM((c), (y)) + mdays[mon] + (d))
++ #define EPOCH_DAYNUM	DAYNUM(19, 69, 10, 1)	/* really January 1, 1970 */
++ 
++ static char nmdays[] = {
++ 	0, 31, 28, 31,  30, 31, 30,  31, 31, 30,  31, 30, 31
++ };
++ /* days since start of year. mdays[0] is March, mdays[11] is February */
++ static short mdays[] = {
++ 	0, 31, 61, 92, 122, 153, 184, 214, 245, 275, 306, 337
++ };
++ 
++ /*
++  * near-ANSI qmktime suitable for use by dateconv; not necessarily as paranoid
++  * as ANSI requires, and it may not canonicalise the struct tm.  Ignores tm_wday
++  * and tm_yday.
++  */
++ time_t
++ qmktime(tp)
++ register struct tm *tp;
++ {
++ 	register int mon = tp->tm_mon, day = tp->tm_mday, year = tp->tm_year;
++ 	register time_t daynum;
++ 	register int century, realyear;
++ 	time_t nrdaynum;
++ 
++ 	/* split year into century and year-of-century */
++ #ifndef OLD_GETDATE_BUG_COMPAT
++ 	/*
++ 	 * we're keeping this out only because we want to check against
++ 	 * old values.
++ 	 */
++ 	if (year < 70) {
++ 		century = 20;
++ 		realyear = 2000 + year;
++ 	} else
++ #endif
++ 	if (year < 100) {
++ 		century = 19;
++ 		realyear = 1900 + year;
++ 	} else if (year < EPOCH)
++ 		return -1;		/* can't represent early date */
++ 	else {
++ 		realyear = year;
++ 		century = year / 100;
++ 		year %= 100;
++ 	}
++ 
++ 	/*
++ 	 * validate day against days-per-month table, with leap-year
++ 	 * correction
++ 	 */
++ 	if (day > nmdays[mon])
++ 		if (mon != 2 || realyear % 4 == 0 &&
++ 		    (realyear % 100 != 0 || realyear % 400 == 0) && day > 29)
++ 			return -1;	/* day too large for month */
++ 
++ 	/*
++ 	 * We calculate the day number exactly, assuming the calendar has
++ 	 * always had the current leap year rules.  (The leap year rules are
++ 	 * to compensate for the fact that the Earth's revolution around the
++ 	 * Sun takes 365.2425 days).  We first need to rotate months so March
++ 	 * is 0, since we want the last month to have the reduced number of
++ 	 * days.
++ 	 */
++ 	if (mon > 2)
++ 		mon -= 3;
++ 	else {
++ 		mon += 9;
++ 		if (year == 0) {
++ 			century--;
++ 			year = 99;
++ 		} else
++ 			--year;
++ 	}
++ 	daynum = -EPOCH_DAYNUM + DAYNUM(century, year, mon, day);
++ 
++ 	/* convert to seconds */
++ 	nrdaynum = daynum =
++ 		tp->tm_sec + (tp->tm_min +(daynum*24 + tp->tm_hour)*60)*60;
++ 
++ 	/* daylight correction */
++ 	if (tp->tm_isdst < 0)		/* unknown; find out */
++ 		tp->tm_isdst = localtime(&nrdaynum)->tm_isdst;
++ 	if (tp->tm_isdst > 0)
++ 		daynum -= 60*60;
++ 
++ 	return daynum < 0? -1: daynum;
++ }
+
+
+end of patch 17-Mar-1991
+-- 
+"[Some people] positively *wish* to     | Henry Spencer @ U of Toronto Zoology
+believe ill of the modern world."-R.Peto|  henry@zoo.toronto.edu  utzoo!henry

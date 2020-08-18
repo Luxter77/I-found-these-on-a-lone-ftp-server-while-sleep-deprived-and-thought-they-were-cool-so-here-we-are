@@ -1,0 +1,2406 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 1-Dec-1990
+
+This is the first of a series of several patches catching up on work done
+over the last couple of months.  This one is entirely concerned with the
+simple user interface we ship.  It has been overhauled extensively to work
+better and be less system-dependent.  The basic objective was to make it
+better suited for what we consider its primary role:  a simple reader for
+naive users.  This means, in particular, that functionality was deleted
+rather than fixed if it wasn't something a novice was likely to use much
+and it was a nuisance to make it work right.
+
+Postnews has acquired a -h option for pre-supplied headers, for use by
+readnews followups.  Checknews now tries to deal well with rn users,
+whose complex .newsrc files tend to baffle readnews.  Readnews has had
+a major overhaul and cleanup...  Much dead code has been eliminated,
+and the sources have shrunk substantially.  Ranlib is no longer needed
+to compile it.  It no longer alters the tty modes and consequently is
+no longer a problem on System V.  It is now integrated with the C News
+configuration machinery (although one or two details won't show up until
+later patches update said machinery).  In NEWSCTL, news.help has moved
+to readnews.help.  Much compiled-in configuration information is no longer
+needed, and what little remains is now in NEWSCTL/readnews.ctl instead.
+Dates show in headers.  Everything now works.  The manpage is now accurate.
+
+start of patch 1-Dec-1990
+(suggested archive name: `pch1Dec90.Z')
+this should be run with   patch -p0 <thisfile
+
+Please do the following (there is no easy way we can convince
+patch to do this automatically):
+rm rna/at.h
+rm rna/history.c
+rm rna/lib/bsearch.c
+rm rna/lib/itoa.c
+rm rna/lib/makefile
+rm rna/lib/memset.c
+rm rna/lib/strpbrk.c
+rm rna/maketime.c
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+*** PATCHDATES.old	Sat Dec  1 20:54:30 1990
+--- PATCHDATES	Sat Dec  1 20:54:30 1990
+***************
+*** 1,18 ****
+--- 1,19 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
++ 1-Dec-1990
+
+Changed files, if any:
+
+*** cnpatch/old/rna/README	Sat Dec  1 20:54:39 1990
+--- rna/README	Wed Nov 21 15:12:46 1990
+***************
+*** 1,8 ****
+! This is the "Australian readnews", written by Michael Rourke at UNSW.
+  It's a simple and reasonably well-put-together news reader suitable for
+  giving to naive users who aren't going to be reading news much.
+  
+! You'll need to fiddle defs.h for your machine, then type "make".
+  
+  Note that README.aus assumes you are installing the entire UNSW news
+! system, not just readnews; some of it is inapplicable.
+--- 1,11 ----
+! This is the "Australian readnews", written by Michael Rourke at UNSW,
+! extensively hacked for C News.  A number of simplifications have been
+! made, and some features deleted.
+! 
+  It's a simple and reasonably well-put-together news reader suitable for
+  giving to naive users who aren't going to be reading news much.
+  
+! You may need to modify defs.h (although this isn't likely, any more).
+  
+  Note that README.aus assumes you are installing the entire UNSW news
+! system, not just readnews.  Much of it is inapplicable or obsolete.
+
+*** cnpatch/old/rna/active.c	Sat Dec  1 20:54:46 1990
+--- rna/active.c	Mon Nov 19 17:20:05 1990
+***************
+*** 9,51 ****
+  #include "defs.h"
+  
+- static char actname[]	 = ACTIVE;
+  static int lineno;
+  static active	*alist;
+  
+- /*
+-  * getseq - Get next sequence number for this group
+-  *	    and update active file.
+-  *	    If group missing append to file.
+-  */
+- char *
+- getseq(group)
+- char *group;
+- {
+- 	register FILE	*f;
+- 	register long l;
+- 	char gbuf[BUFSIZ / 2], dbuf[BUFSIZ / 4], dbuf2[BUFSIZ / 4];
+- 	extern char *itoa(), *ltoa();
+- 
+- 	f = fopenl(actname);
+- 	lineno = 0;
+- 	while (getline(f, gbuf, dbuf, dbuf2))
+- 		if (CMP(gbuf, group) == 0) {
+- 			l = atol(dbuf) + 1;
+- 			(void) fseek(f, -(long)(2*(10+1)), 1);	/* TODO: fix this */
+- 			(void) fprintf(f, "%010d", l);		/* TODO: fix this */
+- 			(void) fclose(f);
+- #if !AUSAM
+- 			unlock(actname);
+- #endif
+- 			return ltoa(l);
+- 		}
+- 	(void) fprintf(f, "%s 0000000000 0000000001 y\n", group);
+- 	fclose(f);
+- #if !AUSAM
+- 	unlock(actname);
+- #endif
+- 	return itoa(1);
+- }
+- 
+  static
+  getline(f, g, d, d2)
+--- 9,15 ----
+***************
+*** 80,84 ****
+  
+  	if (c != EOF && (c != '\n' || !*d || !*d2))
+! 		error("%s: bad format: line %d", actname, lineno);
+  	return c != EOF;
+  }
+--- 44,48 ----
+  
+  	if (c != EOF && (c != '\n' || !*d || !*d2))
+! 		error("%s: bad format: line %d", "active", lineno);
+  	return c != EOF;
+  }
+***************
+*** 96,100 ****
+  
+  	alist = last = NULL;
+! 	f = fopenf(actname, "r");
+  	lineno = 0;
+  	while (getline(f, gbuf, dbuf, dbuf2)) {
+--- 60,64 ----
+  
+  	alist = last = NULL;
+! 	f = fopenf(ctlfile("active"), "r");
+  	lineno = 0;
+  	while (getline(f, gbuf, dbuf, dbuf2)) {
+***************
+*** 128,178 ****
+  			break;
+  	return ap;
+- }
+- 
+- 
+- /*
+-  * setlow - set the low number for this group
+-  */
+- setlow(group, low)
+- char *group;
+- int low;
+- {
+- 	register FILE	*f;
+- 	char gbuf[BUFSIZ / 2], dbuf[BUFSIZ / 4], dbuf2[BUFSIZ / 4];
+- 	extern char *itoa();
+- 
+- 	f = fopenl(actname);
+- 	lineno = 0;
+- 	while (getline(f, gbuf, dbuf, dbuf2))
+- 		if (CMP(gbuf, group) == 0) {
+- 			fseek(f, -(long)(10+1), 1);	/* TODO: fix this */
+- 			(void) fprintf(f, "%010d", low); /* TODO: fix this */
+- 			break;
+- 		}
+- 	fclose(f);
+- #if !AUSAM
+- 	unlock(actname);
+- #endif
+- }
+- 
+- /*
+-  * initgrp - initialise an entry for this group
+-  */
+- initgrp(group)
+- char *group;
+- {
+- 	register FILE	*f;
+- 	char gbuf[BUFSIZ / 2], dbuf[BUFSIZ / 4], dbuf2[BUFSIZ / 4];
+- 
+- 	f = fopenl(actname);
+- 	lineno = 0;
+- 	while (getline(f, gbuf, dbuf, dbuf2))
+- 		if (CMP(gbuf, group) == 0) {
+- #if !AUSAM
+- 			unlock(actname);
+- #endif
+- 			return;
+- 		}
+- 	(void) fprintf(f, "%s 0000000000 0000000001\n", group);
+- 
+  }
+--- 92,94 ----
+
+*** cnpatch/old/rna/checknews	Sat Dec  1 20:54:52 1990
+--- rna/checknews	Fri Nov 23 15:46:08 1990
+***************
+*** 1 ****
+! exec readnews -c
+--- 1,7 ----
+! #! /bin/sh
+! if test -r $HOME/.rnlast
+! then
+! 	exec rn -c -s3
+! else
+! 	exec readnews -c
+! fi
+
+*** cnpatch/old/rna/defs.h	Sat Dec  1 20:54:53 1990
+--- rna/defs.h	Wed Nov 21 14:32:14 1990
+***************
+*** 1,5 ****
+  #include <sys/types.h>
+  #include <sys/stat.h>
+- #include <sys/dir.h>
+  #include <stdio.h>
+  #include <ctype.h>
+--- 1,4 ----
+***************
+*** 9,61 ****
+  #endif
+  #include <signal.h>
+- #include <sgtty.h>
+- #include "at.h"
+  
+! #define NEWSVERSION	 "B UNSW 1.1 19 Sep 1984"
+  
+  /* Things that very well may require local configuration */
+  
+- #define TIMEZONE	"EST"		/* name of time zone */
+- 
+- #define DFLTSUB "general,general.all"	/* default subscription list	*/
+- #define	ADMSUB	"general"		/* Mandatory subscription list */
+- #define MODGROUPS "mod.all,all.mod,all.announce"	/* Moderated groups */
+- #define DFLTGRP	"general"		/* default newsgroup (for postnews) */
+- /* #define MANGRPS	 1		/* if you have mandatory subscriptions
+- 					   tailored per-person (uses
+- 					   getclasses()) */
+- /*#define OZ	1*/			/* if on Australian network, used
+- 					   in readnews to get correct return
+- 					   address */
+- /*#define AUSAM	1*/			/* hashed passwd file, locked files */
+- #if AUSAM
+- #include <passwd.h>
+- #else
+- #include <pwd.h>
+- #endif
+- 
+- #ifdef vax
+- /* #define NETPATH	1		/* if you have path finding program
+- 					   /bin/netpath */
+- #endif
+  /*#define UNSWMAIL 1*/			/* if you have UNSW "mail" which
+  					   allows "-s subject -i include_file"
+  					   arguments */
+- #define NETID "utstat"
+- #ifndef NETID
+- #define NETID "utstat"			/* else define it here */
+- #endif
+- 
+- #ifndef NETID
+- #include <table.h>			/* UNSW only */
+- #endif
+- 
+- /* #define MC "/usr/bin/p"			/* pager */
+- #define UUNAME "/usr/bin/uuname"
+- #define RNEWS	"exec rnews"		/* rnews for uurec to fork */
+- #define POSTNEWS "/usr/bin/inews"
+- #define CHOWN	"/etc/chown"		/* pathname of chown command */
+- #define SHELL	"/bin/sh"		/* if not bourne shell see postnews.c */
+- #define MKDIR	"/bin/mkdir"
+  #define MAIL	"/bin/mail"
+  #if UNSWMAIL
+--- 8,22 ----
+  #endif
+  #include <signal.h>
+  
+! /* C News header(s) */
+! #include <config.h>
+  
++ #define NEWSVERSION	 "B UNSW 1.1 19 Sep 1984, heavily hacked for C News"
++ 
+  /* Things that very well may require local configuration */
+  
+  /*#define UNSWMAIL 1*/			/* if you have UNSW "mail" which
+  					   allows "-s subject -i include_file"
+  					   arguments */
+  #define MAIL	"/bin/mail"
+  #if UNSWMAIL
+***************
+*** 65,91 ****
+  #endif
+  
+- #define HELP	"/usr/lib/news/help.readnews"		/* Help text */
+- #define SEQ	"/usr/lib/news/seq"		/* Next sequence number */
+- #define SYS	"/usr/lib/news/sys"		/* System subscription lists */
+- #define ACTIVE	"/usr/lib/news/active"		/* Active newsgroups */
+- #define HISTORY "/usr/lib/news/history"		/* Current articles */
+  
+- #define MYDOMAIN "uucp"			/* Local domain */
+- #define MYORG	"U of Toronto Statistics" /* My organization */
+- #define NEWSROOT "news"			/* news editor */
+- 
+  /* Things you might want to change */
+  
+  #define NEWSRC  ".newsrc"		/* name of .newsrc file */
+  #define	PAGESIZE 24			/* lines on screen */
+  #define ARTICLES "articles"		/* default place to save articles */
+- #define NEGCHAR	'!'			/* newsgroup negation character	*/
+- #define NEGS	"!"			/* ditto (string) */
+- #define BADGRPCHARS "/#!"		/* illegal chars in group name */
+  #define BUFLEN	256			/* standard buffer size */
+- #define ED	"/bin/ed"		/* default, if $EDITOR not set */
+  
+  /* Things you probably won't want to change */
+  
+  #define	NGSEPCHAR ','	/* delimit character in news group line		*/
+  #define NGSEPS	","	/* ditto */
+--- 26,45 ----
+  #endif
+  
+  
+  /* Things you might want to change */
+  
++ /* #define MANGRPS	 1		/* if you have mandatory subscriptions
++ 					   tailored per-person (uses
++ 					   getclasses()) */
+  #define NEWSRC  ".newsrc"		/* name of .newsrc file */
+  #define	PAGESIZE 24			/* lines on screen */
+  #define ARTICLES "articles"		/* default place to save articles */
+  #define BUFLEN	256			/* standard buffer size */
+  
+  /* Things you probably won't want to change */
+  
++ #define NEGCHAR	'!'			/* newsgroup negation character	*/
++ #define NEGS	"!"			/* ditto (string) */
++ #define BADGRPCHARS "/#!"		/* illegal chars in group name */
+  #define	NGSEPCHAR ','	/* delimit character in news group line		*/
+  #define NGSEPS	","	/* ditto */
+***************
+*** 92,96 ****
+  #define PSEPS "!"	/* separator in Path: */
+  #define PSEPCHAR '!'	/* ditto */
+- #define PATHPREF "..!"	/* prefix for addresses worked out from Path: */
+  #define TRUE	1
+  #define FALSE	0
+--- 46,49 ----
+***************
+*** 158,161 ****
+--- 111,115 ----
+  };
+  
++ /* some of these may not exist any more */
+  char	*strrchr(), *strchr(), *strcat(), *strcpy(), *strpbrk();
+  char	*itoa(), *ltoa(), *convg(), *ngsquash(), *ttoa(), *mgets(), *rconvg();
+***************
+*** 175,180 ****
+  #define CMPN(a, b, n)	(*(a) != *(b) ? *(a) - *(b) : strncmp(a, b, n))
+  
+! /* bw 9/15/84 */
+! #define uid_t int
+! #define index strchr
+! #define rindex strrchr
+--- 129,131 ----
+  #define CMPN(a, b, n)	(*(a) != *(b) ? *(a) - *(b) : strncmp(a, b, n))
+  
+! extern char mailvia[];
+
+*** cnpatch/old/rna/funcs.c	Sat Dec  1 20:54:55 1990
+--- rna/funcs.c	Wed Nov 21 14:55:52 1990
+***************
+*** 186,313 ****
+  
+  
+- /*
+-  * return new newsgroup composed of only those from 'nglist'
+-  * subscribed to by 'sublist'
+-  * return NULL for empty list
+-  */
+- char *
+- ngsquash(nglist, sublist)
+- register char *nglist, *sublist;
+- {
+- 	register char *delim;
+- 	register char *newg;
+  
+- 	newg = NIL(char);
+- 	while (*nglist) {
+- 		if (delim = strchr(nglist, NGSEPCHAR))
+- 			*delim = '\0';
+- 		if (ngmatch(nglist, sublist))
+- 			newg = (newg ? catstr2(newg, NGSEPS, nglist) : newstr(nglist));
+- 		if (delim)
+- 			*delim = NGSEPCHAR, nglist = delim + 1;
+- 		else
+- 			break;
+- 	}
+- 	return newg;
+- }
+- 
+  /*
+-  * get unique sequence number from SEQ
+-  */
+- char *
+- getunique()
+- {
+- 	register long number;
+- 	register FILE *f;
+- 	static char buf[12];
+- 
+- 	f = fopenl(SEQ);
+- 	if (fread(buf, 1, sizeof buf, f) > 0)
+- 		number = atol(buf);
+- 	else
+- 		number = 1;
+- 	rewind(f);
+- 	(void) fprintf(f, "%ld\n", number + 1);
+- 	(void) fclose(f);
+- #if !AUSAM
+- 	unlock(SEQ);
+- #endif
+- 
+- 	sprintf(buf, "%ld", number);
+- 	return buf;
+- }
+- 
+- /*
+-  * open a locked file (or create) for reading and writing
+-  */
+- FILE *
+- fopenl(fname)
+- char *fname;
+- {
+- 	register FILE *f;
+- #ifdef AUSAM
+- 	struct stat sbuf;
+- #endif
+- 	extern uid_t newsuid;
+- 
+- 	if ((f = fopen(fname, "r+")) == NULL &&
+- 	    (f = fopen(fname, "w+")) == NULL)
+- 		error("Can't open %s", fname);
+- 
+- #if AUSAM
+- 	if (fstat(fileno(f), &sbuf) != 0)
+- 		error("Can't stat %s", fname);
+- 	if ((sbuf.st_mode & S_IFMT) != S_IFALK &&
+- 	    (chmod(fname, (int)(sbuf.st_mode&~S_IFMT) | S_IFALK) != 0 ||
+- 	    chown(fname, (int)newsuid, (int)newsuid) != 0 ||
+- 	    fclose(f) == EOF ||
+- 	    (f = fopen(fname, "r+")) == NULL))
+- 		error("Can't create %s", fname);
+- #else
+- 	chown(fname, (int) newsuid, (int) newsuid);
+- 	lock(fname);
+- #endif
+- 
+- 	return f;
+- }
+- 
+- 
+- #if !AUSAM
+- 
+- #define LSUFFIX	".lock"		/* suffix for lock files */
+- 
+- lock(fname)
+- char *fname;
+- {
+- 	register char *lname;
+- 	register int i, f;
+- 
+- 	lname = newstr2(fname, LSUFFIX);
+- 	for (i = 0; i < 10; i++) {
+- 		if ((f = creat(lname, 0)) != -1) {
+- 			close(f);
+- 			free(lname);
+- 			return;
+- 		}
+- 		sleep(2);
+- 	}
+- 	error("Can't creat %s after %d tries", lname, i);
+- }
+- 
+- 
+- unlock(fname)
+- char *fname;
+- {
+- 	register char *lname;
+- 
+- 	lname = newstr2(fname, LSUFFIX);
+- 	unlink(lname);
+- 	free(lname);
+- }
+- 
+- 
+- #endif
+- 
+- /*
+   * open a file
+   */
+--- 186,191 ----
+***************
+*** 341,360 ****
+  
+  /*
+-  * replace all '/''s with '.'
+-  */
+- char *
+- rconvg(s)
+- register char *s;
+- {
+- 	register char *sav;
+- 
+- 	sav = s;
+- 	while (s = strchr(s, '/'))
+- 		*s = '.';
+- 	return sav;
+- }
+- 
+- 
+- /*
+   * get a line from stdin
+   * trim leading and trailing blanks
+--- 219,222 ----
+***************
+*** 385,411 ****
+  
+  
+- readln(f)
+- FILE *f;
+- {
+- 	register int c;
+- 
+- 	if (feof(f) || ferror(f))
+- 		return;
+- 	while ((c = getc(f)) != '\n' && c != EOF)
+- 		;
+- }
+- 
+- 
+  /*
+-  * compare string pointers
+-  */
+- strpcmp(a, b)
+- char **a, **b;
+- {
+- 	return CMP(*a, *b);
+- }
+- 
+- 
+- /*
+   * apply the given function to each member in the newsgroup
+   */
+--- 247,251 ----
+***************
+*** 442,449 ****
+  	register char *ra;
+  
+! 	extern char *getpath(), *exaddress();
+! #ifdef NETPATH
+! 	extern char *getnetpath();
+! #endif
+  
+  	if (hp->h_replyto)
+--- 282,286 ----
+  	register char *ra;
+  
+! 	extern char *exaddress();
+  
+  	if (hp->h_replyto)
+***************
+*** 454,462 ****
+  		ra = NIL(char);
+  	if (hp->h_path && !ra)
+! 		ra = getpath(hp->h_path);
+! #ifdef NETPATH
+! 	if (CMPN(ra, PATHPREF, sizeof(PATHPREF) - 1) == 0)
+! 		ra = getnetpath(ra);
+! #endif
+  	return ra;
+  }
+--- 291,295 ----
+  		ra = NIL(char);
+  	if (hp->h_path && !ra)
+! 		ra = hp->h_path;
+  	return ra;
+  }
+***************
+*** 472,561 ****
+  	register char *space, *dot, *at;
+  	register char *raddr;
+  
+  	raddr = NIL(char);
+  	if (space = strchr(addr, ' '))
+  		*space = '\0';
+! 	if (at = strchr(addr, '@')) {
+  		*at = '\0';
+! 		if (dot = strchr(at + 1, '.')) {
+! 			*dot = '\0';
+! #if OZ
+! 			if (CMP(dot + 1, MYDOMAIN) == 0)
+! 				raddr = newstr3(addr, ":", at + 1);
+! 			else
+! #endif
+! 				raddr = newstr4(PATHPREF, at + 1, PSEPS, addr);
+! 			*dot = '.';
+! 		}
+  		*at = '@';
+! 	}
+  	if (space)
+  		*space = ' ';
+  	return raddr;
+- 
+  }
+  
+- 
+- /*
+-  * return the last two components of the path
+-  */
+- char *
+- getpath(path)
+- char *path;
+- {
+- 	register char *exlast, *ex;
+- 	register char *raddr;
+- 
+- 	if (exlast = strrchr(path, PSEPCHAR)) {
+- 		*exlast = '\0';
+- 		if (ex = strrchr(path, PSEPCHAR))
+- 			raddr = newstr4(PATHPREF, ex + 1, PSEPS, exlast + 1);
+- 		else
+- 			raddr = newstr3(path, PSEPS, exlast + 1);
+- 		*exlast = PSEPCHAR;
+- 	} else
+- 		raddr = NIL(char);
+- 	return raddr;
+- }
+- 
+- 
+- #ifdef NETPATH
+- /*
+-  * try and work out a path from our "netpath" database
+-  */
+- char *
+- getnetpath(path)
+- char *path;
+- {
+- 	FILE *f;
+- 	register char *ex1, *ex2, *com, *new;
+- 	char buf[BUFSIZ];
+- 
+- 	if ((ex1 = strchr(path, PSEPCHAR)) && (ex2 = strchr(ex1 + 1, PSEPCHAR))) {
+- 		*ex2 = '\0';
+- 		com = newstr4("exec ", NETPATH, " mulga ", ex1 + 1);
+- 		if ((f = popen(com, "r")) == NIL(FILE))
+- 			(void) printf("Couldn't run \"%s\"\n", com);
+- 		else {
+- 			fread(buf, sizeof(buf), 1, f);
+- 			if (pclose(f) != 0) {
+- 				(void) printf("Error in running \"%s\"\n", com);
+- 				fflush(stdout);
+- 			} else if (CMPN(buf, "mulga!", 6) == 0) {
+- 				if (ex1 = strchr(buf, '\n'))
+- 					*ex1 = '\0';
+- 				new = newstr4(buf + 6, PSEPS, ex2 + 1, ":mulga");
+- 				free(path);
+- 				path = new;
+- 			}
+- 		}
+- 		free(com);
+- 		*ex2 = PSEPCHAR;
+- 	}
+- 	return path;
+- }
+- 
+- 
+- #endif
+  
+  /*
+--- 305,326 ----
+  	register char *space, *dot, *at;
+  	register char *raddr;
++ 	extern char mailvia[];
+  
+  	raddr = NIL(char);
++ 	if (strcmp(mailvia, "<path>") == 0)
++ 		return raddr;
+  	if (space = strchr(addr, ' '))
+  		*space = '\0';
+! 	if (mailvia[0] != '\0' && (at = strchr(addr, '@')) != NULL) {
+  		*at = '\0';
+! 		raddr = newstr5(mailvia, PSEPS, at + 1, PSEPS, addr);
+  		*at = '@';
+! 	} else
+! 		raddr = newstr(addr);
+  	if (space)
+  		*space = ' ';
+  	return raddr;
+  }
+  
+  
+  /*
+
+*** cnpatch/old/rna/header.c	Sat Dec  1 20:54:58 1990
+--- rna/header.c	Tue Nov 20 13:41:17 1990
+***************
+*** 4,17 ****
+  
+  #include "defs.h"
+  
+- #if AUSAM
+- extern struct pwent pe;
+- #else
+- extern struct passwd *pp;
+- #endif
+  extern char systemid[];
+  extern long now;
+  
+- char tzone[]		 = TIMEZONE;
+  char hform[]		 = "%s: %s\n";
+  
+--- 4,12 ----
+  
+  #include "defs.h"
++ #include <sys/timeb.h>
+  
+  extern char systemid[];
+  extern long now;
+  
+  char hform[]		 = "%s: %s\n";
+  
+***************
+*** 203,207 ****
+  header *hp;
+  FILE *f;
+! pheadcom com;
+  {
+  	register char *s;
+--- 198,202 ----
+  header *hp;
+  FILE *f;
+! pheadcom com;			/* actually ignored now */
+  {
+  	register char *s;
+***************
+*** 209,290 ****
+  	extern char *getenv();
+  
+! 	if (hp->h_relayversion && com == printing)
+  		(void) fprintf(f, hform, t_relayversion, hp->h_relayversion);
+- 	else if (com != printing)
+- 		(void) fprintf(f, "%s: version %s; site %s.%s\n", t_relayversion, NEWSVERSION,
+- 		     systemid, MYDOMAIN);
+  
+  	if (hp->h_postversion)
+  		(void) fprintf(f, hform, t_postversion, hp->h_postversion);
+- 	else if (com == making)
+- 		(void) fprintf(f, "%s: version %s; site %s.%s\n", t_postversion, NEWSVERSION,
+- 		     systemid, MYDOMAIN);
+  
+- 
+  	if (hp->h_from)
+  		(void) fprintf(f, hform, t_from, hp->h_from);
+- 	else if(com == making) {
+- 		if(s = getenv("NAME"))
+- 			(void) fprintf(f, "%s: %s@%s.%s (%s)\n", t_from,
+- #if AUSAM
+- 				pe.pw_strings[LNAME],
+- #else
+- 				pp->pw_name,
+- #endif
+- 				systemid, MYDOMAIN, s);
+- 		else
+- 			(void) fprintf(f,
+- #if AUSAM
+- 				"%s: %s@%s.%s (%s %s)\n",
+- #else
+- 				"%s: %s@%s.%s\n",
+- #endif
+- 				t_from,
+- #if AUSAM
+- 				pe.pw_strings[LNAME],
+- #else
+- 				pp->pw_name,
+- #endif
+- 				systemid, MYDOMAIN
+- #if AUSAM
+- 				,
+- 				pe.pw_strings[FIRSTNAME],
+- 				pe.pw_strings[LASTNAME]
+- #endif
+- 			);
+- 	}
+  
+  	if (hp->h_date)
+  		(void) fprintf(f, hform, t_date, hp->h_date);
+- 	else if (com == making)
+- 		(void) fprintf(f, hform, t_date, ttoa(now));
+  
+  	if (hp->h_newsgroups)
+  		(void) fprintf(f, hform, t_newsgroups, hp->h_newsgroups);
+- 	else if (com == making)
+- 		(void) fprintf(f, hform, t_newsgroups, DFLTGRP);
+  
+  	if (hp->h_subject)
+  		(void) fprintf(f, hform, t_subject, hp->h_subject);
+- 	else if (com == making)
+- 		error("No subject field.");
+  
+  	if (hp->h_messageid)
+  		(void) fprintf(f, hform, t_messageid, hp->h_messageid);
+- 	else if (com == making)
+- 		error("No messageid.");
+  
+! 	if (hp->h_path && com == passing)
+! 		(void) fprintf(f, "%s: %s!%s\n", t_path, systemid, hp->h_path);
+! 	else if (hp->h_path)
+  		(void) fprintf(f, hform, t_path, hp->h_path);
+- 	else if(com == making)
+- 		(void) fprintf(f, "%s: %s!%s\n", t_path, systemid,
+- #if AUSAM
+- 			pe.pw_strings[LNAME]
+- #else
+- 			pp->pw_name
+- #endif
+- 		);
+  
+  	/* optional */
+--- 204,230 ----
+  	extern char *getenv();
+  
+! 	if (hp->h_relayversion)
+  		(void) fprintf(f, hform, t_relayversion, hp->h_relayversion);
+  
+  	if (hp->h_postversion)
+  		(void) fprintf(f, hform, t_postversion, hp->h_postversion);
+  
+  	if (hp->h_from)
+  		(void) fprintf(f, hform, t_from, hp->h_from);
+  
+  	if (hp->h_date)
+  		(void) fprintf(f, hform, t_date, hp->h_date);
+  
+  	if (hp->h_newsgroups)
+  		(void) fprintf(f, hform, t_newsgroups, hp->h_newsgroups);
+  
+  	if (hp->h_subject)
+  		(void) fprintf(f, hform, t_subject, hp->h_subject);
+  
+  	if (hp->h_messageid)
+  		(void) fprintf(f, hform, t_messageid, hp->h_messageid);
+  
+! 	if (hp->h_path)
+  		(void) fprintf(f, hform, t_path, hp->h_path);
+  
+  	/* optional */
+***************
+*** 299,306 ****
+  		(void) fprintf(f, hform, t_followupto, hp->h_followupto);
+  
+! 	if (hp->h_datereceived && com == printing)
+  		(void) fprintf(f, hform, t_datereceived, hp->h_datereceived);
+- 	else if (com != printing)
+- 		(void) fprintf(f, hform, t_datereceived, ttoa(now));
+  
+  	if (hp->h_expires)
+--- 239,244 ----
+  		(void) fprintf(f, hform, t_followupto, hp->h_followupto);
+  
+! 	if (hp->h_datereceived)
+  		(void) fprintf(f, hform, t_datereceived, hp->h_datereceived);
+  
+  	if (hp->h_expires)
+***************
+*** 318,324 ****
+  	if (hp->h_organisation)
+  		(void) fprintf(f, hform, t_organization, hp->h_organisation);
+- 	else if (com == making)
+- 		(void) fprintf(f, hform, t_organization, (s = getenv("ORGANIZATION")) ?
+- 		    s : MYORG);
+  
+  	if (hp->h_lines)
+--- 256,259 ----
+***************
+*** 426,449 ****
+  
+  
+- /*
+-  * time to ascii
+-  *	leave time in static var
+-  */
+- char *
+- ttoa(t)
+- long t;
+- {
+- 	static char buf[40];
+- 	struct tm *tp;
+- 	extern struct tm *localtime();
+  
+- 	tp = localtime(&t);
+- 	sprintf(buf, "%s, %d %s %d %02d:%02d:%02d %s", weekdays[tp->tm_wday],
+- 	     tp->tm_mday, months[tp->tm_mon], tp->tm_year, tp->tm_hour, tp->tm_min,
+- 	     tp->tm_sec, tzone);
+- 	return buf;
+- }
+- 
+- 
+  /*
+   * ascii to time
+--- 361,365 ----
+***************
+*** 454,472 ****
+  char *s;
+  {
+! 	char *argv[4];
+! 	int day, year, hour, min, sec;
+! 	char month[10], sday[10], stime[10], syear[10];
+! 	extern long maketime();
+  
+! 	if (sscanf(s, "%*s %d %*[ -] %9[^ -] %*[ -] %d %2d:%2d:%2d", &day, month,
+! 	     &year, &hour, &min, &sec) != 6)
+! 		return 0L;
+! 	sprintf(sday, "%d", day);
+! 	sprintf(stime, "%d:%d:%d", hour, min, sec);
+! 	sprintf(syear, "%d", 1900 + year);
+! 	argv[0] = sday;
+! 	argv[1] = month;
+! 	argv[2] = stime;
+! 	argv[3] = syear;
+! 	return maketime(4, argv, STIMES);
+  }
+--- 370,377 ----
+  char *s;
+  {
+! 	struct timeb ftnow;
+! 	extern long getdate();
+  
+! 	ftime(&ftnow);
+! 	return getdate(s, &ftnow);
+  }
+
+*** cnpatch/old/rna/makefile	Sat Dec  1 20:55:04 1990
+--- rna/makefile	Sat Dec  1 20:51:32 1990
+***************
+*** 11,15 ****
+  DEFINES=
+  COPTS=-O
+! CFLAGS=$(COPTS) $(DEFINES)
+  INSTALL=:# install bigpdp
+  NFLAG =
+--- 11,15 ----
+  DEFINES=
+  COPTS=-O
+! CFLAGS=$(COPTS) $(DEFINES) -I../include
+  INSTALL=:# install bigpdp
+  NFLAG =
+***************
+*** 17,21 ****
+  I=/usr/include
+  C=/lib/libc.a
+! LIBS=lib/lib.a ../libcnews.a
+  BIN=/bin
+  BINDIR=$(BIN)
+--- 17,21 ----
+  I=/usr/include
+  C=/lib/libc.a
+! LIBS=../libcnews.a bsearch.o
+  BIN=/bin
+  BINDIR=$(BIN)
+***************
+*** 27,31 ****
+  PFILES = header.c funcs.c active.c history.c maketime.c
+  RFILES = header.c readnews.c funcs.c active.c newsrc.c history.c maketime.c
+! ROFILES= header.o readnews.o funcs.o active.o newsrc.o history.o maketime.o
+  EFILES = expire.c funcs.c active.c
+  
+--- 27,31 ----
+  PFILES = header.c funcs.c active.c history.c maketime.c
+  RFILES = header.c readnews.c funcs.c active.c newsrc.c history.c maketime.c
+! ROFILES= header.o readnews.o funcs.o active.o newsrc.o
+  EFILES = expire.c funcs.c active.c
+  
+***************
+*** 42,46 ****
+  all: readnews checknews postnews
+  	chmod +x checknews postnews
+- 	: warning, defs.h may not be right for your system
+  
+  readnews: $(ROFILES) defs.h $(LIBS)
+--- 42,45 ----
+***************
+*** 49,64 ****
+  newsinstall:
+  	: "install all control files; don't overwrite any!"
+! 	-if test ! -r $(NEWSCTL)/news.help; then cp news.help $(NEWSCTL); fi
+  
+  # bininstall: make directories, install programs
+! bininstall: install
+! install: $(BINDIR)/readnews $(BINDIR)/checknews $(BINDIR)/postnews
+! $(BINDIR)/readnews: readnews
+  	cp readnews $(BINDIR)
+- 	: "$(INSTALL) - readnews bin 711 $(BINDIR)/readnews $(BINDIR)/news"
+- $(BINDIR)/checknews:	checknews
+  	cp checknews $(BINDIR)
+- $(BINDIR)/postnews:	postnews
+  	cp postnews $(BINDIR)
+  
+  cmp:	readnews checknews postnews
+--- 48,59 ----
+  newsinstall:
+  	: "install all control files; don't overwrite any!"
+! 	-if test ! -r $(NEWSCTL)/readnews.help; then cp news.help $(NEWSCTL)/readnews.help; fi
+  
+  # bininstall: make directories, install programs
+! bininstall:	readnews postnews checknews
+  	cp readnews $(BINDIR)
+  	cp checknews $(BINDIR)
+  	cp postnews $(BINDIR)
++ 	cp postnews $(NEWSBIN)/inject
+  
+  cmp:	readnews checknews postnews
+***************
+*** 66,73 ****
+  	cmp $(BINDIR)/checknews checknews
+  	cmp $(BINDIR)/postnews postnews
+  
+- defs.h:	at.h # $C
+- 	touch defs.h
+- 
+  lint: $(LCOMMANDS)
+  
+--- 61,66 ----
+  	cmp $(BINDIR)/checknews checknews
+  	cmp $(BINDIR)/postnews postnews
++ 	cmp $(NEWSBIN)/inject/postnews postnews
+  
+  lint: $(LCOMMANDS)
+  
+***************
+*** 117,119 ****
+  clean:
+  	rm -f *.o core a.out readnews
+- 	(cd lib ; make clean)
+--- 110,111 ----
+
+*** cnpatch/old/rna/news.help	Sat Dec  1 20:55:07 1990
+--- rna/news.help	Tue Nov 20 14:24:19 1990
+***************
+*** 1,5 ****
+  Commands to read news:
+  
+! RETURN	    either print current article or go to next article and print header
+  
+  .	    print current article	+ or n	  go to next article
+--- 1,5 ----
+  Commands to read news:
+  
+! RETURN	    print current article or go to next article and print header
+  
+  .	    print current article	+ or n	  go to next article
+***************
+*** 6,23 ****
+  - 	    go to previous article	s [file]  save current article
+  h	    print current header	H	  print current header in full
+! u	    unsubscribe from followups	U	  unsubscribe from current group
+! q or EOT    quit			x	  exit (as if no articles seen)
+! <number>    go to article <number>	!cmd	  shell escape
+! N [newsgrp] go to next newsgroup	DEL	  break to command level
+  
+! Commands to post/reply/cancel news:
+  
+! c	    cancel article 		r	  reply to sender (by mail)
+! f	    post a followup article	p	  post new article
+! m person    mail to person
+! 
+! Commands when posting/replying (p, r, f and m commands):
+! 
+! . or EOT    terminate article		.e	  edit article
+! .!cmd	    shell escape		.i	  interpolate current item
+! DEL	    abort posting/mailing
+--- 6,15 ----
+  - 	    go to previous article	s [file]  save current article
+  h	    print current header	H	  print current header in full
+! N [newsgrp] go to next newsgroup	U	  unsubscribe from this group
+! <number>    go to article <number>	!cmd	  do Unix command
+! q	    quit			x	  exit (as if nothing read)
+  
+! Commands to post/reply/followup news:
+  
+! p	    post new article 		r	  reply to sender (by mail)
+! f	    post a followup article
+
+*** cnpatch/old/rna/newsrc.c	Sat Dec  1 20:55:11 1990
+--- rna/newsrc.c	Tue Nov 20 13:55:12 1990
+***************
+*** 20,24 ****
+  	register FILE *f;
+  	static char option[] = "options";
+! 	char word[BUFSIZ], rest[BUFSIZ];
+  	extern char *getenv();
+  
+--- 20,24 ----
+  	register FILE *f;
+  	static char option[] = "options";
+! 	char word[BUFSIZ], rest[BUFSIZ];	/* getline knows sizes */
+  	extern char *getenv();
+  
+***************
+*** 50,65 ****
+  	register int c;
+  	register char *s;
+  
+  	rclineno++;
+  	s = w;
+  	while ((c = getc(f)) != EOF && c != ' ' && c != '\t')
+! 		*s++ = c;			/* stash first word */
+  	*s = '\0';
+  
+  	if (c != EOF) {
+  		s = r;
+  		while ((c = getc(f)) != EOF && c != '\n')
+! 			*s++ = c;		/* stash the rest */
+  		*s = '\0';
+  	}
+  
+--- 50,78 ----
+  	register int c;
+  	register char *s;
++ 	register int n;
+  
+  	rclineno++;
+  	s = w;
++ 	n = BUFSIZ-1;
+  	while ((c = getc(f)) != EOF && c != ' ' && c != '\t')
+! 		if (n > 0) {
+! 			*s++ = c;			/* stash first word */
+! 			n--;
+! 		}
+  	*s = '\0';
++ 	if (n <= 0)
++ 		error("%s line %d too long", rcname, rclineno);
+  
+  	if (c != EOF) {
+  		s = r;
++ 		n = BUFSIZ-1;
+  		while ((c = getc(f)) != EOF && c != '\n')
+! 			if (n > 0) {
+! 				*s++ = c;		/* stash the rest */
+! 				n--;
+! 			}
+  		*s = '\0';
++ 		if (n <= 0)
++ 			error("%s line %d too long", rcname, rclineno);
+  	}
+  
+***************
+*** 261,268 ****
+  	register newsrc	*np;
+  	register int i;
+- 	extern char **uflag;
+  	extern int usize;
+  
+! 	if (!rc && !uflag && (!rcgrps || !*rcgrps))
+  		return;
+  
+--- 274,280 ----
+  	register newsrc	*np;
+  	register int i;
+  	extern int usize;
+  
+! 	if (!rc && (!rcgrps || !*rcgrps))
+  		return;
+  
+***************
+*** 273,282 ****
+  	if (rcgrps && *rcgrps)
+  		(void) fprintf(f, "options -n %s\n", rcgrps);
+- 	if (uflag) {
+- 		scanhist(uflag, usize);		/* forget id's not in history */
+- 		for (i = 0; i < usize; i++)	/* print whats left */
+- 			if (uflag[i])
+- 				(void) fprintf(f, "options -u %s\n", uflag[i]);
+- 	}
+  	if (sortrc) {
+  		/*
+--- 285,288 ----
+
+*** cnpatch/old/rna/postnews	Sat Dec  1 20:55:14 1990
+--- rna/postnews	Mon Nov 19 18:15:52 1990
+***************
+*** 5,9 ****
+  . ${NEWSCONFIG-/usr/lib/news/bin/config}
+  
+! PATH=$NEWSCTL/bin:$NEWSBIN:$NEWSPATH	# but do not export it
+  umask 077				# private
+  
+--- 5,9 ----
+  . ${NEWSCONFIG-/usr/lib/news/bin/config}
+  
+! PATH=$NEWSCTL/bin:$NEWSBIN/inject:$NEWSBIN:$NEWSPATH	# but do not export it
+  umask 077				# private
+  
+***************
+*** 20,26 ****
+  fi
+  
+! case $# in
+! 0)
+! 	if test -r $NEWSCTL/postdefltgroup
+  	then
+  		defg="`cat $NEWSCTL/postdefltgroup`"
+--- 20,25 ----
+  fi
+  
+! case "$1" in
+! '')	if test -r $NEWSCTL/postdefltgroup
+  	then
+  		defg="`cat $NEWSCTL/postdefltgroup`"
+***************
+*** 43,70 ****
+  		esac
+  	done
+! 	echo "Newsgroups: $ans" >>$tmp
+  	;;
+  
+! 1)
+! 	echo "Newsgroups: $1" >>$tmp
+  	;;
+  
+! *)
+! 	echo 'Usage: postnews [newsgroups]' >&2
+! 	exit 2
+  	;;
+  esac
+  
+! subj=
+! while test " $subj" = " "
+! do
+! 	echo 'Subject: ' | tr -d '\012'
+! 	read subj
+! done
+! echo "Subject: $subj" >>$tmp
+! if test -r $NEWSCTL/postdefltdist
+! then
+! 	echo "Distribution: `cat $NEWSCTL/postdefltdist`" >>$tmp
+! fi
+  
+  echo >>$tmp
+--- 42,71 ----
+  		esac
+  	done
+! 	echo "Newsgroups: $ans" >$tmp
+  	;;
+  
+! -h)	cat $2 >$tmp
+  	;;
+  
+! *)	echo "Newsgroups: $1" >$tmp
+  	;;
+  esac
+  
+! case "$1" in
+! -h)	;;
+! 
+! *)	subj=
+! 	while test " $subj" = " "
+! 	do
+! 		echo 'Subject: ' | tr -d '\012'
+! 		read subj
+! 	done
+! 	echo "Subject: $subj" >>$tmp
+! 	if test -r $NEWSCTL/postdefltdist
+! 	then
+! 		echo "Distribution: `cat $NEWSCTL/postdefltdist`" >>$tmp
+! 	fi
+! 	;;
+! esac
+  
+  echo >>$tmp
+
+*** cnpatch/old/rna/readnews.1	Sat Dec  1 20:55:18 1990
+--- rna/readnews.1	Wed Nov 21 15:27:29 1990
+***************
+*** 1,3 ****
+! .TH READNEWS 1 "4 July 1990"
+  .BY "C News"
+  .SH NAME
+--- 1,3 ----
+! .TH READNEWS 1 "21 Nov 1990"
+  .BY "C News"
+  .SH NAME
+***************
+*** 11,16 ****
+  .RB [ -s [ -+?
+  .RI [ group ]]]
+- .RB [ -u
+- messageid]
+  .SH DESCRIPTION
+  .I Readnews
+--- 11,14 ----
+***************
+*** 90,100 ****
+  file. It is not read or updated.
+  This allows selection of articles that have already been read.
+! .TP
+! \fB-u \fImessageid\fR
+! Unsubscribe to followup articles referring to
+! .IR messageid .
+! (This flag is usually only placed in the
+  .I .newsrc
+! file as a result of the `u' command.)
+  .SH COMMANDS
+  This section details the commands available when
+--- 88,116 ----
+  file. It is not read or updated.
+  This allows selection of articles that have already been read.
+! .P
+! Some overall parameters are set by a control file,
+! .IR NEWSCTL/readnews.ctl ,
+! which contains control lines (each a keyword followed by white space followed
+! by a value) and comments (each starting with `#').
+! .P
+! If no
+! .B \-n
+! option is specified, either by the user or his
+  .I .newsrc
+! file, the value specified on the
+! .B defsub
+! line of the control file is used as the list of newsgroups to be presented.
+! A single mandatory newsgroup may be specified as the value of the
+! .B mustsub
+! control line; in the absence of a command-line
+! .B \-n
+! (not one from a
+! .IR .newsrc ),
+! that newsgroup is always presented to the user even if he did not ask for it.
+! Both
+! .B defsub
+! and
+! .B mustsub
+! default to ``general''.
+  .SH COMMANDS
+  This section details the commands available when
+***************
+*** 143,149 ****
+  .TP
+  \fBs \fR[\fIfile\fR]
+! Save the current article, either in the specified file, or
+! in
+! .BR $HOME/articles .
+  .TP
+  .B h
+--- 159,165 ----
+  .TP
+  \fBs \fR[\fIfile\fR]
+! Save the current article, appending it to the specified file
+! (default
+! .BR $HOME/articles ).
+  .TP
+  .B h
+***************
+*** 156,162 ****
+  Go to the next newsgroup, or to the specified newsgroup.
+  .TP
+- .B u
+- Unsubscribe from all further followup articles on this topic.
+- .TP
+  .B U
+  Unsubscribe from this newsgroup, and go to the next newsgroup.
+--- 172,175 ----
+***************
+*** 183,201 ****
+  .I .newsrc
+  is left unchanged (as if no articles had been read).
+- .TP
+- .B DEL
+- An interrupt will cause
+- .I readnews
+- to terminate its current activity and return to command mode.
+- An interrupt in command mode will cause `Interrupt' to be printed,
+- and a subsequent interrupt will cause immediate exit (as in the `x' command).
+  .P
+! Some commands are available to send/reply or cancel news articles:
+  .TP
+- .B c
+- Cancel article. Only the author, or news administrator can do this.
+- .IR postnews (1)
+- is called to do the actual cancelling.
+- .TP
+  .B r
+  Reply to sender of the current article by mail.
+--- 196,202 ----
+  .I .newsrc
+  is left unchanged (as if no articles had been read).
+  .P
+! Some commands are available to send/reply or post news articles:
+  .TP
+  .B r
+  Reply to sender of the current article by mail.
+***************
+*** 203,207 ****
+--- 204,223 ----
+  sets up the appropriate headers, and then calls
+  .IR mail (1)
++ (or $MAILER, if there is such an environment variable)
+  to send a reply to the sender.
++ If there is no
++ .B mailvia
++ line in the control file, the address is taken from the ``From'' header
++ of the article, and is in Internet form.
++ If the value in the
++ .B mailvia
++ line is ``<path>'', the address is taken from the ``Path'' header and is
++ in UUCPnet form.
++ If the value of
++ .B mailvia
++ is something else, the ``From'' address is transformed to UUCPnet syntax
++ (``site.x.y!user'' rather than ``user@site.x.y''), and the
++ .B mailvia
++ value is prepended to it, with an intervening ``!''.
+  .TP
+  .B f
+***************
+*** 215,256 ****
+  Post an article on a new topic.
+  .IR postnews (1)
+! is called to post the new article.
+! .TP
+! \fBm \fIperson\fB
+! Mail to
+! .IR person .
+  .P
+- When replying by mail, or posting an article, the user
+- is prompted for certain headers, and then the text of the article or mail
+- item is entered until a `.' or EOT is entered alone on a line.
+- Then the article/mail is posted/mailed.
+- Other commands are available:
+- .TP
+- \&\fB.e\fR
+- Edit the message/article collected so far (see
+- .IR ed (1)).
+- The 'To:' or 'cc:' fields may be changed if mailing.
+- After editing further lines may be appended to the message.
+- .TP
+- \&\fB.i\fR
+- Interpolate
+- the current news article onto the end of the message.
+- The interpolated item
+- is indented by four spaces.
+- .TP
+- \&\fB.!\fIcmd\fR or \fB!\fIcmd\fR
+- Shell escape.
+- .IR Cmd
+- is executed.
+- .TP
+- .B DEL
+- Causes posting/mailing to be aborted, and the article entered so far
+- is saved in
+- .B $HOME/dead.article
+- or
+- .BR $HOME/dead.letter .
+- .P
+  In order to permanently resubscribe to a newsgroup denied by `U',
+! or a series of followups denied by `u' it is necessary to understand
+  the format of the
+  .I .newsrc
+--- 231,238 ----
+  Post an article on a new topic.
+  .IR postnews (1)
+! is called to post the new article, in the current newsgroup by default.
+  .P
+  In order to permanently resubscribe to a newsgroup denied by `U',
+! it is necessary to understand
+  the format of the
+  .I .newsrc
+***************
+*** 265,270 ****
+  .I readnews
+  command on the command line.
+- Followups are denied with `option -u <messageid>'.
+- To resubscribe to further followups, the correct options line must be deleted.
+  .TP
+  read newsgroup lines
+--- 247,250 ----
+***************
+*** 274,296 ****
+  To resubscribe the `!' must be changed back to a `:'.
+  .SH FILES
+! .ta 24
+  .nf
+  $HOME/.newsrc	options and list of previously read articles
+! %news	where the articles are kept
+! /usr/lib/news/active	current newsgroups
+! /usr/lib/news/help	help file
+  .fi
+  .SH SEE ALSO
+! postnews(1), mail(1), ed(1), uusend(8), uurec(8).
+  .SH BUGS
+! .I Readnews
+! with the
+! .B -c
+! flag may say "You have news.", when the available article is a unsubscribed
+! followup article.
+! .P
+! You may see followups, even if you have used the `u' command.
+! This is because many sites have faulty news programs, which do
+! not follow the correct protocol, or the sender did not use the `r' command.
+! .SH AUTHOR
+! Michael Rourke, University of N.S.W (decvax!mulga!michaelr:elecvax)
+--- 254,277 ----
+  To resubscribe the `!' must be changed back to a `:'.
+  .SH FILES
+! .ta \w'NEWSBIN/inject/postnews'u+2n
+  .nf
+  $HOME/.newsrc	options and list of previously read articles
+! NEWSCTL/active	current newsgroups
+! NEWSCTL/readnews.ctl	control file
+! NEWSCTL/readnews.help	help file
+! NEWSBIN/inject/postnews	for postings
+  .fi
+  .SH SEE ALSO
+! postnews(1), mail(1), ed(1)
+! .SH HISTORY
+! Originally written by
+! Michael Rourke, University of N.S.W (decvax!mulga!michaelr:elecvax).
+! Modified and simplified for the C News project.
+  .SH BUGS
+! The
+! .B mustsub
+! control line really ought to be able to specify a subscription,
+! i.e. multiple groups.
+! .PP
+! This program is about as simple as they come.
+! Almost any seasoned news user will want something more complex.
+
+*** cnpatch/old/rna/readnews.c	Sat Dec  1 20:55:25 1990
+--- rna/readnews.c	Wed Nov 21 14:32:37 1990
+***************
+*** 9,15 ****
+  #define ARTSEP "/"
+  
+! char postnews[]	 = POSTNEWS;
+! char admsub[]	 = ADMSUB;
+! char dfltsub[]	 = DFLTSUB;
+  char *mailpath	 = MAIL;
+  
+--- 9,15 ----
+  #define ARTSEP "/"
+  
+! char admsub[BUFLEN]	 = "general";
+! char dfltsub[BUFLEN]	 = "general";
+! char mailvia[BUFLEN]	 = "";
+  char *mailpath	 = MAIL;
+  
+***************
+*** 16,25 ****
+  #define	MAXARGV	10		/* used in building argv[]s below */
+  
+- #ifndef NETID
+- char systemid[DIRSIZ];
+- #else
+- char systemid[] = NETID;
+- #endif
+- 
+  bool iflag;		/* -i ignore .newsrc */
+  bool lflag;		/* -l print headers only */
+--- 16,19 ----
+***************
+*** 26,31 ****
+  bool cflag;		/* -c check for news only */
+  bool pflag;		/* -p print everything selected */
+- char **uflag;		/* -u messagid (unsubscribe from followups) */
+- int usize;		/* number of uflag entries */
+  bool Cflag;		/* -C verbose -c */
+  bool sflag;		/* -s print newsgroup subscription list */
+--- 20,23 ----
+***************
+*** 46,59 ****
+  #endif
+  
+- #if AUSAM
+- struct pwent pe;		/* current user passwd struct */
+- char sbuf[SSIZ];	/* passwd strings */
+- #else
+- struct passwd *pp;		/* current user passwd struct */
+- #endif
+  long now;		/* current time */
+  bool interrupt;		/* if interrupt hit */
+  char *newsdir;		/* %news */
+- uid_t newsuid;		/* %news uid (not used) */
+  bool su;		/* if super user (not used) */
+  
+--- 38,44 ----
+***************
+*** 66,69 ****
+--- 51,56 ----
+  #endif
+  
++ char *progname;
++ 
+  main(argc, argv)
+  int argc;
+***************
+*** 72,76 ****
+  	char buf[BUFSIZ], *p;
+  
+! 	setbuf(stdout, buf);			/* TODO: remove this? */
+  	if (options(--argc, ++argv, true)) {
+  		(void) fprintf(stderr, "Usage: readnews [-n newsgroups] [-i] [-clpC] [-s[-+? [group]]] [-u messageid]\n");
+--- 59,64 ----
+  	char buf[BUFSIZ], *p;
+  
+! 	progname = argv[0];
+! 	setbuf(stdout, buf);
+  	if (options(--argc, ++argv, true)) {
+  		(void) fprintf(stderr, "Usage: readnews [-n newsgroups] [-i] [-clpC] [-s[-+? [group]]] [-u messageid]\n");
+***************
+*** 79,111 ****
+  	now = time(&now);
+  
+! #if AUSAM
+! 	pe.pw_strings[LNAME] = NEWSROOT;
+! 	if (getpwuid(&pe, sbuf, sizeof(sbuf)) == PWERROR)
+! 		error("Password file error.");
+! 	newsdir = newstr(pe.pw_strings[DIRPATH]);
+! 	newsuid = pe.pw_limits.l_uid;
+! #else
+! 	if ((pp = getpwnam(NEWSROOT)) == NULL)
+! 		error("Password file error.");
+! 	newsdir = newstr(pp->pw_dir);
+! 	newsuid = pp->pw_uid;
+! #endif
+  
+- #if AUSAM
+- #if MANGRPS
+- 	pe.pw_limits.l_uid = getuid();
+- 	if (getpwlog(&pe, NIL(char), 0) == PWERROR)	/* want pw_cmask */
+- 		error("Password file error.");
+- #endif
+- 	pwclose();
+- #else
+- 	pp = NIL(struct passwd );
+- 	endpwent();
+- #endif
+- 
+- #ifndef NETID
+- 	getaddr(G_SYSNAME, systemid);
+- #endif
+- 
+  	if (!iflag)
+  		readnewsrc();
+--- 67,73 ----
+  	now = time(&now);
+  
+! 	newsdir = newstr(fullartfile((char *)NULL));
+! 	getctl();
+  
+  	if (!iflag)
+  		readnewsrc();
+***************
+*** 129,134 ****
+  	if ((int) sflag + (int) lflag + (int) cflag + (int) pflag > 1)
+  		error("-clpsC flags are mutually exclusive.");
+- 	if (uflag)
+- 		qsort((char *) uflag, (unsigned) usize, sizeof(char *), strpcmp);
+  
+  	/* user has private mailer? */
+--- 91,94 ----
+***************
+*** 156,159 ****
+--- 116,120 ----
+  			writenewsrc(alist);
+  	}
++ 	fflush(stdout);
+  	exit(0);
+  }
+***************
+*** 263,274 ****
+  				argc--, argv++; 
+  				break;
+- 			case 'u':
+- 				usize++;
+- 				uflag = (uflag? (char **)myrealloc((char *)uflag,
+- 						(int)sizeof(char *) * usize):
+- 					(char **)myalloc((int)sizeof(char *)));
+- 				uflag[usize - 1] = newstr(argv[1]);
+- 				argc--, argv++; 
+- 				break;
+  			case 'i':
+  				iflag = true; 
+--- 224,227 ----
+***************
+*** 335,354 ****
+  		(void) printf("Active newsgroups:\n");
+  		(void) fflush(stdout);
+! #ifdef	MC			/* gok. probably a local paginator */
+! 		com = newstr2("exec ", MC);
+! 		if ((f = popen(com, "w")) == NULL)
+! 			f = stdout;
+! 		free(com);
+! #else
+  		f = stdout;
+  		com = 0;		/* for lint */
+  		com = com;		/* for lint */
+- #endif
+  		for (ap = alist; ap; ap = ap->a_next)
+  			(void) fprintf(f, "%s\n", ap->a_name);
+- #ifdef	MC
+- 		if (f != stdout)
+- 			pclose(f);
+- #endif
+  		return false;
+  	} else if (splus || sminus) {
+--- 288,297 ----
+  		(void) printf("Active newsgroups:\n");
+  		(void) fflush(stdout);
+! 		/* possibly vestigial code here, old #ifdefs deleted */
+  		f = stdout;
+  		com = 0;		/* for lint */
+  		com = com;		/* for lint */
+  		for (ap = alist; ap; ap = ap->a_next)
+  			(void) fprintf(f, "%s\n", ap->a_name);
+  		return false;
+  	} else if (splus || sminus) {
+***************
+*** 441,444 ****
+--- 384,397 ----
+  }
+  
++ char *
++ ltoa(l)
++ long l;
++ {
++ 	static char buf[30];
++ 
++ 	sprintf(buf, "%ld", l);
++ 	return buf;
++ }
++ 
+  /*
+   * list titles command (-l)
+***************
+*** 465,472 ****
+  		return next;
+  	gethead(f, &h);
+- 	if (uflag && h.h_references && ureject(&h)) {
+- 		freehead(&h);
+- 		return next;
+- 	}
+  	if (first) {
+  		(void) printf("News articles:\n");
+--- 418,421 ----
+***************
+*** 507,510 ****
+--- 456,460 ----
+  	} else {
+  		(void) printf("You have news.\n");
++ 		fflush(stdout);
+  		exit(0);
+  		/* NOTREACHED */
+***************
+*** 519,525 ****
+   * n 		go to next article
+   * q		quit
+-  * c		cancel
+   * r		reply
+-  * m [person]	mail
+   * f 		followup
+   * p 		postnews
+--- 469,473 ----
+***************
+*** 526,530 ****
+   * N [newsgrp]	next newsgroup
+   * s [file]	save
+-  * u		unsubscribe from followup
+   * U		unsubscribe from group
+   * !stuff	shell escape
+--- 474,477 ----
+***************
+*** 558,562 ****
+  	bool printed, pheader, verbose, hadinterrupt;
+  	applycom	nextact;
+! 	static char errmess[] = "Incorrect command; Type `?' for help.\n";
+  	static char form[]    = "%s: %s\n";
+  	static char savedsys[BUFSIZ / 2];
+--- 505,509 ----
+  	bool printed, pheader, verbose, hadinterrupt;
+  	applycom	nextact;
+! 	static char errmess[] = "Unknown command; type `?' for help.\n";
+  	static char form[]    = "%s: %s\n";
+  	static char savedsys[BUFSIZ / 2];
+***************
+*** 607,618 ****
+  
+  	gethead(f, &h);
+- 	if (!pushed && uflag && h.h_references && ureject(&h)) {
+- 		/* unsubscribed followup */
+- 		freehead(&h);
+- 		np->n_last++;
+- 		(void) fclose(f);
+- 		free(fname);
+- 		return next;
+- 	}
+  
+  	(void) printf("\n");
+--- 554,557 ----
+***************
+*** 619,623 ****
+  	interrupt = hadinterrupt = verbose = false;
+  	if (last) {
+! 		(void) printf("No more articles.\n");
+  		printed = pheader = true;
+  	} else
+--- 558,562 ----
+  	interrupt = hadinterrupt = verbose = false;
+  	if (last) {
+! 		(void) printf("No more articles (press RETURN again to quit).\n");
+  		printed = pheader = true;
+  	} else
+***************
+*** 636,639 ****
+--- 575,579 ----
+  		lastap = ap;
+  		if (!pheader) {
++ 			time_t itsdate;
+  			(void) printf("Article %ld of %ld (%s)",
+  				np->n_last + 1, ap->a_seq, ap->a_name);
+***************
+*** 640,644 ****
+  			if (h.h_lines != 0)
+  				(void) printf(" (%s lines)", h.h_lines);
+! 			(void) printf("\n");
+  			(void) printf(form, t_subject, h.h_subject);
+  			(void) printf(form, t_from, h.h_from);
+--- 580,585 ----
+  			if (h.h_lines != 0)
+  				(void) printf(" (%s lines)", h.h_lines);
+! 			itsdate = atot(h.h_date);
+! 			(void) printf(" %s", ctime(&itsdate));
+  			(void) printf(form, t_subject, h.h_subject);
+  			(void) printf(form, t_from, h.h_from);
+***************
+*** 745,760 ****
+  			help();
+  			continue;
+- 		case 'c':
+- 			cancelarticle(&h);
+- 			continue;
+  		case 'r':
+  			reply(&h, fname);
+  			continue;
+- 		case 'm':
+- 			if (!arg || !*arg)
+- 				(void) printf("Person argument missing.\n");
+- 			else
+- 				mail(&h, fname, arg);
+- 			continue;
+  		case 'f':
+  			followup(&h, fname);
+--- 686,692 ----
+***************
+*** 761,768 ****
+  			continue;
+  		case 'p':
+! 			pnews(fname);
+  			continue;
+  		case 'U':
+! 			if (ngmatch(np->n_name, ADMSUB)
+  #if MANGRPS
+  			 || ngmatch(np->n_name, mangrps))
+--- 693,700 ----
+  			continue;
+  		case 'p':
+! 			pnews(ap->a_name);
+  			continue;
+  		case 'U':
+! 			if (ngmatch(np->n_name, admsub)
+  #if MANGRPS
+  			 || ngmatch(np->n_name, mangrps))
+***************
+*** 779,786 ****
+  			nextact = nextgroup;
+  			break;
+- 		case 'u':
+- 			unsubscribe(h.h_references);
+- 			nextact = next;
+- 			break;
+  		case 'N':			/* B compatible */
+  			if (!*arg) {
+--- 711,714 ----
+***************
+*** 806,809 ****
+--- 734,738 ----
+  			break;
+  		case 'x':
++ 			fflush(stdout);
+  			exit(0);
+  		case 'h':
+***************
+*** 887,922 ****
+  }
+  
+- /*
+-  * see if this is a followup we are ignoring
+-  */
+- bool
+- ureject(hp)
+- register header *hp;
+- {
+- 	register bool found;
+- 	register char *rp, *ids, c;
+- 	char *key[1];
+  
+- 	found = false;
+- 	rp = hp->h_references;
+- 	while (*rp && !found) {
+- 		if (ids = strpbrk(rp, " ,")) {
+- 			c = *ids;
+- 			*ids = '\0';
+- 		}
+- 		key[0] = rp;
+- 		found = (bool) (bsearch((char *) key, (char *) uflag, (unsigned) usize,
+- 		     sizeof(char *), strpcmp) != NIL(char));
+- 		if (ids)
+- 			*ids = c, rp = ids + 1;
+- 		else
+- 			break;
+- 		while (isspace(*rp) || *rp == ',')
+- 			rp++;
+- 	}
+- 	return found;
+- }
+- 
+- 
+  /*
+   * see if the article has links, if so have we seen it?
+--- 816,820 ----
+***************
+*** 964,969 ****
+  	register FILE	*f;
+  	register int c;
+! 	static char helppath[]	 = HELP;
+  
+  	if ((f = fopen(helppath, "r")) == NIL(FILE)) {
+  		(void) printf("Can't open %s\n", helppath);
+--- 862,868 ----
+  	register FILE	*f;
+  	register int c;
+! 	register char *helppath;
+  
++ 	helppath = ctlfile("readnews.help");
+  	if ((f = fopen(helppath, "r")) == NIL(FILE)) {
+  		(void) printf("Can't open %s\n", helppath);
+***************
+*** 976,1003 ****
+  
+  /*
+-  * cancel an article.
+-  * inews does permission checking.
+-  */
+- cancelarticle(hp)
+- header *hp;
+- {
+- 	char *argv[MAXARGV];
+- 
+- 	argv[0] = strrchr(postnews, '/') + 1;
+- 	argv[1] = "-c";		/* TODO: no such option in C news */
+- 	argv[2] = newstr2("cancel ", hp->h_messageid);
+- 	argv[3] = "-n";
+- 	argv[4] = hp->h_newsgroups;
+- 	if (hp->h_distribution) {
+- 		argv[5] = "-d";
+- 		argv[6] = hp->h_distribution;
+- 		argv[7] = NIL(char);
+- 	} else
+- 		argv[5] = NIL(char);
+- 	run(postnews, argv, true);
+- 	free(argv[2]);
+- }
+- 
+- /*
+   * reply to sender by mail
+   */
+--- 875,878 ----
+***************
+*** 1033,1065 ****
+  
+  
+- /*
+-  * mail to person
+-  */
+- /* ARGSUSED hp fname */
+- mail(hp, fname, person)
+- header *hp;
+- char *fname, *person;
+- {
+- 	char *argv[MAXARGV];
+- 	register int argc;
+  
+- 	argc = 0;
+- 	argv[argc++] = "mail";
+- #ifdef UNSWMAIL
+- 	argv[argc++] = "-i";
+- 	argv[argc++] = fname;
+- 	argv[argc++] = "-s";
+- 	argv[argc++] = hp->h_subject;
+- #endif
+- 	argv[argc++] = person;
+- 	argv[argc++] = NIL(char);
+- 
+- 	run(mailpath, argv, false);
+- }
+- 
+- 
+  /*
+   * generate correct headers for a followup article
+!  * then call inews.
+   */
+  followup(hp, fname)
+--- 908,915 ----
+  
+  
+  
+  /*
+   * generate correct headers for a followup article
+!  * then call postnews.
+   */
+  followup(hp, fname)
+***************
+*** 1067,1100 ****
+  char *fname;
+  {
+! 	register int argc;
+! 	char *argv[10];
+  
+! 	argc = 0;
+! 	argv[argc++] = strrchr(postnews, '/') + 1;
+! 	argv[argc++] = "-i";		/* TODO: what's this in B news? */
+! 	argv[argc++] = fname;
+! 	argv[argc++] = "-r";
+  	if (hp->h_references && hp->h_messageid)
+! 		argv[argc++] = newstr3(hp->h_references, " ", hp->h_messageid);
+  	else if (hp->h_messageid)
+! 		argv[argc++] = newstr(hp->h_messageid);
+! 	else
+! 		argc--;
+  
+! 	argv[argc++] = "-s";
+! 	if ((argv[argc++] = getsubject(hp)) == NIL(char))
+! 		return;
+  
+! 	argv[argc++] = "-n";
+! 	if (hp->h_followupto)
+! 		argv[argc++] = hp->h_followupto;
+! 	else
+! 		argv[argc++] = hp->h_newsgroups;
+! 	argv[argc++] = NIL(char);
+! 
+! 	run(postnews, argv, false);
+! 
+! 	if (argc == 10)
+! 		free(argv[4]);
+  }
+  
+--- 917,946 ----
+  char *fname;
+  {
+! 	char tmpf[50];
+! 	register FILE *fo;
+! 	char *s = getsubject(hp);
+  
+! 	if (s == NULL)
+! 		return;
+! 	(void) strcpy(tmpf, "/tmp/rfXXXXXX");
+! 	(void) mktemp(tmpf);
+! 	fo = fopen(tmpf, "w");
+! 	if (fo == NULL)
+! 		error("can't create `%s'", tmpf);
+! 	fprintf(fo, "Newsgroups: %s\n", (hp->h_followupto) ? hp->h_followupto :
+! 							hp->h_newsgroups);
+! 	fprintf(fo, "Subject: %s\n", s);
+! 	free(s);
+  	if (hp->h_references && hp->h_messageid)
+! 		fprintf(fo, "References: %s %s\n", hp->h_references, hp->h_messageid);
+  	else if (hp->h_messageid)
+! 		fprintf(fo, "References: %s\n", hp->h_messageid);
+! 	(void) fclose(fo);
+  
+! 	s = newstr3(binfile("inject/postnews"), " -h ", tmpf);
+! 	system(s);
+! 	free(s);
+  
+! 	(void) unlink(tmpf);
+  }
+  
+***************
+*** 1120,1124 ****
+  		return newstr2("Re: ", hp->h_subject);
+  	else
+! 		return hp->h_subject;
+  }
+  
+--- 966,970 ----
+  		return newstr2("Re: ", hp->h_subject);
+  	else
+! 		return newstr(hp->h_subject);
+  }
+  
+***************
+*** 1167,1180 ****
+   * call postnews
+   */
+! pnews(fname)
+! char *fname;
+  {
+! 	char *argv[MAXARGV];
+! 
+! 	argv[0] = strrchr(postnews, '/') + 1;
+! 	argv[1] = "-i";		/* TODO: what's this inews option? */
+! 	argv[2] = fname;
+! 	argv[3] = NIL(char);
+! 	run(postnews, argv, false);
+  }
+  
+--- 1013,1022 ----
+   * call postnews
+   */
+! pnews(group)
+! char *group;
+  {
+! 	register char *s = newstr3(binfile("inject/postnews"), " ", group);
+! 	system(s);
+! 	free(s);
+  }
+  
+***************
+*** 1222,1225 ****
+--- 1064,1068 ----
+  	while ((c = getc(f)) != EOF)
+  		(void) putc(c, sf);
++ 	(void) putc('\n', sf);
+  	(void) fclose(sf);
+  	fseek(f, pos, 0);
+***************
+*** 1227,1263 ****
+  
+  
+- /*
+-  * unsubscribe from all followup articles
+-  * on this topic
+-  */
+- unsubscribe(id)
+- char *id;
+- {
+- 	register char *s, c;
+  
+- 	if (!id || !*id) {
+- 		(void) printf("no references! (warning)\n");
+- 		return;
+- 	}
+- 	while (*id) {
+- 		if (s = strpbrk(id, " ,")) {
+- 			c = *s;
+- 			*s = '\0';
+- 		}
+- 		usize++;
+- 		uflag = (uflag ? (char **) myrealloc((char *) uflag, (int) sizeof(char
+- 		    *) * usize) : (char **) myalloc((int) sizeof(char *)));
+- 		uflag[usize - 1] = newstr(id);
+- 		if (s)
+- 			*s = c, id = s + 1;
+- 		else
+- 			break;
+- 		while (isspace(*id) || *id == ',')
+- 			id++;
+- 	}
+- 	qsort((char *)uflag, (unsigned)usize, sizeof(char *), strpcmp);
+- }
+- 
+- 
+  /*
+   * print an article, if it's long enough call page()
+--- 1070,1074 ----
+***************
+*** 1272,1280 ****
+  
+  	pos = ftell(f);
+! 	if (!pflag
+! #ifdef LINESHDRPRESENT
+! 	    && hp->h_lines && atoi(hp->h_lines) >= PAGESIZE - 4
+! #endif
+! 	    )
+  		page(f);
+  	else
+--- 1083,1087 ----
+  
+  	pos = ftell(f);
+! 	if (!pflag)
+  		page(f);
+  	else
+***************
+*** 1294,1309 ****
+  	register unsigned lineno;
+  	char lbuf[80];
+- 	struct sgttyb ttybuf;
+  
+- #ifdef USG
+- 	/* TODO: fill in USG code to turn off echo */
+- #else
+- 	gtty(fileno(stdin), &ttybuf);
+- 	if (ttybuf.sg_flags & ECHO) {
+- 		ttybuf.sg_flags &= ~ECHO;
+- 		stty(fileno(stdin), &ttybuf);
+- 		ttybuf.sg_flags |= ECHO;
+- 	}
+- #endif
+  	lineno = 1;
+  	while (!interrupt) {
+--- 1101,1105 ----
+***************
+*** 1318,1324 ****
+  		if (interrupt)
+  			break;
+- #ifdef moremess
+- 		(void) printf(moremess);
+- #endif
+  		if (fflush(stdout) == EOF)
+  			break;
+--- 1114,1117 ----
+***************
+*** 1325,1333 ****
+  		if (read(fileno(stdin), lbuf, sizeof(lbuf)) <= 0)
+  			break;
+- #ifdef moremess
+- 		(void) printf("\r%*s\r", sizeof(moremess), " ");
+- #else
+- 		putchar('\n');
+- #endif
+  		lineno = 0;
+  	}
+--- 1118,1121 ----
+***************
+*** 1335,1345 ****
+  		(void) putchar('\n');
+  	interrupt = false;
+! fastexit:
+! #ifdef USG
+! 	;	/* TODO: fill in USG code to turn echo on */
+! #else
+! 	if (ttybuf.sg_flags & ECHO)
+! 		stty(fileno(stdin), &ttybuf);
+! #endif
+  }
+  
+--- 1123,1127 ----
+  		(void) putchar('\n');
+  	interrupt = false;
+! fastexit:	;
+  }
+  
+***************
+*** 1351,1354 ****
+--- 1133,1181 ----
+  	(void) fprintf(stderr, s, a0, a1, a2, a3);
+  	(void) fprintf(stderr, "\n");
++ 	fflush(stdout);		/* just on principle */
+  	exit(1);
++ }
++ 
++ /*
++  - unprivileged - no-op needed to keep the pathname stuff happy
++  */
++ void
++ unprivileged(reason)
++ char *reason;
++ {
++ }
++ 
++ /*
++  - getctl - pick up control file for subscriptions etc.
++  */
++ getctl()
++ {
++ 	register FILE *f;
++ 	register char *fname;
++ 	char line[BUFLEN];
++ 	register char *p;
++ 
++ 	fname = ctlfile("readnews.ctl");
++ 	f = fopen(fname, "r");
++ 	if (f == NULL)
++ 		return;
++ 
++ 	while (fgets(line, sizeof(line), f) != NULL) {
++ 		line[strlen(line)-1] = '\0';	/* dispose of newline */
++ 		p = strchr(line, '\t');
++ 		if (p == NULL)
++ 			p = strchr(line, ' ');
++ 		if (line[0] != '#' && p != NULL) {
++ 			while (*p == ' ' || *p == '\t')
++ 				*p++ = '\0';
++ 			if (strcmp(line, "defsub") == 0)
++ 				(void) strcpy(dfltsub, p);
++ 			else if (strcmp(line, "mustsub") == 0)
++ 				(void) strcpy(admsub, p);
++ 			else if (strcmp(line, "mailvia") == 0)
++ 				(void) strcpy(mailvia, p);
++ 		}
++ 	}
++ 
++ 	(void) fclose(f);
+  }
+
+Files that are new:
+
+new rna/bsearch.c (patch can't create, so diff against null):
+Index: rna/bsearch.c
+*** cnpatch/old/rna/bsearch.c	Sat Dec  1 20:55:34 1990
+--- rna/bsearch.c	Fri Sep 15 02:41:45 1989
+***************
+*** 0 ****
+--- 1,34 ----
++ /*LINTLIBRARY*/
++ /*
++  * Binary search algorithm, generalized from Knuth (6.2.1) Algorithm B.
++  *
++  * Written by J. S. Rugaber; rewritten by L. Rosler, Dept. 45175, August, 1981.
++  */
++ 
++ typedef char *POINTER;
++ 
++ POINTER
++ bsearch(key, base, nel, width, compar)
++ POINTER	key;			/* Key to be located */
++ POINTER	base;			/* Beginning of table */
++ unsigned nel;			/* Number of elements in the table */
++ unsigned width;			/* Width of an element (bytes) */
++ int	(*compar)();		/* Comparison function */
++ {
++ 	int two_width = width + width;
++ 	POINTER last = base + width * (nel - 1); /* Last element in table */
++ 
++ 	while (last >= base) {
++ 
++ 		register POINTER p = base + width * ((last - base)/two_width);
++ 		register int res = (*compar)(key, p);
++ 
++ 		if (res == 0)
++ 			return (p);	/* Key found */
++ 		if (res < 0)
++ 			last = p - width;
++ 		else
++ 			base = p + width;
++ 	}
++ 	return ((POINTER) 0);		/* Key not found */
++ }
+
+
+end of patch 1-Dec-1990

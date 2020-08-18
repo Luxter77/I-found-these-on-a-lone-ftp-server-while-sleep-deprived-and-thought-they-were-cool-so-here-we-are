@@ -1,0 +1,1849 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 13-Dec-1990 (corrected)
+
+Third of the catching-up patches, including a couple of files referenced
+by stuff in the second patch.  This one is mostly work in the various
+auxiliary systems.  The "batcher" program, or whatever is specified as
+batcher in batchparms, is now run in NEWSARTS rather than in out.going/xxx,
+while simplifies various things but just might break some custom batchers.
+(The -d option is no more, as a side effect.)  There is a NEWSSITEDIR
+variable provided to batchers that really want to look in out.going/xxx.
+Expire understands "never" as a date in explist.  Use of the new split()
+function speeds up expire.  Better handling of some classes of errors in
+expire, including an attempt to deal with null message-IDs.  Mkhistory
+sorts its output by arrival date for NNTP's benefit.  Rnews.immed and
+rnews.batch have been unified into a single rnews, which looks for a
+flag file NEWSCTL/rnews.newsrun to tell it whether to fire up a newsrun
+or not, and when space is too tight to receive news, looks for another
+flag NEWSCTL/rnews.stall to decide whether to throw it away or stall.
+Newsrun now has a -h option to put processed batches into a hold
+directory, for debugging, and also nulls out the compress output if
+compress dies (in case compress has left trash).  New program, addmissing,
+which sweeps the news tree for articles not in history and adds them --
+this is both quicker and better than rebuilding the history database from
+scratch.  New programs, histfrom and newsfrom, useful when one of your
+downstream sites says "uh... I lost everything from Tuesday to Thursday,
+could you re-send?".  Some status reports from newsdaily now do ls -l
+rather than just ls.  Various improvements in documentation, notably a
+checknews(1) manual page.
+
+start of patch 13-Dec-1990
+(suggested archive name: `pch13Dec90.Z')
+this should be run with   patch -p0 <thisfile
+
+Please do the following (there is no easy way we can convince
+patch to do this automatically):
+rm input/rnews.batch
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+*** PATCHDATES.old	Thu Dec 13 13:23:06 1990
+--- PATCHDATES	Thu Dec 13 13:23:06 1990
+***************
+*** 1,20 ****
+--- 1,21 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
++ 13-Dec-1990
+
+Changed files, if any:
+
+*** cnpatch/old/batch/Makefile	Thu Dec 13 13:23:16 1990
+--- batch/Makefile	Tue Dec 11 02:05:18 1990
+***************
+*** 97,103 ****
+  	echo 'ln $$* >/dev/null 2>/dev/null' >bin/newslock
+  	echo 'cat' >bin/munch
+! 	echo '( echo --- ; cat ) >>output' >bin/xmit
+  	echo 'echo 2 ; cat' >bin/munch2
+! 	echo '( echo +++ ; cat ) >>output' >bin/xmit2
+  	echo 'echo 4' >bin/queuelen
+  	echo 'echo 99' >bin/spacefor
+--- 97,103 ----
+  	echo 'ln $$* >/dev/null 2>/dev/null' >bin/newslock
+  	echo 'cat' >bin/munch
+! 	echo "( echo --- ; cat ) >>`pwd`/output" >bin/xmit
+  	echo 'echo 2 ; cat' >bin/munch2
+! 	echo "( echo +++ ; cat ) >>`pwd`/output2" >bin/xmit2
+  	echo 'echo 4' >bin/queuelen
+  	echo 'echo 99' >bin/spacefor
+***************
+*** 132,139 ****
+  	( echo --- ; cat test.temp ) >>test.out1
+  	cmp test.good test.out
+- 	./batcher -d `pwd` togo >test.out
+- 	cmp test.good test.out
+  	rm test.out togo
+! 	rm -rf out.going batchparms test.out test.good
+  	mkdir out.going out.going/foo out.going/bar
+  	echo 'foo	500	10	batcher	munch	xmit' >batchparms
+--- 132,137 ----
+  	( echo --- ; cat test.temp ) >>test.out1
+  	cmp test.good test.out
+  	rm test.out togo
+! 	rm -rf out.going batchparms test.out test.good output output2
+  	mkdir out.going out.going/foo out.going/bar
+  	echo 'foo	500	10	batcher	munch	xmit' >batchparms
+***************
+*** 150,155 ****
+  	>batchlog
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./sendbatches
+! 	test ! -s out.going/foo/output ;
+! 	test ! -s out.going/bar/output ;
+  	echo `pwd`/test.1 200 >out.going/foo/togo
+  	echo `pwd`/test.2 200 >>out.going/foo/togo
+--- 148,153 ----
+  	>batchlog
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./sendbatches
+! 	test ! -s output ;
+! 	test ! -s output2 ;
+  	echo `pwd`/test.1 200 >out.going/foo/togo
+  	echo `pwd`/test.2 200 >>out.going/foo/togo
+***************
+*** 160,165 ****
+  	echo `pwd`/test.3 4000 >test.left
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./sendbatches
+! 	cmp out.going/foo/output test.out1
+! 	cmp out.going/bar/output test.out2
+  	test ! -s out.going/foo/togo ;
+  	test ! -s out.going/bar/togo ;
+--- 158,163 ----
+  	echo `pwd`/test.3 4000 >test.left
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./sendbatches
+! 	cmp output test.out1
+! 	cmp output2 test.out2
+  	test ! -s out.going/foo/togo ;
+  	test ! -s out.going/bar/togo ;
+***************
+*** 171,174 ****
+--- 169,173 ----
+  	cmp test.good test.log
+  	rm -rf test.* togo out.going bin batchparms batchlog batchlog.*
++ 	rm -f output output2
+  
+  clean:
+
+*** cnpatch/old/batch/batcher.c	Thu Dec 13 13:23:21 1990
+--- batch/batcher.c	Sun Oct 14 01:01:36 1990
+***************
+*** 2,14 ****
+   * batcher - send a bunch of news articles as an unbatch script
+   *
+!  * Usage: batcher [-d dir] listfile
+   *
+   *	where listfile is a file containing a list, one per line, of
+!  *	full pathnames of files containing articles.  Only the first
+   *	field of each line is looked at, so there can be more if needed
+!  *	for other things.
+!  *
+!  *	The -d option specifies a directory where most articles are
+!  *	likely to be; the program chdirs there to speed things up.
+   */
+  
+--- 2,13 ----
+   * batcher - send a bunch of news articles as an unbatch script
+   *
+!  * Usage: batcher listfile
+   *
+   *	where listfile is a file containing a list, one per line, of
+!  *	names of files containing articles.  Only the first
+   *	field of each line is looked at, so there can be more if needed
+!  *	for other things.  Non-absolute pathnames are understood to lie
+!  *	under the current directory; chdiring to the right place is the
+!  *	parent's problem.
+   */
+  
+***************
+*** 27,32 ****
+  char *progname;
+  
+- char *dir = NULL;		/* NULL means don't bother chdiring. */
+- int dirlen;			/* strlen(dir) */
+  int debug = 0;			/* Debugging? */
+  
+--- 26,29 ----
+***************
+*** 44,53 ****
+  
+  	progname = argv[0];
+! 	while ((c = getopt(argc, argv, "d:x")) != EOF)
+  		switch (c) {
+- 		case 'd':	/* Directory containing many articles. */
+- 			dir = optarg;
+- 			dirlen = strlen(dir);
+- 			break;
+  		case 'x':	/* Debugging. */
+  			debug++;
+--- 41,46 ----
+  
+  	progname = argv[0];
+! 	while ((c = getopt(argc, argv, "x")) != EOF)
+  		switch (c) {
+  		case 'x':	/* Debugging. */
+  			debug++;
+***************
+*** 60,64 ****
+  	if (errflg || optind != argc-1) {
+  		(void) fprintf(stderr,
+! 			"Usage: batcher [-d dir] listfile\n");
+  		exit(2);
+  	}
+--- 53,57 ----
+  	if (errflg || optind != argc-1) {
+  		(void) fprintf(stderr,
+! 			"Usage: batcher listfile\n");
+  		exit(2);
+  	}
+***************
+*** 68,75 ****
+  		error("unable to open `%s'", argv[optind]);
+  
+- 	if (dir != NULL)
+- 		if (chdir(dir) < 0)
+- 			error("can't chdir to `%s'", dir);
+- 
+  	while ((article = fgetms(list)) != NULL) {
+  		process(article);
+--- 61,64 ----
+***************
+*** 86,104 ****
+   */
+  process(article)
+! char *article;
+  {
+- 	char *p;
+  	register int artfile;
+  	register int count;
+  	struct stat sbuf;
+  
+! 	*(article + strcspn(article, "\n\t ")) = '\0';
+! 	if (dir != NULL && strncmp(article, dir, dirlen) == 0 &&
+! 			article[dirlen] == '/')
+! 		p = article+dirlen+1;
+! 	else
+! 		p = article;
+  
+! 	artfile = open(p, 0);
+  	if (artfile < 0) {
+  		/*
+--- 75,94 ----
+   */
+  process(article)
+! register char *article;
+  {
+  	register int artfile;
+  	register int count;
+  	struct stat sbuf;
++ 	register char *endp;
+  
+! 	endp = strchr(article, '\t');
+! 	if (endp == NULL)
+! 		endp = strchr(article, ' ');
+! 	if (endp == NULL)
+! 		endp = strchr(article, '\n');
+! 	if (endp != NULL)
+! 		*endp = '\0';
+  
+! 	artfile = open(article, 0);
+  	if (artfile < 0) {
+  		/*
+***************
+*** 108,112 ****
+  		 */
+  		if (debug)
+! 			warning("can't find `%s'", p);
+  		return;
+  	}
+--- 98,102 ----
+  		 */
+  		if (debug)
+! 			warning("can't find `%s'", article);
+  		return;
+  	}
+***************
+*** 119,127 ****
+  	}
+  
+! 	(void) printf("#! rnews %ld\n", sbuf.st_size);
+! 	fflush(stdout);
+! 
+  	while ((count = read(artfile, buffer, sizeof buffer)) > 0)
+! 		if (write(1, buffer, count) != count)
+  			error("write failure in `%s'", article);
+  	if (count < 0)
+--- 109,115 ----
+  	}
+  
+! 	printf("#! rnews %ld\n", sbuf.st_size);
+  	while ((count = read(artfile, buffer, sizeof buffer)) > 0)
+! 		if (fwrite(buffer, sizeof(char), count, stdout) != count)
+  			error("write failure in `%s'", article);
+  	if (count < 0)
+
+*** cnpatch/old/batch/batchih	Thu Dec 13 13:23:28 1990
+--- batch/batchih	Sun Oct 14 00:47:08 1990
+***************
+*** 8,18 ****
+  umask $NEWSUMASK
+  
+- case "$1"
+- in
+- 	-d)
+- 	shift ; shift		# ignore -d option
+- 	;;
+- esac
+- 
+  dest=`expr "$NEWSSITE" : "^\(.*\)\.[^.]*$"`
+  case "$dest"
+--- 8,11 ----
+
+*** cnpatch/old/batch/sendbatches	Thu Dec 13 13:23:40 1990
+--- batch/sendbatches	Wed Nov  7 16:45:58 1990
+***************
+*** 78,81 ****
+--- 78,82 ----
+  	PATH=$here:$origpath ; export PATH
+  	NEWSSITE=$sys ; export NEWSSITE		# For site-specific programs.
++ 	NEWSSITEDIR=$here ; export NEWSSITEDIR	# ditto
+  
+  	# Is there anything to do?
+***************
+*** 145,149 ****
+  		for f in $them
+  		do
+! 			( $batcher -d $NEWSARTS $f | $muncher |
+  						$sender $sys ) >/tmp/nb$$ 2>&1
+  			if test $? -eq 0 -a ! -s /tmp/nb$$
+--- 146,150 ----
+  		for f in $them
+  		do
+! 			( ( cd $NEWSARTS ; $batcher $here/$f ) | $muncher |
+  						$sender $sys ) >/tmp/nb$$ 2>&1
+  			if test $? -eq 0 -a ! -s /tmp/nb$$
+
+*** cnpatch/old/expire/expire.c	Thu Dec 13 13:23:54 1990
+--- expire/expire.c	Tue Dec 11 13:38:53 1990
+***************
+*** 11,14 ****
+--- 11,15 ----
+  #include <string.h>
+  #include <errno.h>
++ #include "fixerrno.h"
+  #include <time.h>
+  #include <signal.h>
+***************
+*** 23,30 ****
+  #include "dbz.h"
+  
+  #ifndef EPOCH
+! #define	EPOCH	((time_t)0)
+  #endif
+! 
+  #define	DAY	((double)24*60*60)
+  
+--- 24,34 ----
+  #include "dbz.h"
+  
++ /* basic parameters of time, used in back() (and debugging code) */
+  #ifndef EPOCH
+! #define	EPOCH	((time_t)0)	/* the origin of time_t */
+  #endif
+! #ifndef FOREVER
+! #define	FOREVER	1e37		/* FOREVER > max value of time_t */
+! #endif
+  #define	DAY	((double)24*60*60)
+  
+***************
+*** 109,113 ****
+  char *progname;
+  
+- extern int errno;
+  extern long atol();
+  extern double atof();
+--- 113,116 ----
+***************
+*** 134,137 ****
+--- 137,141 ----
+  char *doarticle();
+  void warning();
++ void complain();
+  void printstuff();
+  void expire();
+***************
+*** 282,286 ****
+  
+  	errno = 0;
+! 	nf = split(ctl, field, 4, "\t ");
+  	if (nf != 4)
+  		fail("control line `%.20s...' hasn't got 4 fields", ctl);
+--- 286,290 ----
+  
+  	errno = 0;
+! 	nf = split(ctl, field, 4, "");
+  	if (nf != 4)
+  		fail("control line `%.20s...' hasn't got 4 fields", ctl);
+***************
+*** 308,327 ****
+  	switch (ndates) {
+  	case 3:
+! 		ct->retain = back(atof(dates[0]));
+! 		ct->normal = back(atof(dates[1]));
+! 		ct->purge = back(atof(dates[2]));
+  		break;
+  	case 2:
+! 		ct->retain = (bounds != NULL) ? bounds->retain : back(0.0);
+! 		ct->normal = back(atof(dates[0]));
+! 		ct->purge = back(atof(dates[1]));
+  		break;
+  	case 1:
+! 		ct->retain = (bounds != NULL) ? bounds->retain : back(0.0);
+! 		ct->normal = back(atof(dates[0]));
+! 		ct->purge = (bounds != NULL) ? bounds->purge : EPOCH;
+  		break;
+  	default:
+! 		fail("date processing foulup in `%s'", field[1]);
+  		/* NOTREACHED */
+  		break;
+--- 312,331 ----
+  	switch (ndates) {
+  	case 3:
+! 		ct->retain = back(dates[0]);
+! 		ct->normal = back(dates[1]);
+! 		ct->purge = back(dates[2]);
+  		break;
+  	case 2:
+! 		ct->retain = (bounds != NULL) ? bounds->retain : back("0");
+! 		ct->normal = back(dates[0]);
+! 		ct->purge = back(dates[1]);
+  		break;
+  	case 1:
+! 		ct->retain = (bounds != NULL) ? bounds->retain : back("0");
+! 		ct->normal = back(dates[0]);
+! 		ct->purge = (bounds != NULL) ? bounds->purge : back("never");
+  		break;
+  	default:
+! 		fail("invalid date specification `%s'", field[2]);
+  		/* NOTREACHED */
+  		break;
+***************
+*** 373,377 ****
+  	af = eufopen(afile, "r");
+  	while ((line = fgetms(af)) != NULL) {
+! 		nf = split(line, field, NFACT, " \t");
+  		if (nf != NFACT)
+  			fail("wrong number of fields in active for `%s'", field[0]);
+--- 377,381 ----
+  	af = eufopen(afile, "r");
+  	while ((line = fgetms(af)) != NULL) {
+! 		nf = split(line, field, NFACT, "");
+  		if (nf != NFACT)
+  			fail("wrong number of fields in active for `%s'", field[0]);
+***************
+*** 550,557 ****
+  	if (nf != 3 && nf != 2) {
+  		free(work);
+! 		errno = 0;
+! 		warning("wrong number of fields in `%.40s...'", line);
+  		return(line);	/* leaving the line in the new history file */
+  	}
+  	if (nf == 2)
+  		field[2] = NULL;
+--- 554,569 ----
+  	if (nf != 3 && nf != 2) {
+  		free(work);
+! 		complain("wrong number of fields in history `%.40s...'", line);
+  		return(line);	/* leaving the line in the new history file */
+  	}
++ 	if (*field[0] == '\0') {
++ 		complain("no message-ID in history `%.40s...' -- expiring", line);
++ 		if (strlen(field[1]) < 3) {
++ 			complain("\toops -- can't -- fix manually", "");
++ 			free(work);
++ 			return(line);	/* leaving the line in the new history file */
++ 		} else
++ 			sprintf(field[1], "0%c0", *subsep);
++ 	}
+  	if (nf == 2)
+  		field[2] = NULL;
+***************
+*** 564,570 ****
+  		expdate = readdate(subfield[1]);
+  		if (expdate == NODATE && getdgrump) {
+! 			errno = 0;
+! 			warning("bad expiry date in `%.40s...',", line);
+! 			warning(" specifically, `%s' -- ignored", subfield[1]);
+  		}
+  	}
+--- 576,581 ----
+  		expdate = readdate(subfield[1]);
+  		if (expdate == NODATE && getdgrump) {
+! 			complain("bad expiry date in `%.40s...',", line);
+! 			complain(" specifically, `%s' -- ignored", subfield[1]);
+  		}
+  	}
+***************
+*** 572,577 ****
+  	if (recdate == NODATE) {
+  		free(work);
+! 		errno = 0;
+! 		warning("bad arrival date in `%.40s...' -- fix by hand", line);
+  		return(line);
+  	}
+--- 583,587 ----
+  	if (recdate == NODATE) {
+  		free(work);
+! 		complain("bad arrival date in `%.40s...' -- fix by hand", line);
+  		return(line);
+  	}
+***************
+*** 1005,1031 ****
+  
+  /*
+-  - split - divide a line into fields, like awk split()
+-  */
+- int				/* number of fields */
+- split(line, fields, nfmax, sep)
+- char *line;
+- char *fields[];
+- int nfmax;
+- char *sep;
+- {
+- 	register int i;
+- 	register char *p;
+- 
+- 	i = 0;
+- 	for (p = strtok(line, sep); p != NULL; p = strtok((char *)NULL, sep)) {
+- 		if (i < nfmax)
+- 			fields[i] = p;
+- 		i++;
+- 	}
+- 
+- 	return(i);
+- }
+- 
+- /*
+   - eufopen - fopen, with fail if doesn't succeed
+   */
+--- 1015,1018 ----
+***************
+*** 1098,1107 ****
+   */
+  time_t
+! back(ndays)
+! double ndays;
+  {
+! 	if (ndays > now / DAY)	/* past beginning of time */
+! 		return((time_t)0);
+! 	return(now - ndays*DAY);
+  }
+  
+--- 1085,1101 ----
+   */
+  time_t
+! back(ndaystr)
+! char *ndaystr;
+  {
+! 	register double goback;		/* how far before now it is */
+! 
+! 	if (STREQ(ndaystr, "never"))
+! 		goback = FOREVER;	/* > now-EPOCH */
+! 	else
+! 		goback = atof(ndaystr) * DAY;
+! 
+! 	if (goback > now-EPOCH)		/* before EPOCH */
+! 		return(EPOCH);
+! 	return((time_t)(now - goback));
+  }
+  
+
+*** cnpatch/old/expire/mkhistory	Thu Dec 13 13:24:12 1990
+--- expire/mkhistory	Mon Dec 10 18:16:40 1990
+***************
+*** 30,34 ****
+  
+  cd $NEWSARTS
+! find `ls | egrep -v '\.'` -type f -name '[0-9]*' -print | histinfo | sort |
+  	awk -f $NEWSBIN/expire/histdups | histslash >$NEWSCTL/history.n
+  
+--- 30,35 ----
+  
+  cd $NEWSARTS
+! find `ls | egrep -v '\.'` -type f -name '[0-9]*' -print | histinfo |
+! 	sort -t'	' +1n |
+  	awk -f $NEWSBIN/expire/histdups | histslash >$NEWSCTL/history.n
+  
+
+*** cnpatch/old/expire/updatemin.c	Thu Dec 13 13:24:18 1990
+--- expire/updatemin.c	Sat Dec  8 23:19:41 1990
+***************
+*** 7,10 ****
+--- 7,12 ----
+  #include <string.h>
+  #include <signal.h>
++ #include <errno.h>
++ #include "fixerrno.h"
+  
+  #ifndef BERKDIR
+***************
+*** 71,75 ****
+  	cd(fullartfile((char *)NULL));
+  	while ((line = fgetms(a)) != NULL) {
+! 		nf = split(line, field, NF, " \t\n");
+  		if (nf != NF)
+  			nfail("bad number of fields in `%s ...'", field[0]);
+--- 73,77 ----
+  	cd(fullartfile((char *)NULL));
+  	while ((line = fgetms(a)) != NULL) {
+! 		nf = split(line, field, NF, "");
+  		if (nf != NF)
+  			nfail("bad number of fields in `%s ...'", field[0]);
+***************
+*** 138,164 ****
+  
+  	return(min);
+- }
+- 
+- /*
+-  - split - divide a line into fields, like awk split()
+-  */
+- int				/* number of fields */
+- split(line, fields, nfmax, sep)
+- char *line;
+- char *fields[];
+- int nfmax;
+- char *sep;
+- {
+- 	register int i;
+- 	register char *p;
+- 
+- 	i = 0;
+- 	for (p = strtok(line, sep); p != NULL; p = strtok((char *)NULL, sep)) {
+- 		if (i < nfmax)
+- 			fields[i] = p;
+- 		i++;
+- 	}
+- 
+- 	return(i);
+  }
+  
+--- 140,143 ----
+
+*** cnpatch/old/input/Makefile	Thu Dec 13 13:24:21 1990
+--- input/Makefile	Mon Sep 10 18:26:05 1990
+***************
+*** 1,9 ****
+- # You get your choice of rnews.immed or rnews.batch; rnews.immed tries
+- # to start processing immediately, while rnews.batch waits for somebody
+- # else (cron) to do it.  Running rnews.immed might, perhaps, be reasonable
+- # if your news load is light and you are wildly impatient about processing
+- # incoming news.  Otherwise, leave this alone.
+- RNEWS = rnews.batch
+- 
+  DEFINES =
+  COPTS = -O
+--- 1,2 ----
+***************
+*** 21,26 ****
+  # workaround for System V make bug
+  SHELL = /bin/sh
+- DTR = README Makefile newsrun newsrunning newsspool.c c7decode.c rnews.batch \
+- 	rnews.8 bdecode.c recenews recpnews
+  
+  all:	$(THEM)
+--- 14,17 ----
+***************
+*** 96,108 ****
+  	echo 'here is a phony third batch' >>$@
+  
+- rnews.immed:	rnews.batch
+- 	sed '/qqq/s/newsspool/& -i/' rnews.batch >$@
+- 
+- rnews:	rnews.batch rnews.immed
+- 	cp $(RNEWS) rnews
+- 	chmod +x rnews
+- 
+  setup:	all
+! 	chmod +x rnews.batch rnews.immed
+  	rm -rf bin
+  	mkdir bin
+--- 87,92 ----
+  	echo 'here is a phony third batch' >>$@
+  
+  setup:	all
+! 	chmod +x rnews
+  	rm -rf bin
+  	mkdir bin
+***************
+*** 121,131 ****
+  r:	all test.1 test.2 test.3 test.3c test.out setup
+  	chmod +x $(THEM)
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews.batch <test.1
+  	cmp in.coming/* test.1
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews.batch <test.2
+  	sed 1d test.2 >tmp.2
+  	cmp `ls -t in.coming | sed -n '1s;^;in.coming/;p'` tmp.2
+  	rm tmp.2
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews.batch <test.3
+  	cmp `ls -t in.coming | sed -n '1s;^;in.coming/;p'` test.3c
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./newsrunning off
+--- 105,115 ----
+  r:	all test.1 test.2 test.3 test.3c test.out setup
+  	chmod +x $(THEM)
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.1
+  	cmp in.coming/* test.1
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.2
+  	sed 1d test.2 >tmp.2
+  	cmp `ls -t in.coming | sed -n '1s;^;in.coming/;p'` tmp.2
+  	rm tmp.2
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.3
+  	cmp `ls -t in.coming | sed -n '1s;^;in.coming/;p'` test.3c
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./newsrunning off
+***************
+*** 138,144 ****
+  	test " `echo in.coming/*`" = ' in.coming/bad' ;
+  	rm tmp.1
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews.batch <test.1
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews.batch <test.2
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` NEWSBIN=`pwd`/bin ./rnews.immed <test.3
+  	cmp tmp.1 test.out
+  	test " `echo in.coming/*`" = ' in.coming/bad' ;
+--- 122,129 ----
+  	test " `echo in.coming/*`" = ' in.coming/bad' ;
+  	rm tmp.1
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.1
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.2
+! 	echo >rnews.newsrun
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` NEWSBIN=`pwd`/bin ./rnews <test.3
+  	cmp tmp.1 test.out
+  	test " `echo in.coming/*`" = ' in.coming/bad' ;
+***************
+*** 147,154 ****
+  
+  clean:
+! 	rm -f *.o newsspool c7decode tmp.? test.* dtr lint rnews rnews.immed
+  	rm -f bdecode
+  	rm -rf in.coming bin
+- 
+- dtr:	$(DTR)
+- 	makedtr $(DTR) >dtr
+--- 132,136 ----
+  
+  clean:
+! 	rm -f *.o newsspool c7decode tmp.? test.* dtr lint rnews.newsrun
+  	rm -f bdecode
+  	rm -rf in.coming bin
+
+*** cnpatch/old/input/README	Thu Dec 13 13:24:24 1990
+--- input/README	Mon Sep 10 19:00:14 1990
+***************
+*** 6,14 ****
+  the relay subsystem for processing.  Newsrunning can be used to turn this
+  function on and off if you want to avoid news processing during busy hours.
+! 
+! Using rnews.immed instead of rnews.batch as rnews will arrange for newsrun
+! to be run after each newsspool -- this is expensive but cuts down latency.
+! If you've got a fast machine and a light newsfeed and totally lack patience,
+! like Geoff :-), this might be a good idea; otherwise, no.
+  
+  "make r" builds everything and runs a full regression test on most everything.
+--- 6,11 ----
+  the relay subsystem for processing.  Newsrunning can be used to turn this
+  function on and off if you want to avoid news processing during busy hours.
+! There is a configuration option to arrange for newsrun to be run after
+! each newsspool -- this is expensive but cuts down latency.
+  
+  "make r" builds everything and runs a full regression test on most everything.
+
+*** cnpatch/old/input/newsrun	Thu Dec 13 13:24:28 1990
+--- input/newsrun	Tue Sep 18 16:20:54 1990
+***************
+*** 8,11 ****
+--- 8,16 ----
+  umask $NEWSUMASK
+  
++ hold=
++ case "$1" in
++ -h)	hold=y	;;
++ esac
++ 
+  here="$NEWSARTS/in.coming"
+  cd $here
+***************
+*** 86,89 ****
+--- 91,100 ----
+  		fi
+  
++ 		# Save a copy in hold if requested.
++ 		if test " $hold" = " y" -a -d hold
++ 		then
++ 			ln $f hold/$f
++ 		fi
++ 
+  		# Decompress if necessary.  People who get lots of
+  		# uncompressed batches and never use c7 encoding might
+***************
+*** 97,100 ****
+--- 108,112 ----
+  			: okay
+  		else
++ 			>$text		# compress might have left garbage
+  			text=$f
+  		fi
+
+*** cnpatch/old/input/newsspool.c	Thu Dec 13 13:24:36 1990
+--- input/newsspool.c	Sun Oct 28 02:18:58 1990
+***************
+*** 4,8 ****
+   * The -i option relies on the parent setting (and exporting) $PATH.
+   *
+!  * $Log$
+   */
+  
+--- 4,8 ----
+   * The -i option relies on the parent setting (and exporting) $PATH.
+   *
+!  * -Log-
+   */
+  
+***************
+*** 15,18 ****
+--- 12,19 ----
+  #include <string.h>
+  #include <errno.h>
++ #include "fixerrno.h"
++ #ifndef EEXIST
++ #define	EEXIST	0
++ #endif
+  #include "libc.h"
+  #include "news.h"
+***************
+*** 198,202 ****
+  	register int ntries;
+  	time_t now;
+- 	extern int errno;
+  
+  	if (nfclose(f) == EOF)
+--- 199,202 ----
+
+*** cnpatch/old/man/expire.8	Thu Dec 13 13:24:50 1990
+--- man/expire.8	Sun Oct 28 02:33:45 1990
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH EXPIRE 8 "12 May 1990"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH EXPIRE 8 "28 Oct 1990"
+  .BY "C News"
+  .SH NAME
+***************
+*** 305,306 ****
+--- 305,312 ----
+  Protection against old articles reappearing is thus somewhat limited for
+  a while after the history file is rebuilt.
++ .PP
++ .I Expire
++ uses
++ .IR access (2)
++ to test for the presence of archiving directories,
++ which can cause anomalies if it is run setuid (normally it's not).
+
+*** cnpatch/old/man/news.5	Thu Dec 13 13:24:56 1990
+--- man/news.5	Fri Sep 14 11:29:05 1990
+***************
+*** 29,33 ****
+  .LP
+  ..
+! .TH NEWS 5 "31 Aug 1990"
+  .BY "C News"
+  .SH NAME
+--- 29,33 ----
+  .LP
+  ..
+! .TH NEWS 5 "12 Sept 1990"
+  .BY "C News"
+  .SH NAME
+***************
+*** 116,120 ****
+  Organization: Bell Labs, Murray Hill
+  .sp 0.3
+! The body of the article comes here, after a blank line.
+  .Ee
+  A
+--- 116,120 ----
+  Organization: Bell Labs, Murray Hill
+  .sp 0.3
+! The body of the article comes here, after an empty line.
+  .Ee
+  A
+***************
+*** 169,173 ****
+  .B #
+  as the first character in a line denotes a comment.
+! Blank lines are ignored.
+  A logical line may be continued to the next physical line by
+  putting a
+--- 169,173 ----
+  .B #
+  as the first character in a line denotes a comment.
+! Empty lines are ignored.
+  A logical line may be continued to the next physical line by
+  putting a
+
+*** cnpatch/old/man/newsbatch.8	Thu Dec 13 13:25:08 1990
+--- man/newsbatch.8	Wed Nov  7 16:48:06 1990
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH NEWSBATCH 8 "12 May 1990"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH NEWSBATCH 8 "7 Nov 1990"
+  .BY "C News"
+  .SH NAME
+***************
+*** 31,52 ****
+  .br
+  .B \&.../batcher
+- [
+- .B \-d
+- directory
+- ]
+  listfile
+  .br
+  .B \&.../batchih
+- [
+- .B \-d
+- directory
+- ]
+  listfile
+  .br
+  .B \&.../batchsm
+- [
+- .B \-d
+- directory
+- ]
+  listfile
+  .br
+--- 31,40 ----
+***************
+*** 117,121 ****
+  be appended to a \fItogo\fR file in its \fIsite\fR directory.
+  The batcher expects the lines in \fItogo\fR to have two fields, a filename
+! (as a full pathname) of an article and its size in bytes.
+  A missing size field is arbitrarily assumed to be a default average.
+  .PP
+--- 105,110 ----
+  be appended to a \fItogo\fR file in its \fIsite\fR directory.
+  The batcher expects the lines in \fItogo\fR to have two fields, a filename
+! (as a full pathname, or relative to \fI\*a\fR)
+! of an article and its size in bytes.
+  A missing size field is arbitrarily assumed to be a default average.
+  .PP
+***************
+*** 126,132 ****
+  This permits per-site and per-news-database overrides of the default
+  behaviors.
+! \fISendbatches\fR provides all these programs with an environment
+! variable \fBNEWSSITE\fR, containing the name of the site that batches
+! are being prepared for, in case this is useful in customization.
+  .PP
+  The names of most of the auxiliary programs, and some other parameters,
+--- 115,124 ----
+  This permits per-site and per-news-database overrides of the default
+  behaviors.
+! \fISendbatches\fR provides all these programs with environment
+! variables \fBNEWSSITE\fR, containing the name of the site that batches
+! are being prepared for,
+! and \fBNEWSSITEDIR\fR, containing the full pathname of the \fIsite\fR
+! directory,
+! in case these are useful in customization.
+  .PP
+  The names of most of the auxiliary programs, and some other parameters,
+***************
+*** 172,175 ****
+--- 164,171 ----
+  needed, and a batch transmitter (typically \fIviauux\fR),
+  which sends the batch on its way (e.g. enqueues it for transmission).
++ The preparer is run with \fI\*a\fR as the current directory,
++ so non-absolute pathnames in the chunk are valid filenames;
++ the others are run in the \fIsite\fR directory for easier access to
++ site-specific customization files.
+  .PP
+  Batch preparers in the standard distribution are:
+***************
+*** 178,193 ****
+  normal batching
+  .IP batchih
+! \fIihave\fR part of ihave/sendme
+  .IP batchsm
+  \fIsendme\fR part of ihave/sendme
+  .RE
+- .PP
+- If \fIbatcher\fR is invoked with a \fB\-d\fR option, it \fIchdir\fRs to
+- the \fIdirectory\fR first, and strips it off the beginning of any article
+- filename that starts with it.
+- Since most articles will come from \fI\*a\fR, specifying
+- \fB\-d\ \*a\fR to \fIbatcher\fR will speed it up noticeably.
+- Since \fIsendbatches\fR does this, other preparers had better be ready
+- to ignore an initial \fB\-d\fR option.
+  .PP
+  .I Batchih
+--- 174,181 ----
+  normal batching
+  .IP batchih
+! \fIihave\fR part of old ihave/sendme (not to be confused with NNTP)
+  .IP batchsm
+  \fIsendme\fR part of ihave/sendme
+  .RE
+  .PP
+  .I Batchih
+
+*** cnpatch/old/man/newsmaint.8	Thu Dec 13 13:25:20 1990
+--- man/newsmaint.8	Sun Oct 14 04:17:08 1990
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH NEWSMAINT 8 "8 May 1990"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH NEWSMAINT 8 "13 Oct 1990"
+  .BY "C News"
+  .SH NAME
+***************
+*** 27,30 ****
+--- 27,34 ----
+  .br
+  act.to.times \- create active.times file for news readers
++ .br
++ histfrom, newsfrom \- list news arriving over specific time range
++ .br
++ addmissing \- add missing news articles to history file
+  .SH SYNOPSIS
+  .B \*b/maint/newshist
+***************
+*** 57,60 ****
+--- 61,72 ----
+  .B \*b/maint/act.to.times
+  activefile
++ .br
++ .B \*b/maint/histfrom
++ startdate [ enddate ]
++ .br
++ .B \*b/maint/newsfrom
++ startdate [ enddate ]
++ .br
++ .B \*b/maint/addmissing
+  .SH DESCRIPTION
+  These programs are utilities useful in maintaining a C News
+***************
+*** 134,137 ****
+--- 146,182 ----
+  which should normally be
+  .IR \*c/active .
++ .PP
++ .I Histfrom
++ emits (on standard output) all history lines for unexpired articles
++ arriving between
++ .I startdate
++ and
++ .IR enddate .
++ The dates must be acceptable to
++ .I getdate
++ (see
++ .IR newsaux (8)).
++ The default
++ .I enddate
++ is ``now''.
++ .PP
++ .I Newsfrom
++ runs
++ .I histfrom
++ and processes its output to produce a list of absolute pathnames of
++ articles arriving between
++ .I startdate
++ and
++ .I enddate
++ (default ``now'').
++ .PP
++ .I Addmissing
++ scans the
++ .I history
++ file and the news-article tree to find articles that are not in the history
++ file, and adds them to the file,
++ rebuilding the
++ .I dbz
++ database to match.
+  .SH FILES
+  .ta 6c
+***************
+*** 138,143 ****
+  .nf
+  \*c/history	history file
+! \*c/history.pag	\fIdbm\fR database for history file
+! \*c/history.dir	\fIdbm\fR database for history file
+  \*c/log	current news log
+  \*c/log.o	previous news log
+--- 183,188 ----
+  .nf
+  \*c/history	history file
+! \*c/history.pag	\fIdbz\fR database for history file
+! \*c/history.dir	\fIdbz\fR database for history file
+  \*c/log	current news log
+  \*c/log.o	previous news log
+***************
+*** 165,168 ****
+--- 210,224 ----
+  the \fIbatchparms\fR file, and if
+  none is found, warns the user to create one.
++ .PP
++ .I Addmissing
++ complains and exits if it is unable to lock the news system, if
++ .I expire
++ appears to be running,
++ or if there is not enough space for a temporary copy of the
++ .I history
++ file and database.
++ It also notes the presence of articles which did not have intelligible
++ headers (which are placed into history with an entry specifying immediate
++ expiry).
+  .SH HISTORY
+  Written at U of Toronto by Henry Spencer and Geoff Collyer.
+***************
+*** 179,182 ****
+--- 235,245 ----
+  to get batching going for a new feed, which is naive if you are running
+  \fIsendbatches\fR selectively, i.e. with arguments.
++ .PP
++ .I Addmissing
++ does not cope properly with articles which are
++ already in history but with an incomplete
++ list of pathnames;
++ the result is duplicate message-IDs in history until the article(s) expire,
++ which is relatively harmless but may interfere with access to those articles.
+  .PP
+  Various nuisances can result if the maintenance utilities are run as
+
+*** cnpatch/old/man/postnews.1	Thu Dec 13 13:25:29 1990
+--- man/postnews.1	Wed Nov 21 15:09:32 1990
+***************
+*** 1,5 ****
+  .\" =()<.ds c @<NEWSCTL>@>()=
+  .ds c /usr/lib/news
+! .TH POSTNEWS 1 "9 June 1989"
+  .BY "C News"
+  .SH NAME
+--- 1,5 ----
+  .\" =()<.ds c @<NEWSCTL>@>()=
+  .ds c /usr/lib/news
+! .TH POSTNEWS 1 "21 Nov 1990"
+  .BY "C News"
+  .SH NAME
+***************
+*** 7,11 ****
+  .SH SYNOPSIS
+  .B postnews
+! [newsgroup]
+  .SH DESCRIPTION
+  .I Postnews
+--- 7,14 ----
+  .SH SYNOPSIS
+  .B postnews
+! [
+! .B \-h
+! headerfile
+! ] [newsgroup]
+  .SH DESCRIPTION
+  .I Postnews
+***************
+*** 24,27 ****
+--- 27,36 ----
+  followed, \fIpostnews\fR gives the user a choice between abandoning
+  the posting or re-editing it.
++ .PP
++ The
++ .B \-h
++ option specifies that a suitable header has already been constructed and
++ can be found in \fIheaderfile\fR, in which case \fIpostnews\fR bypasses
++ the initial prompting for header contents.
+  .SH FILES
+  \*c/postdefltgroup	default newsgroup (nonexistent means no default)
+
+*** cnpatch/old/man/rnews.8	Thu Dec 13 13:25:34 1990
+--- man/rnews.8	Tue Sep 18 17:44:22 1990
+***************
+*** 7,11 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH RNEWS 8 "3 Nov 1989"
+  .BY "C News"
+  .SH NAME
+--- 7,11 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .TH RNEWS 8 "18 Sept 1990"
+  .BY "C News"
+  .SH NAME
+***************
+*** 111,112 ****
+--- 111,117 ----
+  It hasn't been tested very well in the C News environment.
+  \fIBdecode\fR (see \fInewsmail\fR(8)) is probably better for most uses.
++ .PP
++ .I Relaynews
++ is a bit too enthusiastic about declaring batches bad, so things end up
++ in \fIbad\fR for no terribly good reason.
++ Actually, it's rare for the contents of \fIbad\fR to be very interesting.
+
+*** cnpatch/old/misc/Makefile	Thu Dec 13 13:25:39 1990
+--- misc/Makefile	Sun Oct 14 04:09:01 1990
+***************
+*** 12,16 ****
+  
+  MAINTBIN=newshist
+! MAINT = $(MAINTBIN) newsdaily newswatch newsboot locknews addgroup delgroup adddirs addfeed act.to.times
+  UTILBIN = gngp newslock ctime getdate canonhdr
+  UTILS = $(UTILBIN) sizeof newshostname
+--- 12,17 ----
+  
+  MAINTBIN=newshist
+! MAINT = $(MAINTBIN) newsdaily newswatch newsboot locknews addgroup delgroup \
+! 	adddirs addfeed act.to.times histfrom newsfrom addmissing
+  UTILBIN = gngp newslock ctime getdate canonhdr
+  UTILS = $(UTILBIN) sizeof newshostname
+
+*** cnpatch/old/misc/ctime.c	Thu Dec 13 13:25:48 1990
+--- misc/ctime.c	Sun Oct 14 03:56:24 1990
+***************
+*** 15,24 ****
+  char *progname;
+  
+- extern int errno;
+- extern char *strcpy();
+- extern char *strncpy();
+- extern char *strcat();
+- extern char *strchr();
+- extern char *strtok();
+  extern long atol();
+  extern char *malloc();
+--- 15,18 ----
+
+*** cnpatch/old/misc/getdate.c	Thu Dec 13 13:25:53 1990
+--- misc/getdate.c	Sat Dec  1 19:12:39 1990
+***************
+*** 12,24 ****
+  
+  struct timeb ftnow;
+  
+  char *progname;
+  
+- extern int errno;
+- extern char *strcpy();
+- extern char *strncpy();
+- extern char *strcat();
+- extern char *strchr();
+- extern char *strtok();
+  extern long atol();
+  extern char *malloc();
+--- 12,19 ----
+  
+  struct timeb ftnow;
++ int exitstatus = 0;
+  
+  char *progname;
+  
+  extern long atol();
+  extern char *malloc();
+***************
+*** 60,64 ****
+  	for (; optind < argc; optind++)
+  		process(argv[optind]);
+! 	exit(0);
+  }
+  
+--- 55,59 ----
+  	for (; optind < argc; optind++)
+  		process(argv[optind]);
+! 	exit(exitstatus);
+  }
+  
+***************
+*** 72,79 ****
+  	time_t it;
+  
+! 	it = getdate(tm, &ftnow);
+! 	if (it < 0)
+! 		(void) fprintf(stderr, "%s: `%s' not a valid date\n", progname, tm);
+  	else
+  		(void) printf("%ld\n", it);
+  }
+--- 67,78 ----
+  	time_t it;
+  
+! 	if (strcmp(tm, "now") == 0)
+! 		it = time((time_t *)NULL);
+  	else
++ 		it = getdate(tm, &ftnow);
++ 	if (it < 0) {
++ 		(void) fprintf(stderr, "%s: `%s' not a valid date\n", progname, tm);
++ 		exitstatus = 1;
++ 	} else
+  		(void) printf("%ld\n", it);
+  }
+
+*** cnpatch/old/misc/newsdaily	Thu Dec 13 13:26:00 1990
+--- misc/newsdaily	Sun Oct  7 19:01:52 1990
+***************
+*** 58,62 ****
+  	(
+  		echo 'old input files:'
+! 		cat $tmp
+  		echo
+  	) >>$gripes
+--- 58,62 ----
+  	(
+  		echo 'old input files:'
+! 		ls -ldtr `cat $tmp`
+  		echo
+  	) >>$gripes
+***************
+*** 66,71 ****
+  then
+  	(
+! 		echo 'recent bad input batches:'
+! 		cat $tmp
+  		echo
+  	) >>$gripes
+--- 66,71 ----
+  then
+  	(
+! 		echo 'recent bad input batches (perhaps worth investigation):'
+! 		ls -ldtr `cat $tmp`
+  		echo
+  	) >>$gripes
+
+*** cnpatch/old/notebook/ihave	Thu Dec 13 13:26:23 1990
+--- notebook/ihave	Wed Sep 19 17:07:54 1990
+***************
+*** 17,20 ****
+--- 17,27 ----
+  unlike NNTP.
+  .PP
++ The above perhaps needs emphasizing:
++ \fIihave/sendme has nothing whatsoever to do with NNTP\fR.
++ NNTP has ``ihave'' and ``sendme'' messages, which have somewhat similar
++ functions to the ihave/sendme protocol (hence the similarity of names),
++ but the implementations are completely unrelated.
++ If you want to set up an NNTP feed, you are reading the wrong document.
++ .PP
+  Ihave/sendme
+  is sketched in extremely vague terms in
+
+*** cnpatch/old/notebook/problems	Thu Dec 13 13:26:37 1990
+--- notebook/problems	Mon Dec 10 12:50:24 1990
+***************
+*** 1,3 ****
+! .DA "21 July 1990"
+  .TL
+  Known Porting Problems With C News
+--- 1,3 ----
+! .DA "10 Dec 1990"
+  .TL
+  Known Porting Problems With C News
+***************
+*** 83,86 ****
+--- 83,114 ----
+  environment variables) is exactly the wrong size.
+  Perhaps this has been fixed in 4.1.
++ .PP
++ It is reliably reported that the VAX 3.1 Ultrix shell is somewhat broken
++ and gives various kinds of trouble.
++ Switching to \fI/bin/sh5\fR (note that this requires fixing the first line
++ of a zillion shell files) is reported to banish the problems.
++ .PP
++ In some environments, when processing batches which are not compressed,
++ extremely mysterious malfunctions occur and messages reporting a
++ \fIrelaynews\fR exit status of 1005 (and the like) are seen.
++ This is believed to be a subtle shell bug that shows up
++ when a pipeline is used as the condition in a shell \fIif\fR.
++ Unless you use \fIc7encode\fRd transmission\(emwhich is very rare\(ema
++ workaround is to comment out
++ the following lines in \fIinput/newsrun\fR:
++ .DS
++ elif c7decode <$f 2>/dev/null | compress \-d >$text 2>/dev/null
++ then
++ 	: okay
++ .DE
++ A minor bonus is that this will improve processing speed (!).
++ We plan improvements to input processing, and this problem should be
++ eliminated as a side effect of that.
++ .PP
++ (Note, this is \fInot\fR the well-known bug of many old shells,
++ in which the choice of process whose exit status is picked up is
++ semi-random in such situations.
++ Exercise for the reader:  show that
++ \fIthat\fR is not a problem in \fInewsrun\fR.)
+  .SH
+  Make vs. Test
+***************
+*** 148,176 ****
+  always safe.
+  .SH
+- Readnews vs. System V
+- .PP
+- The terminal handling in the Australian \fIreadnews\fR that we include
+- is known not to work under a ``pure'' System V.
+- There are stubs for System V code but it's never been implemented.
+- Most current System V implementations from serious suppliers have enough
+- BSD compatibility that this is not an issue.
+- It is reported that AT&T 3B2 systems don't, to the point where
+- \fIreadnews\fR simply doesn't work.
+- .SH
+- Readnews Simplicity
+- .PP
+- Generally, the Australian \fIreadnews\fR
+- is a bit on the simple and buggy side.
+- There are various things wrong with it that we're not very interested
+- in fixing\(emwe consider it useful primarily for naive users who just
+- want to read system announcements, and recommend that sophisticated
+- users use something else.
+- One known interoperability issue is that it is fussier about the format
+- of \fI.newsrc\fR files than fancier readers.
+- .PP
+- Problems will arise if the news directories are in non-standard places,
+- because \fIreadnews\fR is not well integrated into our configuration
+- machinery; we want to fix this someday.
+- .SH
+  void
+  .PP
+--- 176,179 ----
+***************
+*** 287,294 ****
+  Some issues inevitably got resolved in favor of current compilers,
+  and may cause complaints from ANSI C compilers.
+  .SH
+  GNU C
+  .PP
+! If compiling with the GNU compiler, you will need the
+  \fB\-traditional\fR flag.
+  Beware, also, that if you are using your system's \fIdbm\fR library,
+--- 290,304 ----
+  Some issues inevitably got resolved in favor of current compilers,
+  and may cause complaints from ANSI C compilers.
++ .PP
++ Work is in progress on moving us closer to ANSI compatibility.
++ Beware that if \fB__STDC__\fR is defined
++ by your compiler but it is \fInot\fR ANSI compatible, you are on your
++ own as far as we're concerned, even if the value is specified as 0.
++ (We can't just use ``#if\ __STDC__'' because some preprocessors choke
++ on the appearance of an unknown identifier in #if.)
+  .SH
+  GNU C
+  .PP
+! If compiling with the GNU compiler, you may need the
+  \fB\-traditional\fR flag.
+  Beware, also, that if you are using your system's \fIdbm\fR library,
+***************
+*** 299,303 ****
+  \fB\-fpcc-struct-return\fR option cures this.
+  .SH
+! Eccentric Awks
+  .PP
+  A number of problems can arise if your \fIawk\fR has bugs, since the shell
+--- 309,313 ----
+  \fB\-fpcc-struct-return\fR option cures this.
+  .SH
+! Awk Problems
+  .PP
+  A number of problems can arise if your \fIawk\fR has bugs, since the shell
+***************
+*** 306,309 ****
+--- 316,337 ----
+  We've fixed the worst trouble spots, but would appreciate detailed information
+  on any more.
++ .PP
++ One known problem that is hard to avoid is line-length limits in \fIawk\fR.
++ In particular,
++ for several purposes in control-message
++ handling C News wants to build a ``canonical'' representation
++ of the \fIsys\fR file, with backslashed newlines removed.
++ This is done by
++ NEWSBIN\fI/relay/canonsys.awk\fR.
++ Most \fIawk\fRs have limits
++ on line length, and some of the limits are too low to cope with long
++ multiply-continued \fIsys\fR lines.
++ 512-byte limits, found in a number of old \fIawk\fRs, are particularly
++ troublesome.
++ A quick look indicates that this will interfere, to some uncertain extent,
++ with \fIcheckgroups\fR and \fIsendsys\fR.
++ Big deal. :-)
++ The complaint may also appear from
++ \fInewgroup\fR, but there it should be harmless.
+  .SH
+  Systems Without Hard Links
+***************
+*** 520,523 ****
+--- 548,560 ----
+  .DE
+  This command should output nothing.
++ .PP
++ A slightly related problem is that not everyone calls the run-remote-shell
++ command \fIrsh\fR; on System V in particular, \fIrsh\fR means something
++ different.
++ For the moment we have opted to ignore this issue, as the possibilities
++ for gratuitous differences boggle the mind.
++ People facing this problem may wish to place an
++ \fIrsh\fR shell file in the search path to invoke the right command in the
++ right way, whatever that is.
+  .SH
+  Values of Logical Operators
+***************
+*** 529,533 ****
+  *p++ = isascii(c) && isalnum(c);
+  .DE
+! because they don't know how to generate a numeric value for `&&'.
+  One or two places in C News use constructs like this.
+  If you run into this, you might
+--- 566,571 ----
+  *p++ = isascii(c) && isalnum(c);
+  .DE
+! because they don't know how to generate a numeric value for `&&',
+! or because they don't know how to turn that value into a `char'.
+  One or two places in C News use constructs like this.
+  If you run into this, you might
+***************
+*** 536,537 ****
+--- 574,619 ----
+  with something like ``(...)\ ?\ 1\ :\ 0'' to get the
+  troublesome operator back into a conditional context.
++ .SH
++ Empty Lines
++ .PP
++ Some backward operating systems (through which your C News distribution
++ may have passed on its way to you), and perhaps some stupid text-handling
++ software even on sane operating systems, do not recognize the notion of
++ an empty line.
++ They think all lines must have at least one character in them; the closest
++ they can come to an empty line is a line consisting of a single blank.
++ This matters because \fIrelaynews\fR will tolerate white space only in
++ certain places in the \fIsys\fR file, and in particular, it tolerates
++ empty lines but not lines consisting solely of white space.
++ The result will be complaints (in \fIerrlog\fR) about white space in
++ the \fIsys\fR line for a system named ``\ ''.
++ .SH
++ active-File Date
++ .\" thanks to Simon J. Gerraty for this weirdie
++ .PP
++ On some Bull systems, at least ones running DPX/2 B.O.S. 1.0,
++ apparently \fIrelaynews\fR updates the
++ contents of the \fIactive\fR file correctly, but the file's date remains
++ unchanged!
++ This appears to be a kernel bug.
++ It reportedly upsets some news readers.
++ A workaround, said to be effective, is to add the line
++ .DS
++ utime(ctlfile(actrelnm), (time_t *)NULL);
++ .DE
++ after the call to \fInnafree\fR in \fIactfsync\fR
++ in \fIlibbig/active.big.c\fR.
++ .SH
++ enum Operators
++ .\" thanks to Scott Reynolds for this one
++ .PP
++ Some compilers have difficulty compiling the
++ \fIreadnews\fR we supply,
++ because they object to applying the `!' operator to an \fIenum\fR type.
++ Changing the definition of \fIbooltype\fR in \fIrna/defs.h\fR to
++ .DS
++ typedef int bool;
++ #define	false	0
++ #define	true	1
++ .DE
++ is reported to solve this.
+
+Files that are new:
+
+new input/rnews (patch can't create, so diff against null):
+Index: input/rnews
+*** cnpatch/old/input/rnews	Thu Dec 13 13:26:53 1990
+--- input/rnews	Mon Sep 10 18:58:14 1990
+***************
+*** 0 ****
+--- 1,51 ----
++ #! /bin/sh
++ # Incoming-news spooling.
++ # We ignore arguments -- it looks tempting to put "$*" after cat and
++ # newsspool, but there are security problems.
++ 
++ # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
++ . ${NEWSCONFIG-/usr/lib/news/bin/config}
++ 
++ PATH=$NEWSCTL/bin:$NEWSBIN/input:$NEWSBIN:$NEWSPATH ; export PATH
++ umask $NEWSUMASK
++ 
++ # check space, assuming a pretty large batch (no cheap way to find real size)
++ counter=1
++ while test " `spacefor 250000 incoming`" -le 0
++ do
++ 	sleep 300
++ 	if test " $counter" -gt 1111		# four tries is plenty
++ 	then
++ 		# oh no! -- nothing we can do, really...
++ 		cat >/dev/null
++ 		echo incoming news discarded due to space shortage |
++ 							mail "$NEWSMASTER"
++ 		exit 1
++ 	fi
++ 	if test ! -f $NEWSCTL/rnews.stall
++ 	then
++ 		counter="1$counter"
++ 	fi
++ done
++ 
++ # spool it
++ if test -f $NEWSCTL/rnews.newsrun
++ then
++ 	opt=-i
++ else
++ 	opt=
++ fi
++ if newsspool $opt >/tmp/ngripe.$$ 2>&1
++ then
++ 	rm -f /tmp/ngripe.$$
++ 	exit 0
++ else
++ 	# there really isn't any way to save the data if newsspool fails,
++ 	# not without causing other problems
++ 	(
++ 		echo newsspool failed!!!
++ 		cat /tmp/ngripe.$$
++ 	) | mail "$NEWSMASTER"
++ 	rm -f /tmp/ngripe.$$
++ 	exit 1
++ fi
+
+new man/checknews.1 (patch can't create, so diff against null):
+Index: man/checknews.1
+*** cnpatch/old/man/checknews.1	Thu Dec 13 13:26:54 1990
+--- man/checknews.1	Fri Nov 23 15:50:46 1990
+***************
+*** 0 ****
+--- 1,42 ----
++ .\" =()<.ds c @<NEWSCTL>@>()=
++ .ds c /usr/lib/news
++ .TH CHECKNEWS 1 "23 Nov 1990"
++ .BY "C News"
++ .SH NAME
++ checknews \- check for unread news
++ .SH SYNOPSIS
++ .B checknews
++ .SH DESCRIPTION
++ .I Checknews
++ informs the user whether he has unread news.
++ It is suitable for running from a
++ .B .profile
++ (or
++ .B .login
++ if you use a certain non-standard shell)
++ file.
++ .PP
++ .I Checknews
++ normally runs
++ .IR readnews (1)
++ with the
++ .B \-c
++ option.
++ As a heuristic concession to practicality,
++ if the user has a
++ .B .rnlast
++ file in his $HOME directory,
++ .I checknews
++ runs
++ .B rn\ \-c\ \-s3
++ instead.
++ .SH FILES
++ $HOME/.newsrc
++ .br
++ \*c/active
++ .SH SEE ALSO
++ readnews(1), rn(1)
++ .SH HISTORY
++ Written at U of Toronto by Henry Spencer.
++ .SH BUGS
++ There are zillions of other news readers in the world.
+
+new misc/addmissing (patch can't create, so diff against null):
+Index: misc/addmissing
+*** cnpatch/old/misc/addmissing	Thu Dec 13 13:26:55 1990
+--- misc/addmissing	Mon Oct 15 17:50:23 1990
+***************
+*** 0 ****
+--- 1,56 ----
++ #! /bin/sh
++ # addmissing - add missing articles to history
++ # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
++ . ${NEWSCONFIG-/usr/lib/news/bin/config}
++ 
++ PATH=$NEWSCTL/bin:$NEWSBIN/expire:$NEWSBIN:$NEWSPATH ; export PATH
++ umask $NEWSUMASK
++ 
++ lock="$NEWSCTL/LOCK"
++ ltemp="$NEWSCTL/L.$$"
++ echo $$ >$ltemp
++ trap "rm -f $ltemp ; exit 0" 0 1 2 15
++ while true
++ do
++ 	if newslock $ltemp $lock
++ 	then
++ 		trap "rm -f $ltemp $lock ; exit 0" 0 1 2 15
++ 		break
++ 	fi
++ 	sleep 30
++ done
++ if newslock $ltemp $NEWSCTL/LOCKexpire
++ then
++ 	trap "rm -f $ltemp $lock $NEWSCTL/LOCKexpire ; exit 0" 0 1 2 15
++ else
++ 	echo "$0: expire is running, $0 aborted" >&2
++ 	exit 1
++ fi
++ 
++ cd $NEWSCTL
++ size="`sizeof history history.pag history.dir`"
++ if test " `spacefor $size control`" -le 0
++ then
++ 	echo "$0: not enough space for temporaries, $0 aborted" >&2
++ 	exit 1
++ fi
++ 
++ egrep '	.*	' history | sed 's/.*	//' | tr '. ' '/
++ ' | egrep '/' | sort -u >/tmp/hist$$
++ 
++ cd $NEWSARTS
++ find `ls | egrep -v '\.'` -type f -name '[0-9]*' -print | sort >/tmp/tree$$
++ 
++ comm -13 /tmp/hist$$ /tmp/tree$$ | histinfo | sort |
++ 	awk -f $NEWSBIN/expire/histdups | histslash >/tmp/new$$
++ 
++ cd $NEWSCTL
++ if egrep '^<[^>]*@trash>	' /tmp/new$$ >/dev/null
++ then
++ 	echo "$0: (warning) empty/trash articles found, will expire at once" >&2
++ 	echo "$0:     (grep history file for '@trash' to see them)" >&2
++ fi
++ 
++ dbz -a history /tmp/new$$
++ 
++ rm -f /tmp/hist$$ /tmp/tree$$ /tmp/new$$
+
+new misc/histfrom (patch can't create, so diff against null):
+Index: misc/histfrom
+*** cnpatch/old/misc/histfrom	Thu Dec 13 13:26:56 1990
+--- misc/histfrom	Mon Sep 24 17:07:48 1990
+***************
+*** 0 ****
+--- 1,33 ----
++ #! /bin/sh
++ # histfrom - get history-file entries between two dates
++ 
++ # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
++ . ${NEWSCONFIG-/usr/lib/news/bin/config}
++ 
++ PATH=$NEWSCTL/bin:$NEWSBIN:$NEWSPATH ; export PATH
++ umask $NEWSUMASK
++ 
++ case $# in
++ 1)	start="$1"
++ 	end="now"
++ 	;;
++ 2)	start="$1"
++ 	end="$2"
++ 	;;
++ *)	echo "Usage: $0 startdate [enddate]" >&2
++ 	exit 2
++ 	;;
++ esac
++ if start=`/bin/getdate "$start"` && end=`/bin/getdate "$end"`
++ then
++ 	: okay
++ else
++ 	exit 1
++ fi
++ 
++ egrep '	.*	' $NEWSCTL/history | awk -F'	' '{
++ 	n = split($2, subf, "~")
++ 	arrived = subf[1]
++ 	if (arrived >= '$start' && arrived <= '$end')
++ 		print
++ }'
+
+new misc/newsfrom (patch can't create, so diff against null):
+Index: misc/newsfrom
+*** cnpatch/old/misc/newsfrom	Thu Dec 13 13:26:56 1990
+--- misc/newsfrom	Mon Sep 24 17:07:48 1990
+***************
+*** 0 ****
+--- 1,10 ----
++ #! /bin/sh
++ # newsfrom - get pathnames of articles arriving between two dates
++ 
++ # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
++ . ${NEWSCONFIG-/usr/lib/news/bin/config}
++ 
++ PATH=$NEWSCTL/bin:$NEWSBIN/maint:$NEWSBIN:$NEWSPATH ; export PATH
++ umask $NEWSUMASK
++ 
++ histfrom "$@" | tr . / | sed 's/.*	//;s/ .*//;s:^:'"$NEWSARTS"'/:'
+
+
+end of patch 13-Dec-1990

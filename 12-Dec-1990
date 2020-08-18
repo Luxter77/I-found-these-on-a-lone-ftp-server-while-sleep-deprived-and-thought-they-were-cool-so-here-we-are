@@ -1,0 +1,1528 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 12-Dec-1990
+
+This is the second of the catching-up patches.  (They've been coming a bit
+more slowly than intended...)  Change of address for the c-news mailbox.
+Fix for a bug in the shell-escape feature of build.  Changes to build to
+accommodate some forthcoming improvements (next patch) in the input
+subsystem, and also the last patch's readnews upgrade.  Systematic cleanup
+of the treatment of errno, as part of the ongoing movement to ANSI C
+compatibility.  Some other ANSI C touchups.  Attention to the errno value
+when dbminit() fails.  Errno interpretation changed to use strerror() rather
+than the older Unix-specific stuff, with a strerror() implementation added
+for Unix sites without it.  New library function, split(), replacing an old
+and inefficient one in expire (and elsewhere) and aimed at use in some other
+stuff that will show up shortly.  (I think the new one has speeded expire up
+some, too.)  And the beginnings of an annotated bibliography, doc/biblio.
+
+start of patch 12-Dec-1990
+(suggested archive name: `pch12Dec90.Z')
+this should be run with   patch -p0 <thisfile
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+*** PATCHDATES.old	Wed Dec 12 16:44:14 1990
+--- PATCHDATES	Wed Dec 12 16:44:14 1990
+***************
+*** 1,19 ****
+--- 1,20 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
++ 12-Dec-1990
+
+Changed files, if any:
+
+*** cnpatch/old/COPYRIGHT	Wed Dec 12 16:44:45 1990
+--- COPYRIGHT	Thu Nov 15 15:59:09 1990
+***************
+*** 4,8 ****
+   * Written mostly by Geoffrey Collyer and Henry Spencer.
+   * This software is not subject to any license of the American Telephone
+!  * and Telegraph Company or of the Regents of the University of California.
+   *
+   * Permission is granted to anyone to use this software for any purpose on
+--- 4,9 ----
+   * Written mostly by Geoffrey Collyer and Henry Spencer.
+   * This software is not subject to any license of the American Telephone
+!  * and Telegraph Company, the Regents of the University of California, or
+!  * the Free Software Foundation.
+   *
+   * Permission is granted to anyone to use this software for any purpose on
+
+*** cnpatch/old/README	Wed Dec 12 16:44:49 1990
+--- README	Sat Oct 27 18:36:26 1990
+***************
+*** 1,3 ****
+! This is C News, superseding assorted preliminary releases.  23 April 1990
+  
+  C News is a reimplementation of the transport and storage subsystems of the
+--- 1,3 ----
+! This is C News, superseding assorted preliminary releases.  28 Oct 1990
+  
+  C News is a reimplementation of the transport and storage subsystems of the
+***************
+*** 172,182 ****
+  Geoff or Henry personally, but to:
+  
+! 	c-news@utstat.toronto.edu
+! aka	c-news@utstat.utoronto.ca
+! aka	utzoo!utstat!c-news
+  
+! Utstat.toronto.edu is directly on the Internet but does not have a lot of
+! UUCP connections.  However, it does talk to utzoo.  Utzoo connects to half
+! the known universe (well, not quite, but try via allegra, att, attcan,
+  decvax, floyd, hoptoad, kitty, linus, mnetor, pyramid, suncan, utai, utgpu,
+  watmath, or yunexus).
+--- 172,181 ----
+  Geoff or Henry personally, but to:
+  
+! 	c-news@zoo.toronto.edu
+! aka	c-news@zoo.utoronto.ca
+! aka	utzoo!c-news
+  
+! (Note that this has changed, c-news used to be on utstat.)  Utzoo connects
+! to half the known universe (well, not quite, but try via allegra, att, attcan,
+  decvax, floyd, hoptoad, kitty, linus, mnetor, pyramid, suncan, utai, utgpu,
+  watmath, or yunexus).
+
+*** cnpatch/old/conf/Makefile	Wed Dec 12 16:44:56 1990
+--- conf/Makefile	Sat Dec  1 22:06:27 1990
+***************
+*** 100,104 ****
+  	rm -f history history.pag history.dir active localgroups
+  	rm -f log mailpaths sys cron rc setnewsids setnewsids.o spacefor.bsd
+! 	rm -rf replyusepath spacefor queuelen junk save
+  
+  gclean:	tidy
+--- 100,105 ----
+  	rm -f history history.pag history.dir active localgroups
+  	rm -f log mailpaths sys cron rc setnewsids setnewsids.o spacefor.bsd
+! 	rm -f replyusepath spacefor queuelen junk save readnews.ctl
+! 	rm -f postdefltdist postdefltgroup
+  
+  gclean:	tidy
+
+*** cnpatch/old/conf/ask	Wed Dec 12 16:45:01 1990
+--- conf/ask	Tue Oct  2 14:30:57 1990
+***************
+*** 8,14 ****
+  	!*)	cmd="`expr \"$answer\" : '!\(.*\)'`"
+  		trap : 2
+! 		${SHELL-/bin/sh} -c "$cmd"
+  		trap 2
+! 		echo '!'
+  		;;
+  	*)	break	;;	# NOTE BREAK OUT
+--- 8,14 ----
+  	!*)	cmd="`expr \"$answer\" : '!\(.*\)'`"
+  		trap : 2
+! 		${SHELL-/bin/sh} -c "$cmd" >/dev/tty
+  		trap 2
+! 		echo '!' >/dev/tty
+  		;;
+  	*)	break	;;	# NOTE BREAK OUT
+
+*** cnpatch/old/conf/build	Wed Dec 12 16:45:05 1990
+--- conf/build	Sat Dec  1 22:16:00 1990
+***************
+*** 9,13 ****
+  	archive spacelow nfsgroup server manpages manmess rbin doui bin atok
+  	postdefltdist paranoid whoami mailname organization postdefltgroup
+! 	newspath fake fakehdrs'
+  # where to remember them, by default
+  memory=build.def
+--- 9,13 ----
+  	archive spacelow nfsgroup server manpages manmess rbin doui bin atok
+  	postdefltdist paranoid whoami mailname organization postdefltgroup
+! 	newspath fake fakehdrs immediate inputstall defsub mustsub'
+  # where to remember them, by default
+  memory=build.def
+***************
+*** 15,19 ****
+  # functions and headers we are prepared to fake
+  mightfake='fsync getopt memcpy memcmp memchr memset mkdir
+! 	putenv strchr strrchr strpbrk strspn strcspn strtok symlink'
+  mightfakehdrs='string.h'
+  
+--- 15,19 ----
+  # functions and headers we are prepared to fake
+  mightfake='fsync getopt memcpy memcmp memchr memset mkdir
+! 	putenv strchr strrchr strpbrk strspn strcspn strtok symlink strerror'
+  mightfakehdrs='string.h'
+  
+***************
+*** 21,25 ****
+  # batch must precede input; relay must precede misc
+  # the "doui" code below may add rna to the list
+! pgmdirs='conf batch expire input relay misc'
+  
+  # control files built in conf
+--- 21,25 ----
+  # batch must precede input; relay must precede misc
+  # the "doui" code below may add rna to the list
+! pgmdirs='conf batch dbz expire input relay misc'
+  
+  # control files built in conf
+***************
+*** 26,30 ****
+  ctlf="active errlog history history.pag history.dir localgroups"
+  ctlf="$ctlf log mailname mailpaths organization postdefltdist postdefltgroup"
+! ctlf="$ctlf replyusepath server sys whoami"
+  
+  echo 'This interactive command will build shell files named doit.root,'
+--- 26,31 ----
+  ctlf="active errlog history history.pag history.dir localgroups"
+  ctlf="$ctlf log mailname mailpaths organization postdefltdist postdefltgroup"
+! ctlf="$ctlf replyusepath server sys whoami rnews.stall rnews.newsrun"
+! ctlf="$ctlf readnews.ctl"
+  
+  echo 'This interactive command will build shell files named doit.root,'
+***************
+*** 347,352 ****
+  echo 'I/O library ("stdio") in which fgets, fputs, fread, and fwrite are'
+  echo 'quite slow.  We supply versions of these functions which are faster'
+! echo 'than those in any stdio we know; they are compatible with most'
+! echo 'AT&T-derived stdios.  If they work on your system, they are a'
+  echo 'major performance win for C News.  There is a fairly thorough'
+  echo 'compatibility check run after the library is built; as far as we'
+--- 348,354 ----
+  echo 'I/O library ("stdio") in which fgets, fputs, fread, and fwrite are'
+  echo 'quite slow.  We supply versions of these functions which are faster'
+! echo 'than those in any stdio we know; they are compatible with most old'
+! echo 'AT&T-derived stdios.  (They tend not to work on modern System V,'
+! echo 'but the modern System V stdio is respectably fast.)  They can be a'
+  echo 'major performance win for C News.  There is a fairly thorough'
+  echo 'compatibility check run after the library is built; as far as we'
+***************
+*** 526,530 ****
+  	echo 'news, unless you are getting only a very small set of groups.'
+  	echo 'In any case, you definitely want to inspect "spacefor" and'
+! 	echo 'change some of its thresholds for free space.'
+  	;;
+  no)	echo 'You may want to inspect "spacefor" to make sure its defaults'
+--- 528,535 ----
+  	echo 'news, unless you are getting only a very small set of groups.'
+  	echo 'In any case, you definitely want to inspect "spacefor" and'
+! 	echo 'change some of its thresholds for free space.  BE WARNED'
+! 	echo 'that C News is not built to run on a brim-full file system;'
+! 	echo 'it relies on simple, rough space checks on the assumption that'
+! 	echo 'there is a substantial cushion of free space.'
+  	;;
+  no)	echo 'You may want to inspect "spacefor" to make sure its defaults'
+***************
+*** 535,538 ****
+--- 540,560 ----
+  
+  echo
++ echo 'It is very difficult to do anything useful with incoming news when'
++ echo 'there is no space for it.  Normally, C News simply discards it and'
++ echo 'mails a trouble report.  On a single-user system, it may be better'
++ echo 'to just have the news reception stall until more space becomes'
++ echo 'available.  Warning:  this may stall processing of other incoming'
++ echo 'traffic, e.g. mail, as well, and the queue of unprocessed traffic'
++ echo 'may well grow until your disk fills up.  Should news reception'
++ inputstall=`yesno 'stall if space gets short' ${inputstall-no}`
++ 
++ echo
++ echo 'News processing is much more efficient when done in bulk, so C News'
++ echo 'normally just saves incoming news and processes it once an hour.'
++ echo 'If you have ample resources and are wildly impatient to make news'
++ echo 'available the instant it arrives, that is expensive but possible.'
++ immediate=`yesno 'Do you want immediate processing' ${immediate-no}`
++ 
++ echo
+  echo 'Are you running C News on a group of machines hooked together with NFS,'
+  nfsgroup=`yesno 'with articles filed on one "server" machine' ${nfsgroup-no}`
+***************
+*** 648,651 ****
+--- 670,684 ----
+  	echo 'probably wise.  What should the default postnews distribution'
+  	postdefltdist="`ask 'be' \"${postdefltdist-world}\"`"
++ 
++ 	echo
++ 	echo 'Readnews has a default subscription list, for users who have'
++ 	echo 'not specified what newsgroups they wish to see.  What groups'
++ 	echo 'should be in that list (comma-separated with no spaces, please,'
++ 	defsub="`ask 'as they would be in a .newsrc)' \"${defsub-general}\"`"
++ 
++ 	echo
++ 	echo 'For administrative use, readnews has one newsgroup that users'
++ 	echo 'must subscribe to, even if they ask not to.  What group should'
++ 	mustsub="`ask 'that be' \"${mustsub-general}\"`"
+  	;;
+  esac
+***************
+*** 830,841 ****
+  	no)	echo echo "'replies must use paths' >replyusepath"	;;
+  	esac
+! 	case "$postdefltdist" in
+! 	world)							;;
+  	*)	echo "echo '$postdefltdist' >>postdefltdist"	;;
+  	esac
+! 	case "$postdefltgroup" in
+! 	none)						;;
+  	*)	echo "echo '$postdefltgroup' >>postdefltgroup"	;;
+  	esac
+  	echo "echo '$whoami' >whoami"
+  	echo "echo 'general 0000000000 0000000001 y' >active"
+--- 863,888 ----
+  	no)	echo echo "'replies must use paths' >replyusepath"	;;
+  	esac
+! 	case "$immediate" in
+! 	yes)	echo echo yes ">rnews.newsrun"	;;
+! 	esac
+! 	case "$inputstall" in
+! 	yes)	echo echo yes ">rnews.stall"	;;
+! 	esac
+! 	case "$doui$postdefltdist" in
+! 	no*)							;;
+! 	yesworld)						;;
+  	*)	echo "echo '$postdefltdist' >>postdefltdist"	;;
+  	esac
+! 	case "$doui$postdefltgroup" in
+! 	no*)							;;
+! 	yesnone)						;;
+  	*)	echo "echo '$postdefltgroup' >>postdefltgroup"	;;
+  	esac
++ 	case "$doui" in
++ 	no)							;;
++ 	*)	echo "echo 'defsub	$defsub' >readnews.ctl"
++ 		echo "echo 'mustsub	$mustsub' >>readnews.ctl"
++ 		;;
++ 	esac
+  	echo "echo '$whoami' >whoami"
+  	echo "echo 'general 0000000000 0000000001 y' >active"
+***************
+*** 885,889 ****
+  	case "$doui" in
+  	yes)	exclude='!!nothing!!'	;;
+! 	no)	exclude='^postnews\.'	;;
+  	esac
+  	for chap in $chaps
+--- 932,936 ----
+  	case "$doui" in
+  	yes)	exclude='!!nothing!!'	;;
+! 	no)	exclude='^(read|post|check)news\.'	;;
+  	esac
+  	for chap in $chaps
+
+*** cnpatch/old/conf/setnewsids.c	Wed Dec 12 16:45:23 1990
+--- conf/setnewsids.c	Sun Oct 28 02:14:43 1990
+***************
+*** 5,9 ****
+  
+  #include <stdio.h>
+- #include <errno.h>
+  #include <pwd.h>
+  #include <grp.h>
+--- 5,8 ----
+
+*** cnpatch/old/conf/subst.hs	Wed Dec 12 16:45:28 1990
+--- conf/subst.hs	Fri Nov 23 15:51:08 1990
+***************
+*** 19,23 ****
+  input/recenews
+  input/recpnews
+! input/rnews.batch
+  libc/standard.c
+  libcnews/config.c
+--- 19,23 ----
+  input/recenews
+  input/recpnews
+! input/rnews
+  libc/standard.c
+  libcnews/config.c
+***************
+*** 46,47 ****
+--- 46,49 ----
+  misc/adddirs
+  batch/viauuxl
++ dbz/Makefile
++ man/checknews.1
+
+*** cnpatch/old/conf/sys.proto	Wed Dec 12 16:45:29 1990
+--- conf/sys.proto	Tue Sep 25 13:38:37 1990
+***************
+*** 12,15 ****
+--- 12,18 ----
+  daisy:soc.women,soc.couples/all::mail daisy@duck
+  
++ # sample small feed using batching
++ gladstone:comp.protocols.tcp-ip,rec.aviation/all:f:
++ 
+  # sample major batched feed, including (unnecessary) explicit file name
+  dewey:comp,news,sci,rec,misc,soc,talk,to.dewey,can,ont,tor,ut/all:f:dewey/togo
+***************
+*** 22,25 ****
+--- 25,29 ----
+  
+  # sample ihave/sendme link
++ # NOTE, this is the old ihave/sendme, not related to NNTP in any way.
+  # Send ihave telling louie what we have -- batcher turns the batch into a
+  # giant control message and posts it to "to.louie".  (#1)
+
+*** cnpatch/old/conf/yesno	Wed Dec 12 16:45:31 1990
+--- conf/yesno	Tue Oct  2 14:32:16 1990
+***************
+*** 15,21 ****
+  	!*)	cmd="`expr \"$answer\" : '!\(.*\)'`"
+  		trap : 2
+! 		${SHELL-/bin/sh} -c "$cmd"
+  		trap 2
+! 		echo '!'
+  		;;
+  	yes|no)	break		;;	# NOTE BREAK OUT
+--- 15,21 ----
+  	!*)	cmd="`expr \"$answer\" : '!\(.*\)'`"
+  		trap : 2
+! 		${SHELL-/bin/sh} -c "$cmd" >/dev/tty
+  		trap 2
+! 		echo '!' >/dev/tty
+  		;;
+  	yes|no)	break		;;	# NOTE BREAK OUT
+
+*** cnpatch/old/dbz/dbzmain.c	Wed Dec 12 17:52:33 1990
+--- dbz/dbzmain.c	Tue Dec 11 17:12:47 1990
+***************
+*** 2,6 ****
+   * dbz - use and test dbz in various ways
+   *
+!  * $Log$
+   */
+  
+--- 2,6 ----
+   * dbz - use and test dbz in various ways
+   *
+!  * -Log-
+   */
+  
+
+*** cnpatch/old/dbz/fake.c	Wed Dec 12 17:52:37 1990
+--- dbz/fake.c	Tue Dec 11 17:12:45 1990
+***************
+*** 2,6 ****
+   * fake - make up random lines resembling history-file entries, reproducibly
+   *
+!  * $Log$
+   */
+  
+--- 2,6 ----
+   * fake - make up random lines resembling history-file entries, reproducibly
+   *
+!  * -Log-
+   */
+  
+*** cnpatch/old/dbz/Makefile	Wed Dec 12 16:45:34 1990
+--- dbz/Makefile	Tue Dec 11 01:47:52 1990
+***************
+*** 1,11 ****
+  COPTS = -O
+! FLAGS = -I../include
+! # -lc before libcnews.a so we get fread etc. from system
+! DBMLIBS = -lc ../libcnews.a
+  RFC = -DHAVERFCIZE
+  DEBUG = -DDBZDEBUG
+! CFLAGS = $(COPTS) $(FLAGS)
+! LINTFLAGS = -h $(FLAGS) $(DEBUG) $(RFC)
+  LDFLAGS =
+  # workaround for System V make bug
+  SHELL = /bin/sh
+--- 1,12 ----
+  COPTS = -O
+! CFLAGS = $(COPTS) -I../include
+! LIBS = ../libcnews.a
+! DBM =
+  RFC = -DHAVERFCIZE
+  DEBUG = -DDBZDEBUG
+! LINTFLAGS = -h $(DEBUG) $(RFC) -I../include
+  LDFLAGS =
++ # =()<NEWSBIN = @<NEWSBIN>@>()=
++ NEWSBIN = /usr/lib/newsbin
+  # workaround for System V make bug
+  SHELL = /bin/sh
+***************
+*** 23,28 ****
+  it:	dbz.o
+  
+! all:	dbz.o dbz
+  
+  u:	dbz.o
+  	ar ruv ../libcnews.a dbz.o
+--- 24,35 ----
+  it:	dbz.o
+  
+! all:	dbz
+  
++ bininstall:	dbz
++ 	cp dbz $(NEWSBIN)
++ 
++ newsinstall:
++ 	: nothing
++ 
+  u:	dbz.o
+  	ar ruv ../libcnews.a dbz.o
+***************
+*** 49,54 ****
+  	rm tdbz.c
+  
+! dbz:	dbzmain.o dbz.o
+! 	$(CC) $(CFLAGS) $(LDFLAGS) dbzmain.o dbz.o -o $@
+  
+  tdbz:	dbzmain.o tdbz.o
+--- 56,61 ----
+  	rm tdbz.c
+  
+! dbz:	dbzmain.o
+! 	$(CC) $(CFLAGS) $(LDFLAGS) dbzmain.o $(PRE) $(DBM) $(LIBS) $(POST) -o $@
+  
+  tdbz:	dbzmain.o tdbz.o
+***************
+*** 56,60 ****
+  
+  rdbz:	rdbzmain.o rdbz.o
+! 	$(CC) $(CFLAGS) $(LDFLAGS) rdbzmain.o rdbz.o $(DBMLIBS) -o $@
+  
+  fake:	fake.o random.o
+--- 63,67 ----
+  
+  rdbz:	rdbzmain.o rdbz.o
+! 	$(CC) $(CFLAGS) $(LDFLAGS) rdbzmain.o rdbz.o $(LIBS) -o $@
+  
+  fake:	fake.o random.o
+
+*** cnpatch/old/dbz/dbz.3z	Wed Dec 12 16:45:46 1990
+--- dbz/dbz.3z	Sun Oct 14 03:34:36 1990
+***************
+*** 1,3 ****
+! .TH DBZ 3Z "12 April 1990"
+  .BY "C News"
+  .SH NAME
+--- 1,3 ----
+! .TH DBZ 3Z "13 Oct 1990"
+  .BY "C News"
+  .SH NAME
+***************
+*** 57,63 ****
+  .I base 
+  .IR file ).
+! Subject to certain constraints, they are compatible with
+  .IR dbm (3),
+  although they also provide some extensions.
+  .PP
+  In principle,
+--- 57,68 ----
+  .I base 
+  .IR file ).
+! Subject to certain constraints, they are call-compatible with
+  .IR dbm (3),
+  although they also provide some extensions.
++ (Note that they are
++ .I not
++ file-compatible with
++ .I dbm
++ or any variant thereof.)
+  .PP
+  In principle,
+***************
+*** 439,442 ****
+--- 444,460 ----
+  .I dptr
+  set to NULL for failure.
++ .I Dbminit
++ attempts to have
++ .I errno
++ set plausibly on return, but otherwise this is not guaranteed.
++ An
++ .I errno
++ of
++ .B EDOM
++ from
++ .I dbminit
++ indicates that the database did not appear to be in
++ .I dbz
++ format.
+  .SH HISTORY
+  The original
+
+*** cnpatch/old/dbz/dbz.c	Wed Dec 12 16:45:58 1990
+--- dbz/dbz.c	Sun Oct 28 02:25:27 1990
+***************
+*** 1,5 ****
+  /*
+  
+! dbz.c  V3.0
+  
+  Copyright 1988 Jon Zeeff (zeeff@b-tech.ann-arbor.mi.us)
+--- 1,5 ----
+  /*
+  
+! dbz.c  V3.1
+  
+  Copyright 1988 Jon Zeeff (zeeff@b-tech.ann-arbor.mi.us)
+***************
+*** 27,30 ****
+--- 27,34 ----
+  #include <string.h>
+  #include <ctype.h>
++ #include <errno.h>
++ #ifndef __STDC__
++ extern int errno;
++ #endif
+  #include <dbz.h>
+  
+***************
+*** 297,302 ****
+  extern int atoi();
+  extern long atol();
+- extern char *memcpy();		/* in case string.h doesn't do mem fns */
+- extern char *memchr();
+  
+  /* misc. forwards */
+--- 301,304 ----
+***************
+*** 580,583 ****
+--- 582,588 ----
+  /*
+   - dbminit - open a database, creating it (using defaults) if necessary
++  *
++  * We try to leave errno set plausibly, to the extent that underlying
++  * functions permit this, since many people consult it if dbminit() fails.
+   */
+  int 				/* 0 success, -1 failure */
+***************
+*** 592,595 ****
+--- 597,601 ----
+  	if (pagf != NULL) {
+  		DEBUG(("dbminit: dbminit already called once\n"));
++ 		errno = 0;
+  		return(-1);
+  	}
+***************
+*** 662,665 ****
+--- 668,672 ----
+  		(void) fclose(dirf);
+  		free(pagfname);
++ 		errno = EDOM;	/* kind of a kludge, but very portable */
+  		return(-1);
+  	}
+
+
+*** cnpatch/old/h/Makefile	Wed Dec 12 16:46:38 1990
+--- h/Makefile	Thu Nov 15 17:21:28 1990
+***************
+*** 1,5 ****
+  I = ../include
+  INCLS = $(I)/alloc.h $(I)/config.h $(I)/fgetmfs.h $(I)/libc.h $(I)/news.h \
+! $(I)/case.h $(I)/dbz.h
+  
+  all:	$(INCLS)
+--- 1,5 ----
+  I = ../include
+  INCLS = $(I)/alloc.h $(I)/config.h $(I)/fgetmfs.h $(I)/libc.h $(I)/news.h \
+! $(I)/case.h $(I)/dbz.h $(I)/fixerrno.h
+  
+  all:	$(INCLS)
+***************
+*** 17,20 ****
+--- 17,22 ----
+  $(I)/dbz.h:	dbz.h
+  	cp dbz.h $@
++ $(I)/fixerrno.h:	fixerrno.h
++ 	cp fixerrno.h $@
+  $(I)/news.h:	news.h newshsed
+  	sed -f newshsed news.h >$@
+
+*** cnpatch/old/h/libc.h	Wed Dec 12 16:46:45 1990
+--- h/libc.h	Thu Oct 25 12:51:35 1990
+***************
+*** 44,48 ****
+  extern char *strcpy(), *strcat(), *strncpy(), *strncat();	/* strings.h */
+  extern char *strchr(), *strrchr();	/* strings.h */
+- extern char *memcpy();			/* memory.h */
+  
+  #ifdef A_STABLE_WORLD
+--- 44,47 ----
+
+*** cnpatch/old/libbig/active.fast.c	Wed Dec 12 16:46:55 1990
+--- libbig/active.fast.c	Sun Oct 28 02:19:38 1990
+***************
+*** 4,7 ****
+--- 4,9 ----
+  
+  #include <stdio.h>
++ #include <errno.h>
++ #include "fixerrno.h"
+  #include <sys/types.h>
+  #include <sys/stat.h>
+
+*** cnpatch/old/libc/Makefile	Wed Dec 12 16:47:06 1990
+--- libc/Makefile	Sun Dec  9 03:30:17 1990
+***************
+*** 1,3 ****
+- # C news local libc makefile - added by Ian Darwin
+  INCLUDE=../include
+  DEFINES=-I$(INCLUDE)
+--- 1,2 ----
+***************
+*** 4,21 ****
+  COPTS=-O # -g -p
+  CFLAGS=$(COPTS) $(DEFINES)
+- LINTFLAGS=-hau $(DEFINES)
+  # workaround for System V make bug
+  SHELL = /bin/sh
+  
+- SRCS=closeall.c efopen.c error.c fgetmfs.c \
+- 	nfclose.c \
+- 	standard.c stdfdopen.c warning.c emalloc.c
+  OBJS = closeall.o efopen.o error.o fgetmfs.o getdate.o nfclose.o \
+! 	standard.o stdfdopen.o warning.o emalloc.o
+  
+- # RANLIB is ranlib on non-USG systems, echo on USG systems
+- RANLIB=ranlib
+- #RANLIB=echo
+- 
+  u:	$(OBJS)
+  	ar ruv ../libcnews.a $(OBJS)
+--- 3,12 ----
+  COPTS=-O # -g -p
+  CFLAGS=$(COPTS) $(DEFINES)
+  # workaround for System V make bug
+  SHELL = /bin/sh
+  
+  OBJS = closeall.o efopen.o error.o fgetmfs.o getdate.o nfclose.o \
+! 	standard.o stdfdopen.o warning.o emalloc.o split.o
+  
+  u:	$(OBJS)
+  	ar ruv ../libcnews.a $(OBJS)
+***************
+*** 22,33 ****
+  
+  all:	$(OBJS)
+- 
+- libc.a:	$(SRCS)
+- 	$(CC) $(CFLAGS) -c $?
+- 	ar ru $@ *.o
+- 	rm *.o
+- 	$(RANLIB) $@
+- lint:
+- 	lint $(LINTFLAGS) $(SRCS)
+  
+  clean:
+--- 13,16 ----
+
+*** cnpatch/old/libc/efopen.c	Wed Dec 12 16:47:10 1990
+--- libc/efopen.c	Sun Oct 28 02:21:41 1990
+***************
+*** 4,7 ****
+--- 4,11 ----
+  
+  #include <stdio.h>
++ #include <errno.h>
++ #ifndef __STDC__
++ extern int errno;
++ #endif
+  
+  /* imports from libc */
+***************
+*** 18,22 ****
+  	FILE *fp;
+  	char fullmsg[sizeof(message)+10];
+- 	extern int errno;
+  
+  	errno = 0;		/* Wipe out residue of earlier errors. */
+--- 22,25 ----
+
+*** cnpatch/old/libc/stdfdopen.c	Wed Dec 12 16:47:18 1990
+--- libc/stdfdopen.c	Sun Oct 28 02:20:54 1990
+***************
+*** 6,9 ****
+--- 6,12 ----
+  #include <stdio.h>
+  #include <errno.h>
++ #ifndef __STDC__
++ extern int errno;
++ #endif
+  #include <sys/types.h>
+  #include <sys/stat.h>
+***************
+*** 12,17 ****
+  #define NSYSFILE 3					/* hmm, not on V8 */
+  #endif
+- 
+- extern int errno;
+  
+  void
+--- 15,18 ----
+
+*** cnpatch/old/libc/warning.c	Wed Dec 12 16:47:20 1990
+--- libc/warning.c	Sun Oct 28 02:22:19 1990
+***************
+*** 4,7 ****
+--- 4,12 ----
+  
+  #include <stdio.h>
++ #include <errno.h>
++ #ifndef __STDC__
++ extern int errno;
++ #endif
++ #include <string.h>
+  
+  void
+***************
+*** 11,21 ****
+  {
+  	char *cmdname;
+! 	int saverrno;
+! 	extern int errno, sys_nerr;
+! 	extern char *sys_errlist[];
+  	extern char *progname;
+  	extern char *getenv();
+  
+- 	saverrno = errno;		/* so isatty(3) won't clobber it */
+  	(void) fflush(stdout);				/* hack */
+  	cmdname = getenv("CMDNAME");
+--- 16,23 ----
+  {
+  	char *cmdname;
+! 	register char *message = strerror(errno);
+  	extern char *progname;
+  	extern char *getenv();
+  
+  	(void) fflush(stdout);				/* hack */
+  	cmdname = getenv("CMDNAME");
+***************
+*** 25,31 ****
+  		fprintf(stderr, "%s: ", progname);
+  	fprintf(stderr, s1, s2);
+! 	if (saverrno > 0 && saverrno < sys_nerr)
+! 		fprintf(stderr, " (%s)", sys_errlist[saverrno]);
+  	fprintf(stderr, "\n");
+  	errno = 0;
+  }
+--- 27,34 ----
+  		fprintf(stderr, "%s: ", progname);
+  	fprintf(stderr, s1, s2);
+! 	if (message != NULL)
+! 		fprintf(stderr, " (%s)", message);
+  	fprintf(stderr, "\n");
++ 	(void) fflush(stderr);
+  	errno = 0;
+  }
+
+*** cnpatch/old/libcnews/lock.c	Wed Dec 12 16:47:27 1990
+--- libcnews/lock.c	Sun Oct 28 02:22:46 1990
+***************
+*** 8,11 ****
+--- 8,12 ----
+  #include <stdio.h>
+  #include <errno.h>
++ #include "fixerrno.h"
+  #include <sys/types.h>
+  #include "libc.h"
+
+*** cnpatch/old/libfake/Makefile	Wed Dec 12 16:47:40 1990
+--- libfake/Makefile	Mon Dec 10 17:59:30 1990
+***************
+*** 7,14 ****
+  ALL = fsync.o getopt.o memchr.o memcmp.o memcpy.o \
+  memset.o mkdir.o putenv.o strchr.o strcspn.o strpbrk.o strrchr.o \
+! strspn.o strtok.o symlink.o dbmclose.o dbz.o
+  
+  # beware -- build knows about NEEDED
+! NEEDED = 
+  
+  u:	$(NEEDED)
+--- 7,14 ----
+  ALL = fsync.o getopt.o memchr.o memcmp.o memcpy.o \
+  memset.o mkdir.o putenv.o strchr.o strcspn.o strpbrk.o strrchr.o \
+! strspn.o strtok.o symlink.o dbmclose.o dbz.o strerror.o
+  
+  # beware -- build knows about NEEDED
+! NEEDED =  strerror.o
+  
+  u:	$(NEEDED)
+
+*** cnpatch/old/libfake/mkdir.c	Wed Dec 12 16:47:49 1990
+--- libfake/mkdir.c	Sun Oct 28 02:23:13 1990
+***************
+*** 5,8 ****
+--- 5,9 ----
+  #include <stdio.h>
+  #include <errno.h>
++ #include "fixerrno.h"
+  #include <sys/types.h>	/* argh */
+  #include "libc.h"
+
+*** cnpatch/old/libfake/putenv.c	Wed Dec 12 16:47:50 1990
+--- libfake/putenv.c	Thu Oct 25 12:51:36 1990
+***************
+*** 4,7 ****
+--- 4,8 ----
+  
+  #include <stdio.h>
++ #include <string.h>		/* the ANSI one, for memcpy */
+  #include <sys/types.h>
+  #include "libc.h"
+
+*** cnpatch/old/libstdio/fgets.c	Wed Dec 12 16:48:05 1990
+--- libstdio/fgets.c	Thu Oct 25 12:51:40 1990
+***************
+*** 1,3 ****
+--- 1,4 ----
+  #include <stdio.h>
++ #include <string.h>			/* the ANSI one, for memcpy */
+  #ifndef PTR_TYPE
+  #define	PTR_TYPE	char *		/* type of _ptr in stdio.h */
+
+*** cnpatch/old/libstdio/rdwr.c	Wed Dec 12 16:48:11 1990
+--- libstdio/rdwr.c	Thu Oct 25 12:51:41 1990
+***************
+*** 7,10 ****
+--- 7,11 ----
+  
+  #include <stdio.h>
++ #include <string.h>			/* the ANSI one, for memcpy */
+  #ifndef PTR_TYPE
+  #define	PTR_TYPE	char *		/* type of _ptr in stdio.h */
+
+*** cnpatch/old/libv7/fopenexcl.c	Wed Dec 12 16:48:21 1990
+--- libv7/fopenexcl.c	Mon Dec 10 17:48:19 1990
+***************
+*** 6,13 ****
+  #include <stdio.h>
+  #include <errno.h>
+  
+  #define F_OK 0
+- 
+- extern int errno;
+  
+  FILE *
+--- 6,12 ----
+  #include <stdio.h>
+  #include <errno.h>
++ #include "fixerrno.h"
+  
+  #define F_OK 0
+  
+  FILE *
+
+*** cnpatch/old/libv8/fopenexcl.c	Wed Dec 12 16:48:28 1990
+--- libv8/fopenexcl.c	Mon Dec 10 17:48:19 1990
+***************
+*** 6,13 ****
+  #include <stdio.h>
+  #include <errno.h>
+  
+  #define F_OK 0
+- 
+- extern int errno;
+  
+  FILE *
+--- 6,12 ----
+  #include <stdio.h>
+  #include <errno.h>
++ #include "fixerrno.h"
+  
+  #define F_OK 0
+  
+  FILE *
+
+Files that are new:
+
+new doc/biblio (patch can't create, so diff against null):
+Index: doc/biblio
+*** cnpatch/old/doc/biblio	Wed Dec 12 16:48:31 1990
+--- doc/biblio	Mon Oct 22 11:39:23 1990
+***************
+*** 0 ****
+--- 1,70 ----
++ .DA "22 Oct 1990"
++ .TL
++ Annotated Bibliography on C News
++ .AU
++ Henry Spencer
++ .AI
++ Dept. of Zoology
++ University of Toronto
++ .SH
++ This is an informal list of books and papers that are of interest
++ when running or looking at news systems in general and C News in particular.
++ It might have been nice to include some of these things in the distribution,
++ but it would have added considerable bulk to an already-large package.
++ .PP
++ \fIManaging UUCP and Usenet\fR, by Tim O'Reilly and Grace Todino,
++ O'Reilly & Associates, 1989, ISBN 0-937175-48-X,
++ inquiries to `nuts@ora.com' or
++ `uunet!ora!nuts'.
++ This is the Nutshell Handbook on UUCP and news.
++ This latest
++ edition covers C News as well as B News.
++ It's not perfect, but until something better comes along,
++ it is overwhelmingly the right place for a novice system administrator
++ to start reading.
++ .PP
++ \fINews Need Not Be Slow\fR, by Geoff Collyer and Henry Spencer,
++ in \fIWinter 1987 USENIX Technical Conference Proceedings\fR,
++ The USENIX Association, 1987, no ISBN apparent,
++ inquiries to `office@usenix.org' or `uunet!usenix!office'.
++ This paper, although slightly dated, is the basic reference on how C News
++ runs so much faster than B News.
++ (We think, and others agree, that it's also a good paper on how to make
++ things go fast in general.)
++ It's also the closest thing so far
++ to a general ``philosophy of C News'' paper,
++ and gives a good\(emalbeit somewhat selective\(emoverview
++ of the implementation.
++ .PP
++ \fIStandard for Interchange of USENET Messages\fR,
++ by M. Horton and R. Adams,
++ Internet RFC\|1036, 1987, inquiries to `nic@nic.ddn.mil' or
++ anonymous FTP from
++ nic.ddn.mil (pathname RFC:RFC1036.TXT).
++ This is the current standard for Usenet article format and related issues.
++ It is not complete, correct, or current, but it is nevertheless the basic
++ document on the subject.
++ (See our \fInotebook/rfcerrata\fR for some errata and one or two
++ out-and-out disagreements.)
++ Many issues are punted to RFC\|822; see below.
++ .PP
++ \fIStandard for the Format of ARPA Internet Text Messages\fR,
++ rev. by David H. Crocker,
++ Internet RFC\|822, 1982, inquiries to `nic@nic.ddn.mil' or
++ anonymous FTP from
++ nic.ddn.mil (pathname RFC:RFC822.TXT).
++ This lengthy and sometimes cryptic document defines
++ the Internet mail format.
++ The Usenet news format defined in RFC\|1036 is a subversion
++ (superset of a subset) of this,
++ and legalistic debates over details of the format inevitably end up
++ referring to 822.
++ Not for the faint of heart or weak of stomach.
++ .PP
++ \fInews.software.b\fR, various authors, Usenet newsgroup with ongoing
++ discussion, inquiries to your local Usenet site(s).
++ The forum for B-News-compatible software in general, including C News.
++ The definitive source for up-to-date information, patches, bug reports,
++ warning of forthcoming developments, debates, flame wars,
++ and general chitchat on news systems in general and C News in particular.
++ Read, and contributed to, by most authors of news software.
+
+new h/fixerrno.h (patch can't create, so diff against null):
+Index: h/fixerrno.h
+*** cnpatch/old/h/fixerrno.h	Wed Dec 12 16:48:32 1990
+--- h/fixerrno.h	Sun Oct 28 01:56:22 1990
+***************
+*** 0 ****
+--- 1,5 ----
++ /* attempt to supply a declaration of errno in case <errno.h> doesn't */
++ 
++ #ifndef __STDC__
++ extern int errno;
++ #endif
+
+new libc/split.3 (patch can't create, so diff against null):
+Index: libc/split.3
+*** cnpatch/old/libc/split.3	Wed Dec 12 16:48:33 1990
+--- libc/split.3	Sun Dec  9 03:28:14 1990
+***************
+*** 0 ****
+--- 1,114 ----
++ .TH SPLIT 3 "8 Dec 1990"
++ .BY "Zoology"
++ .SH NAME
++ split \- split string into fields
++ .SH SYNOPSIS
++ .nf
++ .B "int split(string, fields, nfields, separators)"
++ .B "char *string;"
++ .B "char *fields[];"
++ .B "int nfields;"
++ .B "char *separators;"
++ .fi
++ .SH DESCRIPTION
++ .I Split
++ splits the
++ .I string
++ into
++ .I fields
++ according to the
++ .IR separators ,
++ much in the manner of
++ .IR awk (1)'s
++ field facilities.
++ .I String
++ has
++ .SM NUL s
++ written into it to do the splitting, and pointers to the resulting strings
++ are placed into the
++ .I fields
++ array, up to the number specified by
++ .IR nfields .
++ If the number of fields found exceeds
++ .IR nfields ,
++ the writing of
++ .SM NUL s
++ stops, so that the last entry in
++ .I fields
++ points to the remainder of the string.
++ .PP
++ The returned value is the number of fields present in
++ .IR string ,
++ which may exceed
++ .IR nfields .
++ If the returned value is less than
++ .IR nfields ,
++ the contents of the remaining entries in
++ .I fields
++ (up to the limit set by
++ .IR nfields )
++ are undefined.
++ (Note, in particular, that
++ .I split
++ does not terminate the list of fields with a
++ .SM NULL
++ pointer.)
++ .PP
++ If
++ .I separators
++ is a string of length 1, that character is the separator:
++ each occurrence of it
++ separates the current field from
++ a new field, which may be of length 0 if another
++ separator follows immediately.
++ .PP
++ If
++ .I separators
++ is a string of length >1, all the characters in it are separators:
++ any sequence of characters composed entirely of separators
++ separates the current field from
++ a new field,
++ which is of length 0 only if it is at the beginning or end of the
++ .IR string .
++ Characters may be duplicated in
++ .IR separators ;
++ in particular, a
++ .I separators
++ string consisting of the same character twice gives fields separated by
++ sequences of that character.
++ .PP
++ As a special case, if
++ .I separators
++ is a string of length 0, sequences of white-space characters
++ (here defined as blanks and tabs)
++ are the separators, and sequences of separators at the beginning or end
++ of the
++ .I string
++ are ignored, so there can be no fields of length 0.
++ .PP
++ In all cases, an empty
++ .I string
++ (or, in the case of a
++ .I separators
++ of length 0,
++ a
++ .I string
++ consisting only of white space)
++ has 0 fields.
++ .SH SEE ALSO
++ awk(1), regexp(3), strtok(3)
++ .SH HISTORY
++ Written at University of Toronto by Henry Spencer,
++ with contributions from Geoff Collyer and Mark Moraes.
++ .SH BUGS
++ Too many different decisions are bundled into the single
++ .I separators
++ argument.
++ Arguably it
++ should be a regular expression instead.
++ .PP
++ Specifying several characters as
++ .I separators
++ is rather inefficient;
++ if speed is a priority in such a case, it is better to custom-build code
++ that knows about the particular separators desired.
+
+new libc/split.c (patch can't create, so diff against null):
+Index: libc/split.c
+*** cnpatch/old/libc/split.c	Wed Dec 12 16:48:34 1990
+--- libc/split.c	Sun Dec  9 03:28:14 1990
+***************
+*** 0 ****
+--- 1,311 ----
++ #include <stdio.h>
++ #include <string.h>
++ 
++ /*
++  * split - divide a string into fields, like awk split()
++  */
++ int				/* number of fields, including overflow */
++ split(string, fields, nfields, sep)
++ char *string;
++ char *fields[];			/* list is not NULL-terminated */
++ int nfields;			/* number of entries available in fields[] */
++ char *sep;			/* "" white, "c" single char, "ab" [ab]+ */
++ {
++ 	register char *p = string;
++ 	register char c;			/* latest character */
++ 	register char sepc = sep[0];
++ 	register char sepc2;
++ 	register int fn;
++ 	register char **fp = fields;
++ 	register char *sepp;
++ 	register int trimtrail;
++ 
++ 	/* white space */
++ 	if (sepc == '\0') {
++ 		while ((c = *p++) == ' ' || c == '\t')
++ 			continue;
++ 		p--;
++ 		trimtrail = 1;
++ 		sep = " \t";	/* note, code below knows this is 2 long */
++ 		sepc = ' ';
++ 	} else
++ 		trimtrail = 0;
++ 	sepc2 = sep[1];		/* now we can safely pick this up */
++ 
++ 	/* catch empties */
++ 	if (*p == '\0')
++ 		return(0);
++ 
++ 	/* single separator */
++ 	if (sepc2 == '\0') {
++ 		fn = nfields;
++ 		for (;;) {
++ 			*fp++ = p;
++ 			fn--;
++ 			if (fn == 0)
++ 				break;
++ 			while ((c = *p++) != sepc)
++ 				if (c == '\0')
++ 					return(nfields - fn);
++ 			*(p-1) = '\0';
++ 		}
++ 		/* we have overflowed the fields vector -- just count them */
++ 		fn = nfields;
++ 		for (;;) {
++ 			while ((c = *p++) != sepc)
++ 				if (c == '\0')
++ 					return(fn);
++ 			fn++;
++ 		}
++ 		/* not reached */
++ 	}
++ 
++ 	/* two separators */
++ 	if (sep[2] == '\0') {
++ 		fn = nfields;
++ 		for (;;) {
++ 			*fp++ = p;
++ 			fn--;
++ 			while ((c = *p++) != sepc && c != sepc2)
++ 				if (c == '\0') {
++ 					if (trimtrail && **(fp-1) == '\0')
++ 						fn++;
++ 					return(nfields - fn);
++ 				}
++ 			if (fn == 0)
++ 				break;
++ 			*(p-1) = '\0';
++ 			while ((c = *p++) == sepc || c == sepc2)
++ 				continue;
++ 			p--;
++ 		}
++ 		/* we have overflowed the fields vector -- just count them */
++ 		fn = nfields;
++ 		while (c != '\0') {
++ 			while ((c = *p++) == sepc || c == sepc2)
++ 				continue;
++ 			p--;
++ 			fn++;
++ 			while ((c = *p++) != '\0' && c != sepc && c != sepc2)
++ 				continue;
++ 		}
++ 		/* might have to trim trailing white space */
++ 		if (trimtrail) {
++ 			p--;
++ 			while ((c = *--p) == sepc || c == sepc2)
++ 				continue;
++ 			p++;
++ 			if (*p != '\0') {
++ 				if (fn == nfields+1)
++ 					*p = '\0';
++ 				fn--;
++ 			}
++ 		}
++ 		return(fn);
++ 	}
++ 
++ 	/* n separators */
++ 	fn = 0;
++ 	for (;;) {
++ 		if (fn < nfields)
++ 			*fp++ = p;
++ 		fn++;
++ 		for (;;) {
++ 			c = *p++;
++ 			if (c == '\0')
++ 				return(fn);
++ 			sepp = sep;
++ 			while ((sepc = *sepp++) != '\0' && sepc != c)
++ 				continue;
++ 			if (sepc != '\0')	/* it was a separator */
++ 				break;
++ 		}
++ 		if (fn < nfields)
++ 			*(p-1) = '\0';
++ 		for (;;) {
++ 			c = *p++;
++ 			sepp = sep;
++ 			while ((sepc = *sepp++) != '\0' && sepc != c)
++ 				continue;
++ 			if (sepc == '\0')	/* it wasn't a separator */
++ 				break;
++ 		}
++ 		p--;
++ 	}
++ 
++ 	/* not reached */
++ }
++ 
++ #ifdef TEST_SPLIT
++ 
++ 
++ /*
++  * test program
++  * pgm		runs regression
++  * pgm sep	splits stdin lines by sep
++  * pgm str sep	splits str by sep
++  * pgm str sep n	splits str by sep n times
++  */
++ int
++ main(argc, argv)
++ int argc;
++ char *argv[];
++ {
++ 	char buf[512];
++ 	register int n;
++ #	define	MNF	10
++ 	char *fields[MNF];
++ 
++ 	if (argc > 4)
++ 		for (n = atoi(argv[3]); n > 0; n--) {
++ 			(void) strcpy(buf, argv[1]);
++ 		}
++ 	else if (argc > 3)
++ 		for (n = atoi(argv[3]); n > 0; n--) {
++ 			(void) strcpy(buf, argv[1]);
++ 			(void) split(buf, fields, MNF, argv[2]);
++ 		}
++ 	else if (argc > 2)
++ 		dosplit(argv[1], argv[2]);
++ 	else if (argc > 1)
++ 		while (fgets(buf, sizeof(buf), stdin) != NULL) {
++ 			buf[strlen(buf)-1] = '\0';	/* stomp newline */
++ 			dosplit(buf, argv[1]);
++ 		}
++ 	else
++ 		regress();
++ 
++ 	exit(0);
++ }
++ 
++ dosplit(string, seps)
++ char *string;
++ char *seps;
++ {
++ #	define	NF	5
++ 	char *fields[NF];
++ 	register int nf;
++ 
++ 	nf = split(string, fields, NF, seps);
++ 	print(nf, fields);
++ }
++ 
++ print(nf, fields)
++ int nf;
++ char *fields[];
++ {
++ 	register int fn;
++ 
++ 	printf("%d:\t", nf);
++ 	for (fn = 0; fn < nf; fn++)
++ 		printf("\"%s\"%s", fields[fn], (fn+1 < nf) ? ", " : "\n");
++ }
++ 
++ #define	RNF	5		/* some table entries know this */
++ struct {
++ 	char *str;
++ 	char *seps;
++ 	int nf;
++ 	char *fi[RNF];
++ } tests[] = {
++ 	"",		" ",	0,	{ "" },
++ 	" ",		" ",	2,	{ "", "" },
++ 	"x",		" ",	1,	{ "x" },
++ 	"xy",		" ",	1,	{ "xy" },
++ 	"x y",		" ",	2,	{ "x", "y" },
++ 	"abc def  g ",	" ",	5,	{ "abc", "def", "", "g", "" },
++ 	"  a bcd",	" ",	4,	{ "", "", "a", "bcd" },
++ 	"a b c d e f",	" ",	6,	{ "a", "b", "c", "d", "e f" },
++ 	" a b c d ",	" ",	6,	{ "", "a", "b", "c", "d " },
++ 
++ 	"",		" _",	0,	{ "" },
++ 	" ",		" _",	2,	{ "", "" },
++ 	"x",		" _",	1,	{ "x" },
++ 	"x y",		" _",	2,	{ "x", "y" },
++ 	"ab _ cd",	" _",	2,	{ "ab", "cd" },
++ 	" a_b  c ",	" _",	5,	{ "", "a", "b", "c", "" },
++ 	"a b c_d e f",	" _",	6,	{ "a", "b", "c", "d", "e f" },
++ 	" a b c d ",	" _",	6,	{ "", "a", "b", "c", "d " },
++ 
++ 	"",		" _~",	0,	{ "" },
++ 	" ",		" _~",	2,	{ "", "" },
++ 	"x",		" _~",	1,	{ "x" },
++ 	"x y",		" _~",	2,	{ "x", "y" },
++ 	"ab _~ cd",	" _~",	2,	{ "ab", "cd" },
++ 	" a_b  c~",	" _~",	5,	{ "", "a", "b", "c", "" },
++ 	"a b_c d~e f",	" _~",	6,	{ "a", "b", "c", "d", "e f" },
++ 	"~a b c d ",	" _~",	6,	{ "", "a", "b", "c", "d " },
++ 
++ 	"",		" _~-",	0,	{ "" },
++ 	" ",		" _~-",	2,	{ "", "" },
++ 	"x",		" _~-",	1,	{ "x" },
++ 	"x y",		" _~-",	2,	{ "x", "y" },
++ 	"ab _~- cd",	" _~-",	2,	{ "ab", "cd" },
++ 	" a_b  c~",	" _~-",	5,	{ "", "a", "b", "c", "" },
++ 	"a b_c-d~e f",	" _~-",	6,	{ "a", "b", "c", "d", "e f" },
++ 	"~a-b c d ",	" _~-",	6,	{ "", "a", "b", "c", "d " },
++ 
++ 	"",		"  ",	0,	{ "" },
++ 	" ",		"  ",	2,	{ "", "" },
++ 	"x",		"  ",	1,	{ "x" },
++ 	"xy",		"  ",	1,	{ "xy" },
++ 	"x y",		"  ",	2,	{ "x", "y" },
++ 	"abc def  g ",	"  ",	4,	{ "abc", "def", "g", "" },
++ 	"  a bcd",	"  ",	3,	{ "", "a", "bcd" },
++ 	"a b c d e f",	"  ",	6,	{ "a", "b", "c", "d", "e f" },
++ 	" a b c d ",	"  ",	6,	{ "", "a", "b", "c", "d " },
++ 
++ 	"",		"",	0,	{ "" },
++ 	" ",		"",	0,	{ "" },
++ 	"x",		"",	1,	{ "x" },
++ 	"xy",		"",	1,	{ "xy" },
++ 	"x y",		"",	2,	{ "x", "y" },
++ 	"abc def  g ",	"",	3,	{ "abc", "def", "g" },
++ 	"\t a bcd",	"",	2,	{ "a", "bcd" },
++ 	"  a \tb\t c ",	"",	3,	{ "a", "b", "c" },
++ 	"a b\tc d e f",	"",	6,	{ "a", "b", "c", "d", "e f" },
++ 	" a b c d e f ",	"",	6,	{ "a", "b", "c", "d", "e f " },
++ 
++ 	NULL,		NULL,	0,	{ NULL },
++ };
++ 
++ regress()
++ {
++ 	char buf[512];
++ 	register int n;
++ 	char *fields[RNF+1];
++ 	register int nf;
++ 	register int i;
++ 	register int printit;
++ 	register char *f;
++ 
++ 	for (n = 0; tests[n].str != NULL; n++) {
++ 		(void) strcpy(buf, tests[n].str);
++ 		fields[RNF] = NULL;
++ 		nf = split(buf, fields, RNF, tests[n].seps);
++ 		printit = 0;
++ 		if (nf != tests[n].nf) {
++ 			printf("split `%s' by `%s' gave %d fields, not %d\n",
++ 				tests[n].str, tests[n].seps, nf, tests[n].nf);
++ 			printit = 1;
++ 		} else if (fields[RNF] != NULL) {
++ 			printf("split() went beyond array end\n");
++ 			printit = 1;
++ 		} else {
++ 			for (i = 0; i < nf && i < RNF; i++) {
++ 				f = fields[i];
++ 				if (f == NULL)
++ 					f = "(NULL)";
++ 				if (strcmp(f, tests[n].fi[i]) != 0) {
++ 					printf("split `%s' by `%s', field %d is `%s', not `%s'\n",
++ 						tests[n].str, tests[n].seps,
++ 						i, fields[i], tests[n].fi[i]);
++ 					printit = 1;
++ 				}
++ 			}
++ 		}
++ 		if (printit)
++ 			print(nf, fields);
++ 	}
++ }
++ #endif
+
+new libfake/strerror.c (patch can't create, so diff against null):
+Index: libfake/strerror.c
+*** cnpatch/old/libfake/strerror.c	Wed Dec 12 16:48:35 1990
+--- libfake/strerror.c	Sun Oct 14 03:52:11 1990
+***************
+*** 0 ****
+--- 1,19 ----
++ /*
++  * strerror - map error number to descriptive string
++  *
++  * This version is obviously somewhat Unix-specific.
++  */
++ char *
++ strerror(errnum)
++ int errnum;
++ {
++ 	extern int sys_nerr;
++ 	extern char *sys_errlist[];
++ 
++ 	if (errnum > 0 && errnum < sys_nerr)
++ 		return(sys_errlist[errnum]);
++ 	else if (errnum != 0)
++ 		return("unknown error");
++ 	else
++ 		return("no details given");
++ }
+
+
+end of patch 12-Dec-1990

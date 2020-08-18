@@ -1,0 +1,1830 @@
+Xref: news-server.csri.toronto.edu news.software.b:7066 comp.sources.bugs:2861
+Newsgroups: news.software.b,comp.sources.bugs
+Path: news-server.csri.toronto.edu!utzoo!henry
+From: henry@zoo.toronto.edu (Henry Spencer)
+Subject: C News patch of 16-Mar-1991
+Message-ID: <1991Mar17.042951.18644@zoo.toronto.edu>
+Date: Sun, 17 Mar 1991 04:29:51 GMT
+Organization: U of Toronto Zoology
+
+This again is the first of a set, which should appear within the next week.
+The members of the set are interrelated to some extent, and installing one
+without the others voids your warranty. :-)  Turned out we had rather more
+than one patch worth of stuff built up.
+
+README changed to include FTP instructions; COPYRIGHT changed to include
+important acknowledgement (not really a copyright issue, but we had to put
+it *somewhere*, and COPYRIGHT is where the authors are named...).  Batchsplit
+estimates size of ihave/sendme batches more accurately.  Build takes -r
+option to suppress rewriting defaults file.  Warnings about dbz/dbm file
+incompatibility made louder.  Build uses sed rather than ed to avoid some
+unportabilities.  Dbz default hash-table density reduced in an attempt to
+avoid files with holes in them.  dbzcancel() added to provide better for
+dbz-using programs that fork().  Dbz now does unbuffered i/o when compiled
+for B News, to minimize problems with B News's inadequate locking.  Dbz
+rebuild does not shrink the hash table when it is relatively new, to avoid
+startup transients which have bothered many people.  Doexpire removes
+history.o before checking space, since it's about to be removed anyway
+and it can be large.  Expire "stretches" defaults so that an explicit
+expiry date is not rejected for being outside the /bounds/ defaults.
+Histdups fixed not to emit an empty line if there is no input, which
+made addmissing choke.  Histinfo and histslash made more robust, avoiding
+problems with really trashed files that could cause core dumps from
+mkhistory and addmissing.  Mkhistory fixed to include only top-level
+directories, not top-level files (which cannot be articles).  Cunbatch
+added to NEWSBIN/input for convenience when giving HDB/BNU uucp full
+pathnames.  Input subsystem gets tagging of files by type (which avoids
+a multitude of bugs and inefficiencies) and grade (not used yet, but
+potentially available to assign priorities to input); extensive revisions
+to regression test to match, including a fix for a timing bug that could
+make the test spuriously fail on fast machines.  Newsrun punts to server
+for whole run rather than each relaynews.
+
+NOTE AN INCOMPATIBILITY:  newsrun will no longer try applying c7decode
+to a non-type-tagged input, so c7encoded input had better come in through
+newsspool to get tagged properly.  Almost nobody uses c7encoded format
+anyway, and this saves hassles.
+
+start of patch 16-Mar-1991
+(suggested archive name: `pch16Mar91.Z')
+this should be run with   patch -p0 <thisfile
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+Prereq: 13-Dec-1990
+Prereq: 14-Dec-1990
+Prereq: 15-Dec-1990
+*** PATCHDATES.old	Sat Mar 16 21:46:45 1991
+--- PATCHDATES	Sat Mar 16 21:46:45 1991
+***************
+*** 1,23 ****
+--- 1,24 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
+  13-Dec-1990
+  14-Dec-1990
+  15-Dec-1990
++ 16-Mar-1991
+
+Changed files, if any:
+
+*** cnpatch/old/COPYRIGHT	Sat Mar 16 21:46:51 1991
+--- COPYRIGHT	Sat Mar 16 21:30:40 1991
+***************
+*** 1,6 ****
+  /*
+!  * Copyright (c) University of Toronto 1985, 1986, 1987, 1988, 1989, 1990.
+   * All rights reserved.
+   * Written mostly by Geoffrey Collyer and Henry Spencer.
+   * This software is not subject to any license of the American Telephone
+   * and Telegraph Company, the Regents of the University of California, or
+--- 1,8 ----
+  /*
+!  * Copyright (c) University of Toronto 1985-1991 and years between.
+   * All rights reserved.
+   * Written mostly by Geoffrey Collyer and Henry Spencer.
++  * Our thanks to UUNET Communications Services Inc for financial support.
++  *
+   * This software is not subject to any license of the American Telephone
+   * and Telegraph Company, the Regents of the University of California, or
+
+*** cnpatch/old/README	Sat Mar 16 21:46:53 1991
+--- README	Sat Mar  2 16:40:23 1991
+***************
+*** 1,3 ****
+! This is C News, superseding assorted preliminary releases.  28 Oct 1990
+  
+  C News is a reimplementation of the transport and storage subsystems of the
+--- 1,3 ----
+! This is C News, superseding assorted preliminary releases.  16 Jan 1991
+  
+  C News is a reimplementation of the transport and storage subsystems of the
+***************
+*** 180,183 ****
+--- 180,190 ----
+  decvax, floyd, hoptoad, kitty, linus, mnetor, pyramid, suncan, utai, utgpu,
+  watmath, or yunexus).
++ 
++ The current C News distribution can currently always be retrieved by
++ anonymous ftp from ftp.cs.toronto.edu in file pub/c-news/c-news.Z (a shell
++ archive) or pub/c-news/c-news.tar.Z (a tar archive) and the complete set
++ of patches can also be found on ftp.cs.toronto.edu in the directory
++ pub/c-news/patches.  FTP during our peak hours (12h00-17h00 Eastern) is
++ not encouraged.
+  
+  					Geoff Collyer
+
+*** cnpatch/old/batch/batcher.c	Sat Mar 16 21:46:56 1991
+--- batch/batcher.c	Sat Jan 12 23:15:29 1991
+***************
+*** 66,70 ****
+  	}
+  	if (!feof(list))
+! 		error("fgetmfs failure", "");
+  
+  	exit(0);
+--- 66,71 ----
+  	}
+  	if (!feof(list))
+! 		error("fgetms failure (read error or out of memory) in `%s'",
+! 								argv[optind]);
+  
+  	exit(0);
+
+*** cnpatch/old/batch/batchsplit	Sat Mar 16 21:46:59 1991
+--- batch/batchsplit	Mon Jan 14 17:38:43 1991
+***************
+*** 68,74 ****
+  		batch = "togo." bno ; nbatches = 7 }
+  	{
+! 		if (NF == 1)
+! 			size = 3000	# Arbitrary guess.
+! 		else
+  			size = $NF
+  		if (total + size > limit && ninbatch > 0) {
+--- 68,77 ----
+  		batch = "togo." bno ; nbatches = 7 }
+  	{
+! 		if (NF == 1) {
+! 			if ($1 ~ /^<.*>$/)	# probably ihave/sendme m-id
+! 				size = length
+! 			else
+! 				size = 3000	# Arbitrary guess.
+! 		} else
+  			size = $NF
+  		if (total + size > limit && ninbatch > 0) {
+
+*** cnpatch/old/batch/sendbatches	Sat Mar 16 21:47:09 1991
+--- batch/sendbatches	Sun Jan 27 00:06:36 1991
+***************
+*** 13,16 ****
+--- 13,23 ----
+  log=$NEWSCTL/batchlog
+  
++ case "$-" in
++ *x*)	n='***NOTE***'
++ 	echo "$n expect spurious batching failures due to \`sh -x' $n" >&2
++ 	# no, there isn't any portable fix
++ 	;;
++ esac
++ 
+  # lock against multiple simultaneous execution
+  lock="$NEWSCTL/LOCKbatch"
+***************
+*** 146,149 ****
+--- 153,162 ----
+  		for f in $them
+  		do
++ 			# Sigh... sh -x on this won't work, because the -x
++ 			# output ends up in /tmp/nb$$, and there is no way
++ 			# to either (a) separate it out (bearing in mind that
++ 			# some shells randomly interleave -x lines from the
++ 			# processes in a pipeline) or (b) turn off -x for
++ 			# a moment in a portable way.
+  			( ( cd $NEWSARTS ; $batcher $here/$f ) | $muncher |
+  						$sender $sys ) >/tmp/nb$$ 2>&1
+***************
+*** 157,160 ****
+--- 170,174 ----
+  					echo "$0: aborting"
+  				) | mail $NEWSMASTER
++ 				rm /tmp/nb$$
+  				exit 1
+  			fi
+
+*** cnpatch/old/conf/build	Sat Mar 16 21:47:27 1991
+--- conf/build	Mon Feb 11 17:03:41 1991
+***************
+*** 42,45 ****
+--- 42,51 ----
+  chmod +x ask yesno notinlist	# just in case
+  
++ rewrite=yes
++ case "$1" in
++ -r)	rewrite=no
++ 	shift
++ 	;;
++ esac
+  case $# in
+  0)	;;
+***************
+*** 313,320 ****
+  echo 'The news system uses a database package, typically the old "dbm"'
+  echo 'library from Version 7 or a lookalike, as an indexing system.  We'
+! echo 'supply a version of the "dbz" library which is faster than "dbm"'
+! echo 'and uses much less disk space.  This is usually the best thing to'
+! echo 'use, unless you have major backward-compatibility problems.  Do you'
+! tmp=`yesno 'want to use our "dbz" library' $has`
+  case "$tmp" in
+  yes)	dbzlib=dbz
+--- 319,328 ----
+  echo 'The news system uses a database package, typically the old "dbm"'
+  echo 'library from Version 7 or a lookalike, as an indexing system.  We'
+! echo 'supply a version of the "dbz" library, which is faster than "dbm",'
+! echo 'uses much less disk space, and is program-compatible (although'
+! echo 'it is *not* file-compatible, so anything else using the database'
+! echo '[notably NNTP, if applicable] has to be relinked with it).  Dbz'
+! echo 'is usually preferable to dbm, barring major backward-compatibility'
+! tmp=`yesno 'problems.  Do you want to use our "dbz" library' $has`
+  case "$tmp" in
+  yes)	dbzlib=dbz
+***************
+*** 763,770 ****
+  	echo 'make all || exit 1'
+  	echo 'cd ../hfake'
+! 	echo "ed - Makefile <<'!'"
+! 	echo "/NEEDED =/s~.*~NEEDED = $fakehdrs~"
+! 	echo "w"
+! 	echo "!"
+  	echo "make all || exit 1"
+  	echo ": done"
+--- 771,776 ----
+  	echo 'make all || exit 1'
+  	echo 'cd ../hfake'
+!  	echo "sed -e '/NEEDED =/s~.*~NEEDED = $fakehdrs~' Makefile" '>M.$$'
+!  	echo 'mv -f M.$$ Makefile'
+  	echo "make all || exit 1"
+  	echo ": done"
+***************
+*** 812,819 ****
+  	echo "done"
+  	echo "cd ../libfake"
+! 	echo "ed - Makefile <<'!'"
+! 	echo "/NEEDED =/s/.*/NEEDED = $fake/"
+! 	echo "w"
+! 	echo "!"
+  	echo "make u $ccc || exit 1"
+  	echo "cd ../conf"
+--- 818,823 ----
+  	echo "done"
+  	echo "cd ../libfake"
+!  	echo "sed -e '/NEEDED =/s/.*/NEEDED = $fake/' Makefile" '>M.$$'
+!  	echo 'mv -f M.$$ Makefile'
+  	echo "make u $ccc || exit 1"
+  	echo "cd ../conf"
+***************
+*** 1027,1054 ****
+  
+  echo
+! echo 'saving defaults...'
+! rm -f $memory
+! >$memory
+! warn='# These answers are interdependent; do not edit this file!'
+! if test ! -w $memory
+! then
+! 	echo 'It appears that I cannot save the defaults.'
+! else
+! 	(
+! 		for v in $vars
+! 		do
+! 			echo "$warn"
+! 			if test " $v" = " organization"
+! 			then
+! 				echo "organization=\"$organization\""
+! 			else
+! 				# even this horror botches metachars in var
+! 				eval "echo $v=\\\"\"\$$v\"\\\""
+! 			fi
+! 		done
+! 	) >>$memory
+! 	echo 'done'
+! fi
+! chmod -w $memory
+  
+  echo
+--- 1031,1063 ----
+  
+  echo
+! case "$rewrite" in
+! no)	;;
+! yes)	echo
+! 	echo 'saving defaults...'
+! 	rm -f $memory
+! 	>$memory
+! 	warn='# These answers are interdependent; do not edit this file!'
+! 	if test ! -w $memory
+! 	then
+! 		echo 'It appears that I cannot save the defaults.'
+! 	else
+! 		(
+! 			for v in $vars
+! 			do
+! 				echo "$warn"
+! 				if test " $v" = " organization"
+! 				then
+! 					echo "organization=\"$organization\""
+! 				else
+! 					# even this horror botches metachars in var
+! 					eval "echo $v=\\\"\"\$$v\"\\\""
+! 				fi
+! 			done
+! 		) >>$memory
+! 		echo 'done'
+! 	fi
+! 	chmod -w $memory
+! 	;;
+! esac
+  
+  echo
+
+*** cnpatch/old/conf/subst.1	Sat Mar 16 21:47:43 1991
+--- conf/subst.1	Mon Feb 25 15:12:03 1991
+***************
+*** 1,4 ****
+  .TH SUBST 1 local
+! .DA 21 Feb 1989
+  .SH NAME
+  subst \- substitute definitions into file(s)
+--- 1,4 ----
+  .TH SUBST 1 local
+! .DA 25 Feb 1990
+  .SH NAME
+  subst \- substitute definitions into file(s)
+***************
+*** 26,30 ****
+  The first field is the \fIname\fR of the substitution, the second
+  is the \fIvalue\fR.
+! Neither should contain the character `#'.
+  A line starting with `#' is a comment and is ignored.
+  .PP
+--- 26,32 ----
+  The first field is the \fIname\fR of the substitution, the second
+  is the \fIvalue\fR.
+! Neither should contain the character `#', and use of text-editor
+! metacharacters like `&' and `\e' is also unwise;
+! the name in particular is best restricted to be alphanumeric.
+  A line starting with `#' is a comment and is ignored.
+  .PP
+***************
+*** 77,84 ****
+  .RE
+  .SH FILES
+! .ta \w'n.\fIvictim\fR'u+4n
+! n.\fIvictim\fR	new version being built
+  .br
+! o.\fIvictim\fR	old version during renaming
+  .SH SEE ALSO
+  sed(1)
+--- 79,86 ----
+  .RE
+  .SH FILES
+! .ta \w'\fIvictimdir\fR/substtmp.old'u+4n
+! \fIvictimdir\fR/substtmp.new	new version being built
+  .br
+! \fIvictimdir\fR/substtmp.old	old version during renaming
+  .SH SEE ALSO
+  sed(1)
+
+*** cnpatch/old/conf/subst.hs	Sat Mar 16 21:47:47 1991
+--- conf/subst.hs	Sat Mar 16 21:08:16 1991
+***************
+*** 48,49 ****
+--- 48,53 ----
+  dbz/Makefile
+  man/checknews.1
++ misc/addmissing
++ misc/histfrom
++ misc/newsfrom
++ misc/newshist
+
+*** cnpatch/old/dbz/Makefile	Sat Mar 16 21:47:54 1991
+--- dbz/Makefile	Sat Mar 16 19:16:04 1991
+***************
+*** 15,19 ****
+  TSIZE=12007
+  RSIZE=4019
+! RPSIZE=3012
+  
+  # history files for regression and performance tests
+--- 15,19 ----
+  TSIZE=12007
+  RSIZE=4019
+! RPSIZE=2679
+  
+  # history files for regression and performance tests
+***************
+*** 29,32 ****
+--- 29,35 ----
+  	cp dbz $(NEWSBIN)
+  
++ cmp:	dbz
++ 	cmp dbz $(NEWSBIN)/dbz
++ 
+  newsinstall:
+  	: nothing
+***************
+*** 148,152 ****
+  	: test massive overflow, throw in case sensitivity and tag mask
+  	cp $(R2HIST) dbase
+! 	./rdbz -E 1000 -0 -p '0 0 7ff00000' dbase
+  	./rdbz -E 1000 -0 -cq dbase
+  	sed 100q dbase | egrep '[aA].*	' | tr aA Aa >dbase.ick
+--- 151,155 ----
+  	: test massive overflow, throw in case sensitivity and tag mask
+  	cp $(R2HIST) dbase
+! 	./rdbz -E 1000 -0 -p '0 0 7ffc0000' dbase
+  	./rdbz -E 1000 -0 -cq dbase
+  	sed 100q dbase | egrep '[aA].*	' | tr aA Aa >dbase.ick
+
+*** cnpatch/old/dbz/dbz.1	Sat Mar 16 21:47:58 1991
+--- dbz/dbz.1	Sat Feb  2 01:46:49 1991
+***************
+*** 1,3 ****
+! .TH DBZ 1 "12 April 1990"
+  .BY "C News"
+  .SH NAME
+--- 1,3 ----
+! .TH DBZ 1 "2 Feb 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 179,183 ****
+  The
+  .B \&.pag
+! file is normally 5-6 bytes per record (based on the estimate given to
+  .B \-p
+  or the previous history of the
+--- 179,183 ----
+  The
+  .B \&.pag
+! file is normally about 6 bytes per record (based on the estimate given to
+  .B \-p
+  or the previous history of the
+
+*** cnpatch/old/dbz/dbz.3z	Sat Mar 16 21:48:00 1991
+--- dbz/dbz.3z	Sun Feb  3 01:43:48 1991
+***************
+*** 1,3 ****
+! .TH DBZ 3Z "13 Oct 1990"
+  .BY "C News"
+  .SH NAME
+--- 1,3 ----
+! .TH DBZ 3Z "3 Feb 1991"
+  .BY "C News"
+  .SH NAME
+***************
+*** 6,10 ****
+  dbzfresh, dbzagain, dbzfetch, dbzstore \- database routines
+  .br
+! dbzsize, dbzincore, dbzdebug \- database routines
+  .SH SYNOPSIS
+  .nf
+--- 6,10 ----
+  dbzfresh, dbzagain, dbzfetch, dbzstore \- database routines
+  .br
+! dbzsync, dbzsize, dbzincore, dbzcancel, dbzdebug \- database routines
+  .SH SYNOPSIS
+  .nf
+***************
+*** 51,54 ****
+--- 51,56 ----
+  .B dbzincore(newvalue)
+  .PP
++ .B dbzcancel()
++ .PP
+  .B dbzdebug(newvalue)
+  .SH DESCRIPTION
+***************
+*** 163,167 ****
+  is a prime number and
+  the number of key-value pairs stored in the database does not exceed
+! about 75% of
+  .IR size .
+  (The
+--- 165,169 ----
+  is a prime number and
+  the number of key-value pairs stored in the database does not exceed
+! about 2/3 of
+  .IR size .
+  (The
+***************
+*** 402,405 ****
+--- 404,417 ----
+  for an in-memory database.
+  .PP
++ .I Dbzcancel
++ cancels any pending writes from buffers.
++ This is typically useful only for in-core databases, since writes are
++ otherwise done immediately.
++ Its main purpose is to let a child process, in the wake of a
++ .IR fork ,
++ do a
++ .I dbmclose
++ without writing its parent's data to disk.
++ .PP
+  If
+  .I dbz
+***************
+*** 526,527 ****
+--- 538,547 ----
+  too big for
+  tagging, and shrink the tag mask to match.
++ .PP
++ Marking
++ .IR dbz 's
++ file descriptors
++ .RI close-on- exec
++ would be a better approach to the problem
++ .I dbzcancel
++ tries to address, but that's harder to do portably.
+
+*** cnpatch/old/dbz/dbz.c	Sat Mar 16 21:48:03 1991
+--- dbz/dbz.c	Sun Feb  3 02:38:57 1991
+***************
+*** 1,5 ****
+  /*
+  
+! dbz.c  V3.1
+  
+  Copyright 1988 Jon Zeeff (zeeff@b-tech.ann-arbor.mi.us)
+--- 1,5 ----
+  /*
+  
+! dbz.c  V3.2
+  
+  Copyright 1988 Jon Zeeff (zeeff@b-tech.ann-arbor.mi.us)
+***************
+*** 42,47 ****
+   * DBZDEBUG	enable debugging
+   * DEFSIZE	default table size (not as critical as in old dbz)
+!  * OLDBNEWS	default case mapping as in old B News
+!  * BNEWS	default case mapping as in current B News
+   * DEFCASE	default case-map algorithm selector
+   * NOTAGS	fseek offsets are strange, do not do tagging (see below)
+--- 42,47 ----
+   * DBZDEBUG	enable debugging
+   * DEFSIZE	default table size (not as critical as in old dbz)
+!  * OLDBNEWS	default case mapping as in old B News; set NOBUFFER
+!  * BNEWS	default case mapping as in current B News; set NOBUFFER
+   * DEFCASE	default case-map algorithm selector
+   * NOTAGS	fseek offsets are strange, do not do tagging (see below)
+***************
+*** 50,53 ****
+--- 50,54 ----
+   * MAXRUN	length of run which shifts to next table (see below) (LIA)
+   * OVERFLOW	long-int arithmetic overflow must be avoided, will trap
++  * NOBUFFER	do not buffer hash-table i/o, B News locking is defective
+   */
+  
+***************
+*** 86,91 ****
+   * The table size is fixed for any particular database, but is determined
+   * dynamically when a database is rebuilt.  The strategy is to try to pick
+!  * the size so the first table will be no more than 75% full, that being
+!  * about the point where performance starts to degrade.
+   */
+  
+--- 87,94 ----
+   * The table size is fixed for any particular database, but is determined
+   * dynamically when a database is rebuilt.  The strategy is to try to pick
+!  * the size so the first table will be no more than 2/3 full, that being
+!  * slightly before the point where performance starts to degrade.  (It is
+!  * desirable to be a bit conservative because the overflow strategy tends
+!  * to produce files with holes in them, which is a nuisance.)
+   */
+  
+***************
+*** 150,156 ****
+--- 153,161 ----
+  #ifdef OLDBNEWS
+  #define	DEFCASE	'0'		/* B2.10 -- no mapping */
++ #define	NOBUFFER		/* B News locking is defective */
+  #endif
+  #ifdef BNEWS
+  #define	DEFCASE	'='		/* B2.11 -- all mapped */
++ #define	NOBUFFER		/* B News locking is defective */
+  #endif
+  #ifndef DEFCASE			/* C News compatibility is the default */
+***************
+*** 451,455 ****
+  		return(DEFSIZE);
+  	}
+! 	n = (contents/3)*4;	/* try to keep table at most 75% full */
+  	if (!(n&01))		/* make it odd */
+  		n++;
+--- 456,460 ----
+  		return(DEFSIZE);
+  	}
+! 	n = (contents/2)*3;	/* try to keep table at most 2/3 full */
+  	if (!(n&01))		/* make it odd */
+  		n++;
+***************
+*** 510,513 ****
+--- 515,520 ----
+  	register long top;
+  	register FILE *f;
++ 	register int newtable;
++ 	register of_t newsize;
+  
+  	if (pagf != NULL) {
+***************
+*** 535,544 ****
+  	/* tinker with it */
+  	top = 0;
+! 	for (i = 0; i < NUSEDS; i++)
+  		if (top < c.used[i])
+  			top = c.used[i];
+  	if (top == 0) {
+  		DEBUG(("dbzagain: old table has no contents!\n"));
+! 		top = c.tsize/4*3;	/* and cross fingers */
+  	}
+  	for (i = NUSEDS-1; i > 0; i--)
+--- 542,555 ----
+  	/* tinker with it */
+  	top = 0;
+! 	newtable = 0;
+! 	for (i = 0; i < NUSEDS; i++) {
+  		if (top < c.used[i])
+  			top = c.used[i];
++ 		if (c.used[i] == 0)
++ 			newtable = 1;	/* hasn't got full usage history yet */
++ 	}
+  	if (top == 0) {
+  		DEBUG(("dbzagain: old table has no contents!\n"));
+! 		newtable = 1;
+  	}
+  	for (i = NUSEDS-1; i > 0; i--)
+***************
+*** 545,549 ****
+  		c.used[i] = c.used[i-1];
+  	c.used[0] = 0;
+! 	c.tsize = dbzsize(top);
+  
+  	/* write it out */
+--- 556,562 ----
+  		c.used[i] = c.used[i-1];
+  	c.used[0] = 0;
+! 	newsize = dbzsize(top);
+! 	if (!newtable || newsize > c.tsize)	/* don't shrink new table */
+! 		c.tsize = newsize;
+  
+  	/* write it out */
+***************
+*** 637,643 ****
+--- 650,666 ----
+  	else
+  		pagronly = 0;
++ #ifdef NOBUFFER
++ 	/*
++ 	 * B News does not do adequate locking on its database accesses.
++ 	 * Why it doesn't get into trouble using dbm is a mystery.  In any
++ 	 * case, doing unbuffered i/o does not cure the problem, but does
++ 	 * enormously reduce its incidence.
++ 	 */
++ 	(void) setbuf(pagf, (char *)NULL);
++ #else
+  #ifdef _IOFBF
+  	(void) setvbuf(pagf, (char *)pagbuf, _IOFBF, sizeof(pagbuf));
+  #endif
++ #endif
+  	pagpos = -1;
+  	/* don't free pagfname, need it below */
+***************
+*** 790,793 ****
+--- 813,834 ----
+  	DEBUG(("dbzsync: %s\n", (ret == 0) ? "succeeded" : "failed"));
+  	return(ret);
++ }
++ 
++ /*
++  - dbzcancel - cancel writing of in-core data
++  * Mostly for use from child processes.
++  * Note that we don't need to futz around with stdio buffers, because we
++  * always fflush them immediately anyway and so they never have stale data.
++  */
++ int
++ dbzcancel()
++ {
++ 	if (pagf == NULL) {
++ 		DEBUG(("dbzcancel: not opened!\n"));
++ 		return(-1);
++ 	}
++ 
++ 	written = 0;
++ 	return(0);
+  }
+  
+
+*** cnpatch/old/dbz/dbz.h	Sat Mar 16 21:48:08 1991
+--- dbz/dbz.h	Sun Feb  3 01:32:24 1991
+***************
+*** 22,25 ****
+--- 22,26 ----
+  extern long dbzsize();
+  extern int dbzincore();
++ extern int dbzcancel();
+  extern int dbzdebug();
+  
+
+*** cnpatch/old/dbz/dbzmain.c	Sat Mar 16 21:48:10 1991
+--- dbz/dbzmain.c	Thu Jan 31 17:56:47 1991
+***************
+*** 71,74 ****
+--- 71,75 ----
+  void crfile();
+  void doline();
++ void process();
+  
+  #ifdef HAVERFCIZE
+***************
+*** 89,93 ****
+  	extern int optind;
+  	extern char *optarg;
+- 	void process();
+  	int doruns = 0;
+  	extern long atol();
+--- 90,93 ----
+
+*** cnpatch/old/doc/interface	Sat Mar 16 21:48:20 1991
+--- doc/interface	Sun Feb  3 01:48:00 1991
+***************
+*** 1,3 ****
+! .DA "3 Jan 1990"
+  .TL
+  The Interface Between C News And The Outside World
+--- 1,3 ----
+! .DA "3 Feb 1991"
+  .TL
+  The Interface Between C News And The Outside World
+***************
+*** 161,172 ****
+  of string functions (e.g. \fIstrtok\fR);
+  we provide reasonably portable versions of these for places that lack them.
+- .PP
+- One thing that C News needs, because it is both useful
+- and a user-visible part of B News,
+- is the \fIdbm\fR library.
+- AT&T has stupidly omitted it from System V.
+- We include an emulation or two that are claimed to work reasonably well.
+- If your system doesn't have a real \fIdbm\fR, however, our recommendation
+- is that you harass your supplier about it.
+  .SH
+  Networking
+--- 161,164 ----
+
+*** cnpatch/old/expire/doexpire	Sat Mar 16 21:48:26 1991
+--- expire/doexpire	Fri Mar  1 16:16:18 1991
+***************
+*** 47,50 ****
+--- 47,51 ----
+  	for counter in x x x x		# four tries
+  	do
++ 		rm -f history.o		# it's about to vanish anyway
+  		size="`sizeof history history.pag history.dir`"
+  		if test " `spacefor $size control`" -gt 0
+
+*** cnpatch/old/expire/expire.c	Sat Mar 16 21:48:29 1991
+--- expire/expire.c	Sat Feb  2 17:19:33 1991
+***************
+*** 129,132 ****
+--- 129,133 ----
+  void checkdir();
+  void fail();
++ void die();
+  void control();
+  void prime();
+***************
+*** 264,268 ****
+  		p = &line[strlen(line) - 1];
+  		if (*p != '\n')
+! 			fail("control line `%.30s...' too long", line);
+  		*p = '\0';
+  		if (line[0] != '#' && line[0] != '\0')
+--- 265,269 ----
+  		p = &line[strlen(line) - 1];
+  		if (*p != '\n')
+! 			die("control line `%.30s...' too long", line);
+  		*p = '\0';
+  		if (line[0] != '#' && line[0] != '\0')
+***************
+*** 285,294 ****
+  	int ndates;
+  
+- 	errno = 0;
+  	nf = split(ctl, field, 4, "");
+  	if (nf != 4)
+! 		fail("control line `%.20s...' hasn't got 4 fields", ctl);
+  
+- 	errno = 0;
+  	ct = (struct ctl *)malloc(sizeof(struct ctl));
+  	if (ct == NULL)
+--- 286,293 ----
+  	int ndates;
+  
+  	nf = split(ctl, field, 4, "");
+  	if (nf != 4)
+! 		die("control line `%.20s...' hasn't got 4 fields", ctl);
+  
+  	ct = (struct ctl *)malloc(sizeof(struct ctl));
+  	if (ct == NULL)
+***************
+*** 295,299 ****
+  		fail("out of memory for control list", "");
+  
+- 
+  	ct->groups = strsave(field[0]);
+  	if (STREQ(field[1], "m"))
+--- 294,297 ----
+***************
+*** 304,311 ****
+  		ct->ismod = EITHER;
+  	else
+! 		fail("strange mod field `%s' in control file", field[1]);
+  
+  	if (strlen(field[2]) > sizeof(datebuf)-1)
+! 		fail("date specification `%s' too long", field[2]);
+  	(void) strcpy(datebuf, field[2]);
+  	ndates = split(datebuf, dates, 3, "-");
+--- 302,309 ----
+  		ct->ismod = EITHER;
+  	else
+! 		die("strange mod field `%s' in control file", field[1]);
+  
+  	if (strlen(field[2]) > sizeof(datebuf)-1)
+! 		die("date specification `%s' too long", field[2]);
+  	(void) strcpy(datebuf, field[2]);
+  	ndates = split(datebuf, dates, 3, "-");
+***************
+*** 327,336 ****
+  		break;
+  	default:
+! 		fail("invalid date specification `%s'", field[2]);
+  		/* NOTREACHED */
+  		break;
+  	}
+  	if (ct->retain < ct->normal || ct->normal < ct->purge)
+! 		fail("preposterous dates: `%s'", field[2]);
+  
+  	if (STREQ(field[3], "-"))
+--- 325,339 ----
+  		break;
+  	default:
+! 		die("invalid date specification `%s'", field[2]);
+  		/* NOTREACHED */
+  		break;
+  	}
++ 	if (ct->retain < ct->normal && ndates <= 2)	/* stretch defaults */
++ 		ct->retain = ct->normal;
++ 	if (ct->normal < ct->purge && ndates == 1)
++ 		ct->purge = ct->normal;
++ 
+  	if (ct->retain < ct->normal || ct->normal < ct->purge)
+! 		die("preposterous dates: `%s'", field[2]);
+  
+  	if (STREQ(field[3], "-"))
+***************
+*** 338,342 ****
+  	else if (STREQ(field[3], "@")) {
+  		if (defarch == NULL)
+! 			fail("@ in control file but no -a", "");
+  		ct->dir = defarch;
+  	} else {
+--- 341,345 ----
+  	else if (STREQ(field[3], "@")) {
+  		if (defarch == NULL)
+! 			die("@ in control file but no -a", "");
+  		ct->dir = defarch;
+  	} else {
+***************
+*** 350,353 ****
+--- 353,358 ----
+  	else if (STREQ(ct->groups, "/bounds/"))
+  		bounds = ct;
++ 	else if (ct->groups[0] == '/')
++ 		die("unknown special line name `%s'", ct->groups);
+  	else {
+  		ct->next = NULL;
+***************
+*** 379,383 ****
+  		nf = split(line, field, NFACT, "");
+  		if (nf != NFACT)
+! 			fail("wrong number of fields in active for `%s'", field[0]);
+  		ct = (struct ctl *)malloc(sizeof(struct ctl));
+  		if (ct == NULL)
+--- 384,388 ----
+  		nf = split(line, field, NFACT, "");
+  		if (nf != NFACT)
+! 			die("wrong number of fields in active for `%s'", field[0]);
+  		ct = (struct ctl *)malloc(sizeof(struct ctl));
+  		if (ct == NULL)
+***************
+*** 420,424 ****
+  	sprintf(grump, "group `%%s' (%smoderated) not covered by control file",
+  					(ct->ismod == MOD) ? "" : "un");
+! 	fail(grump, ct->groups);
+  }
+  
+--- 425,429 ----
+  	sprintf(grump, "group `%%s' (%smoderated) not covered by control file",
+  					(ct->ismod == MOD) ? "" : "un");
+! 	die(grump, ct->groups);
+  }
+  
+***************
+*** 452,455 ****
+--- 457,461 ----
+  		(void) fclose(eufopen("history.n.pag", "w"));
+  		(void) dbzincore(1);
++ 		errno = 0;
+  		if (dbzagain("history.n", "history") < 0)
+  			fail("dbzagain(history.n) failed", "");
+***************
+*** 462,469 ****
+  			/* extract the message-id */
+  			nameend = strchr(line, '\t');
+! 			if (nameend == NULL) {
+! 				errno = 0;
+! 				fail("bad return from doline(): `%.75s'", line);
+! 			}
+  
+  			/* make the DBM entry */
+--- 468,473 ----
+  			/* extract the message-id */
+  			nameend = strchr(line, '\t');
+! 			if (nameend == NULL)
+! 				die("bad return from doline(): `%.75s'", line);
+  
+  			/* make the DBM entry */
+***************
+*** 474,481 ****
+  			rhs.dptr = (char *)&here;
+  			rhs.dsize = sizeof(here);
+- 			errno = 0;
+  			ret = dbzstore(lhs, rhs);
+  			if (ret < 0)
+! 				fail("dbm failure on `%s'", line);
+  			*nameend = '\t';
+  
+--- 478,484 ----
+  			rhs.dptr = (char *)&here;
+  			rhs.dsize = sizeof(here);
+  			ret = dbzstore(lhs, rhs);
+  			if (ret < 0)
+! 				die("store failure on `%s'", line);
+  			*nameend = '\t';
+  
+***************
+*** 738,750 ****
+  	group = name;
+  	slash = strchr(group, '/');
+! 	if (slash == NULL) {
+! 		errno = 0;
+! 		fail("no slash in article path `%s'", name);
+! 	} else
+  		*slash = '\0';
+  	if (strchr(slash+1, '/') != NULL) {
+  		*slash = '/';
+! 		errno = 0;
+! 		fail("multiple slashes in article path `%s'", name);
+  	}
+  
+--- 741,751 ----
+  	group = name;
+  	slash = strchr(group, '/');
+! 	if (slash == NULL)
+! 		die("no slash in article path `%s'", name);
+! 	else
+  		*slash = '\0';
+  	if (strchr(slash+1, '/') != NULL) {
+  		*slash = '/';
+! 		die("multiple slashes in article path `%s'", name);
+  	}
+  
+***************
+*** 826,833 ****
+  	if (dir != NULL) {
+  		if (*dir == '=') {
+- 			errno = 0;
+  			new = strrchr(name, '/');
+  			if (new == NULL)
+! 				fail("no slash in `%s'", name);
+  			new++;
+  			new = str3save(dir+1, "/", new);
+--- 827,833 ----
+  	if (dir != NULL) {
+  		if (*dir == '=') {
+  			new = strrchr(name, '/');
+  			if (new == NULL)
+! 				die("no slash in `%s'", name);
+  			new++;
+  			new = str3save(dir+1, "/", new);
+***************
+*** 1168,1171 ****
+--- 1168,1183 ----
+  
+  /*
++  - die - like fail, but errno contains no information
++  */
++ void
++ die(s1, s2)
++ char *s1;
++ char *s2;
++ {
++ 	errno = 0;
++ 	fail(s1, s2);
++ }
++ 
++ /*
+   - readline - read history line (sans newline), with locking when we hit EOF
+   *
+***************
+*** 1243,1250 ****
+  
+  	/* EOF but we haven't locked yet.  Lock and try again. */
+! 	(void) signal(SIGINT, (sigarg_t)SIG_IGN);
+! 	(void) signal(SIGQUIT, (sigarg_t)SIG_IGN);
+! 	(void) signal(SIGHUP, (sigarg_t)SIG_IGN);
+! 	(void) signal(SIGTERM, (sigarg_t)SIG_IGN);
+  	newslock();
+  	nlocked = 1;
+--- 1255,1262 ----
+  
+  	/* EOF but we haven't locked yet.  Lock and try again. */
+! 	(void) signal(SIGINT, SIG_IGN);
+! 	(void) signal(SIGQUIT, SIG_IGN);
+! 	(void) signal(SIGHUP, SIG_IGN);
+! 	(void) signal(SIGTERM, SIG_IGN);
+  	newslock();
+  	nlocked = 1;
+
+*** cnpatch/old/expire/histdups	Sat Mar 16 21:48:33 1991
+--- expire/histdups	Tue Feb  5 16:19:15 1991
+***************
+*** 12,14 ****
+  		names = names " " $3
+  }
+! END { print mesgid, dates, names }
+--- 12,17 ----
+  		names = names " " $3
+  }
+! END {
+! 	if (mesgid != "")
+! 		print mesgid, dates, names
+! }
+
+*** cnpatch/old/expire/histinfo.c	Sat Mar 16 21:48:35 1991
+--- expire/histinfo.c	Mon Feb 11 17:27:20 1991
+***************
+*** 33,36 ****
+--- 33,37 ----
+  	FILE *in;
+  	char *inname;
++ 	register int i;
+  	extern int optind;
+  	extern char *optarg;
+***************
+*** 55,59 ****
+  	
+  	while ((inname = fgetms(stdin)) != NULL) {
+! 		inname[strlen(inname)-1] = '\0';	/* kill newline */
+  		if (strchr(inname, '.') == NULL) {	/* skip dot names */
+  			in = efopen(inname, "r");
+--- 56,62 ----
+  	
+  	while ((inname = fgetms(stdin)) != NULL) {
+! 		i = strlen(inname);
+! 		if (i > 0)
+! 			inname[i-1] = '\0';	/* kill newline */
+  		if (strchr(inname, '.') == NULL) {	/* skip dot names */
+  			in = efopen(inname, "r");
+***************
+*** 82,85 ****
+--- 85,89 ----
+  	static char expnm[] =    "Expires: ";
+  	register char *p;
++ 	register int i;
+  
+  	expiry = strsave("-");
+***************
+*** 88,92 ****
+  	/* read until EOF or blank line (end of headers) */
+  	while ((line = fgetms(in)) != NULL && strcmp(line, "\n") != 0) {
+! 		line[strlen(line)-1] = '\0';		/* trim newline */
+  		if (CISTREQN(line, msgidnm, STRLEN(msgidnm))) {
+  			if (msgid != NULL)
+--- 92,98 ----
+  	/* read until EOF or blank line (end of headers) */
+  	while ((line = fgetms(in)) != NULL && strcmp(line, "\n") != 0) {
+! 		i = strlen(line);
+! 		if (i > 0)
+! 			line[i-1] = '\0';		/* trim newline */
+  		if (CISTREQN(line, msgidnm, STRLEN(msgidnm))) {
+  			if (msgid != NULL)
+
+*** cnpatch/old/expire/histslash.c	Sat Mar 16 21:48:36 1991
+--- expire/histslash.c	Tue Feb 19 13:11:06 1991
+***************
+*** 5,8 ****
+--- 5,9 ----
+  #include <stdio.h>
+  #include <assert.h>
++ #include <string.h>
+  #include "fgetmfs.h"
+  
+***************
+*** 14,22 ****
+  	register char *last;
+  	register char *line;
+- 	extern char *strchr();
+  
+  	while ((line = fgetms(stdin)) != NULL) {
+  		scan = strchr(line, '\t');
+! 		scan = strchr(scan+1, '\t');
+  		scan++;
+  		last = NULL;
+--- 15,27 ----
+  	register char *last;
+  	register char *line;
+  
+  	while ((line = fgetms(stdin)) != NULL) {
+  		scan = strchr(line, '\t');
+! 		if (scan != NULL)
+! 			scan = strchr(scan+1, '\t');
+! 		if (scan == NULL) {
+! 			complain("bad number of fields in `%s'", line);
+! 			exit(1);
+! 		}
+  		scan++;
+  		last = NULL;
+
+*** cnpatch/old/expire/mkhistory	Sat Mar 16 21:48:38 1991
+--- expire/mkhistory	Wed Mar  6 15:52:13 1991
+***************
+*** 30,34 ****
+  
+  cd $NEWSARTS
+! find `ls | egrep -v '\.'` -type f -name '[0-9]*' -print | histinfo |
+  	sort -t'	' +1n |
+  	awk -f $NEWSBIN/expire/histdups | histslash >$NEWSCTL/history.n
+--- 30,42 ----
+  
+  cd $NEWSARTS
+! them=
+! for f in `ls | egrep -v '\.'`
+! do
+! 	if test -d $f
+! 	then
+! 		them="$them $f"
+! 	fi
+! done
+! find $them -type f -name '[0-9]*' -print | histinfo |
+  	sort -t'	' +1n |
+  	awk -f $NEWSBIN/expire/histdups | histslash >$NEWSCTL/history.n
+
+*** cnpatch/old/h/dbz.h	Sat Mar 16 21:48:45 1991
+--- h/dbz.h	Sun Feb  3 01:44:40 1991
+***************
+*** 22,25 ****
+--- 22,26 ----
+  extern long dbzsize();
+  extern int dbzincore();
++ extern int dbzcancel();
+  extern int dbzdebug();
+  
+
+*** cnpatch/old/h/libc.h	Sat Mar 16 21:48:48 1991
+--- h/libc.h	Tue Mar 12 17:45:04 1991
+***************
+*** 20,27 ****
+  
+  /* Unix system calls */
+- /* signal types: tailor to suite local tastes */
+- typedef VOID (*sigret_t)();
+- typedef VOID (*sigarg_t)();
+- 
+  #ifdef A_STABLE_WORLD
+  extern VOID _exit();
+--- 20,23 ----
+***************
+*** 38,47 ****
+  extern char **environ;
+  
+! /* C library */
+! #ifdef A_STABLE_WORLD
+! extern int strcmp(), strncmp(), strlen();	/* strings.h */
+! #endif					/* A_STABLE_WORLD */
+! extern char *strcpy(), *strcat(), *strncpy(), *strncat();	/* strings.h */
+! extern char *strchr(), *strrchr();	/* strings.h */
+  
+  #ifdef A_STABLE_WORLD
+--- 34,38 ----
+  extern char **environ;
+  
+! #include <string.h>
+  
+  #ifdef A_STABLE_WORLD
+
+*** cnpatch/old/h/news.h	Sat Mar 16 21:48:51 1991
+--- h/news.h	Tue Mar 12 17:43:17 1991
+***************
+*** 17,23 ****
+--- 17,26 ----
+  
+  /* STATIC & FORWARD must agree to avoid redeclarations(!) */
++ #ifndef STATIC
+  #define STATIC	static		/* "static" when not debugging|profiling */
++ #endif
+  
+  /* adapt to compiler limitations */
++ #ifndef FORWARD
+  #ifdef pdp11
+  #define FORWARD			/* "static" except for dmr's 11 compiler */
+***************
+*** 25,28 ****
+--- 28,32 ----
+  #define FORWARD static		/* "static" except for dmr's 11 compiler */
+  #endif
++ #endif
+  /* #define void int		/* if your compiler doesn't understand void's */
+  /* #define MAXLONG 017777777777L	/* if your compiler lacks "unsigned long" type */
+***************
+*** 72,76 ****
+  #ifdef FASTSTRCHR
+  #define STRCHR(src, chr, dest) (dest) = strchr(src, chr)
+- extern char *strchr();
+  #else
+  #define STRCHR(src, chr, dest) \
+--- 76,79 ----
+
+*** cnpatch/old/input/Makefile	Sat Mar 16 21:48:58 1991
+--- input/Makefile	Sun Mar  3 01:25:57 1991
+***************
+*** 5,9 ****
+  LIBS= ../libcnews.a
+  BATCH = ../batch
+! THEMBIN = newsrun newsrunning c7decode bdecode recenews recpnews rnews
+  THEM = newsspool $(THEMBIN)
+  RBIN = /bin
+--- 5,9 ----
+  LIBS= ../libcnews.a
+  BATCH = ../batch
+! THEMBIN = newsrun newsrunning c7decode bdecode recenews recpnews rnews cunbatch
+  THEM = newsspool $(THEMBIN)
+  RBIN = /bin
+***************
+*** 22,27 ****
+  	rm -f $(NEWSBIN)/input/newsspool
+  	cp $(THEM) $(NEWSBIN)/input
+! 	cp rnews $(RBIN)/rnews
+! 	cp rnews $(RBIN)/cunbatch
+  	: "and newsspool needs to be made setuid-news"
+  
+--- 22,26 ----
+  	rm -f $(NEWSBIN)/input/newsspool
+  	cp $(THEM) $(NEWSBIN)/input
+! 	cp rnews cunbatch $(RBIN)
+  	: "and newsspool needs to be made setuid-news"
+  
+***************
+*** 29,33 ****
+  	for f in $(THEM) ; do cmp $(NEWSBIN)/input/$$f $$f ; done
+  	cmp rnews $(RBIN)/rnews
+! 	cmp rnews $(RBIN)/cunbatch
+  	ls -lg $(NEWSBIN)/input/newsspool | egrep -s '^-rwsrwsr-x  1 news     news'
+  
+--- 28,32 ----
+  	for f in $(THEM) ; do cmp $(NEWSBIN)/input/$$f $$f ; done
+  	cmp rnews $(RBIN)/rnews
+! 	cmp cunbatch $(RBIN)/cunbatch
+  	ls -lg $(NEWSBIN)/input/newsspool | egrep -s '^-rwsrwsr-x  1 news     news'
+  
+***************
+*** 35,39 ****
+  	for f in $(THEM) ; do cmp $(NEWSBIN)/input/$$f $$f || true ; done
+  	cmp rnews $(RBIN)/rnews || true
+! 	cmp rnews $(RBIN)/cunbatch || true
+  	ls -lg $(NEWSBIN)/input/newsspool | egrep -s '^-rwsrwsr-x  1 news     news'
+  
+--- 34,38 ----
+  	for f in $(THEM) ; do cmp $(NEWSBIN)/input/$$f $$f || true ; done
+  	cmp rnews $(RBIN)/rnews || true
+! 	cmp cunbatch $(RBIN)/cunbatch || true
+  	ls -lg $(NEWSBIN)/input/newsspool | egrep -s '^-rwsrwsr-x  1 news     news'
+  
+***************
+*** 56,59 ****
+--- 55,61 ----
+  	$(CC) -c -I$(BATCH) $(CFLAGS) bdecode.c
+  
++ cunbatch:	rnews
++ 	cp rnews $@
++ 
+  lint:	newsspool.c
+  	lint $(LINTFLAGS) newsspool.c 2>&1 | tee lint
+***************
+*** 63,74 ****
+  	echo 'here is a phony first batch' >>$@
+  
+! test.2:
+! 	echo '#! cunbatch' >$@
+! 	echo '#! rnews' >>$@
+! 	echo 'here is a phony second batch' >>$@
+  
+! test.3p:
+  	echo '#! rnews' >$@
+! 	echo 'here is a phony third batch' >>$@
+  
+  test.3:	test.3c
+--- 65,75 ----
+  	echo 'here is a phony first batch' >>$@
+  
+! test.2:	test.2p
+! 	: compress tends to return silly exit status for tiny inputs
+! 	-compress -b12 <test.2p >$@
+  
+! test.2p:
+  	echo '#! rnews' >$@
+! 	echo 'here is a phony second batch' >>$@
+  
+  test.3:	test.3c
+***************
+*** 79,82 ****
+--- 80,87 ----
+  	-compress -b12 <test.3p >$@
+  
++ test.3p:
++ 	echo '#! rnews' >$@
++ 	echo 'here is a phony third batch' >>$@
++ 
+  test.out:
+  	echo '#! rnews' >$@
+***************
+*** 87,93 ****
+  	echo 'here is a phony third batch' >>$@
+  
+! setup:	all
+  	chmod +x rnews
+- 	rm -rf bin
+  	mkdir bin
+  	cp $(THEM) bin
+--- 92,105 ----
+  	echo 'here is a phony third batch' >>$@
+  
+! test.out2:
+! 	echo '#! rnews' >$@
+! 	echo 'here is a phony second batch' >>$@
+! 	echo '#! rnews' >>$@
+! 	echo 'here is a phony first batch' >>$@
+! 	echo '#! rnews' >>$@
+! 	echo 'here is a phony third batch' >>$@
+! 
+! setup:	all rtidy
+  	chmod +x rnews
+  	mkdir bin
+  	cp $(THEM) bin
+***************
+*** 94,98 ****
+  	mkdir bin/input
+  	cp newsrun bin/input
+- 	rm -f tmp.1
+  	here=`pwd` ; echo "cat >>$$here/tmp.1" >bin/relaynews
+  	echo "echo 1" >bin/spacefor
+--- 106,109 ----
+***************
+*** 100,116 ****
+  	echo 'echo 10' >bin/sizeof
+  	chmod +x bin/* bin/input/*
+- 	rm -rf in.coming
+  	mkdir in.coming
+  
+! r:	all test.1 test.2 test.3 test.3c test.out setup
+  	chmod +x $(THEM)
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.1
+  	cmp in.coming/* test.1
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.2
+! 	sed 1d test.2 >tmp.2
+! 	cmp `ls -t in.coming | sed -n '1s;^;in.coming/;p'` tmp.2
+! 	rm tmp.2
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.3
+  	cmp `ls -t in.coming | sed -n '1s;^;in.coming/;p'` test.3c
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./newsrunning off
+  	test -r in.coming/stop ;
+--- 111,129 ----
+  	echo 'echo 10' >bin/sizeof
+  	chmod +x bin/* bin/input/*
+  	mkdir in.coming
+  
+! r:	all test.1 test.2 test.3 test.3c test.out test.out2 setup
+  	chmod +x $(THEM)
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.1
+  	cmp in.coming/* test.1
++ 	expr in.coming/* : '.*\.t' >/dev/null
++ 	sleep 2			# must delay for sake of "ls -t"!
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.2
+! 	cmp `ls -t in.coming | sed -n '1s;^;in.coming/;p'` test.2
+! 	expr `ls -t in.coming | sed -n '1s;^;in.coming/;p'` : '.*\.Z' >/dev/null
+! 	sleep 2
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.3
+  	cmp `ls -t in.coming | sed -n '1s;^;in.coming/;p'` test.3c
++ 	expr `ls -t in.coming | sed -n '1s;^;in.coming/;p'` : '.*\.Z' >/dev/null
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./newsrunning off
+  	test -r in.coming/stop ;
+***************
+*** 123,136 ****
+  	rm tmp.1
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.1
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.2
+  	echo >rnews.newsrun
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` NEWSBIN=`pwd`/bin ./rnews <test.3
+! 	cmp tmp.1 test.out
+  	test " `echo in.coming/*`" = ' in.coming/bad' ;
+- 	rm tmp.1
+- 	rm -r bin in.coming
+  
+! clean:
+! 	rm -f *.o newsspool c7decode tmp.? test.* dtr lint rnews.newsrun
+! 	rm -f bdecode
+! 	rm -rf in.coming bin
+--- 136,152 ----
+  	rm tmp.1
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` ./rnews <test.1
+! 	NEWSARTS=`pwd` NEWSCTL=`pwd` ./newsspool -g 4 <test.2 2>/dev/null
+  	echo >rnews.newsrun
+  	NEWSARTS=`pwd` NEWSCTL=`pwd` NEWSBIN=`pwd`/bin ./rnews <test.3
+! 	cmp tmp.1 test.out2
+  	test " `echo in.coming/*`" = ' in.coming/bad' ;
+  
+! rtidy:
+! 	rm -f tmp.? LOCK* rnews.newsrun
+! 	rm -rf bin in.coming
+! 
+! rclean:	rtidy
+! 	rm -f test.*
+! 
+! clean:	rclean
+! 	rm -f *.o newsspool c7decode bdecode dtr lint cunbatch
+
+*** cnpatch/old/input/bdecode.c	Sat Mar 16 21:49:00 1991
+--- input/bdecode.c	Tue Mar 12 17:52:57 1991
+***************
+*** 3,6 ****
+--- 3,7 ----
+   */
+  #include <stdio.h>
++ #include <string.h>
+  #include "coder.h"
+  char *myname, *inputfile = "(stdin)";
+***************
+*** 18,22 ****
+  	int w, crc2;
+  	char buf[512];
+- 	extern char *strchr();
+  
+  	myname = argv[0];
+--- 19,22 ----
+
+*** cnpatch/old/input/newsrun	Sat Mar 16 21:49:02 1991
+--- input/newsrun	Sun Mar  3 00:32:27 1991
+***************
+*** 8,11 ****
+--- 8,24 ----
+  umask $NEWSUMASK
+  
++ # Should we be running on this machine at all?
++ if test -r $NEWSCTL/server
++ then
++ 	me="`hostname`"
++ 	server="`cat $NEWSCTL/server`"
++ 	if test " $server" != " `hostname`"
++ 	then
++ 		exec rsh $server exec /bin/sh -c "PATH=$PATH exec newsrun $*"
++ 		exit 2		# should never be reached
++ 	fi
++ fi
++ 
++ # Options.
+  hold=
+  case "$1" in
+***************
+*** 13,24 ****
+  esac
+  
+! here="$NEWSARTS/in.coming"
+! cd $here
+  
+! # First, is it worth trying at all?
+  if test -r stop
+  then
+! 	exit 0
+  fi
+  
+  # Lock against others running.
+--- 26,50 ----
+  esac
+  
+! # Go to our base of operations.
+! cd $NEWSARTS/in.coming
+  
+! # Consider what grades we should process, and check for work.
+! sawstop=n
+! stoppat='0\.'
+  if test -r stop
+  then
+! 	pat="$stoppat"
+! 	sawstop=y
+! else
+! 	pat='[0-9]'
+  fi
++ case "$1" in
++ '')			;;
++ *)	pat="[$1]\."	;;
++ esac
++ if test "`ls | egrep \"^$pat\"`" = ""
++ then
++ 	exit 0	
++ fi
+  
+  # Lock against others running.
+***************
+*** 34,47 ****
+  fi
+  
+- # Sort out where we are.
+- if test -r $NEWSCTL/server
+- then
+- 	me="`hostname`"
+- 	server=`cat $NEWSCTL/server`
+- else
+- 	me=thishost		# don't need actual name
+- 	server="$me"		# no server file --> we're it
+- fi
+- 
+  # Master loop.
+  while :				# "while true", but : is faster
+--- 60,63 ----
+***************
+*** 48,53 ****
+  do
+  	# Find some work.
+! 	them=`ls | sed '/[^0-9]/d;50q'`
+! 	if test " $them" = " "
+  	then
+  		break			# NOTE BREAK OUT
+--- 64,69 ----
+  do
+  	# Find some work.
+! 	them="`ls | egrep \"^$pat\" | sed 50q`"
+! 	if test " $them" = " "		# if no work...
+  	then
+  		break			# NOTE BREAK OUT
+***************
+*** 71,79 ****
+  	for f in $them
+  	do
+! 		# Check for request to stop.
+! 		if test -r stop
+  		then
+! 			rm -f $tmp $rmlist
+! 			exit 0
+  		fi
+  
+--- 87,98 ----
+  	for f in $them
+  	do
+! 		# If the stop file has come into existence, punch out to
+! 		# the outer loop to reconsider whether there is anything
+! 		# left that should be processed now.
+! 		if test " $sawstop" = " n" -a -r stop
+  		then
+! 			sawstop=y
+! 			pat="$stoppat"
+! 			break		# NOTE BREAK OUT
+  		fi
+  
+***************
+*** 97,117 ****
+  		fi
+  
+! 		# Decompress if necessary.  People who get lots of
+! 		# uncompressed batches and never use c7 encoding might
+! 		# want to remove the c7decode attempt to speed things up.
+  		text=$tmp
+! 		if compress -d <$f >$text 2>/dev/null
+! 		then
+! 			: okay
+! 		elif c7decode <$f 2>/dev/null | compress -d >$text 2>/dev/null
+! 		then
+! 			: okay
+! 		else
+! 			>$text		# compress might have left garbage
+  			text=$f
+! 		fi
+  		rmlist="$rmlist $f"
+  
+! 		# Check for empty.
+  		if test ! -s $text
+  		then
+--- 116,139 ----
+  		fi
+  
+! 		# Decompress if necessary.
+  		text=$tmp
+! 		case $f in
+! 		*.Z)	uncompress <$f >$text	;;
+! 		*.7)	c7decode <$f | uncompress >$text	;;
+! 		*.t)	>$tmp		# in case compress left trash
+  			text=$f
+! 			;;
+! 		*)	if uncompress <$f >$tmp 2>/dev/null
+! 			then
+! 				: okay
+! 			else
+! 				>$tmp
+! 				text=$f
+! 			fi
+! 			;;
+! 		esac
+  		rmlist="$rmlist $f"
+  
+! 		# Empty batches need no processing.
+  		if test ! -s $text
+  		then
+***************
+*** 123,133 ****
+  		# NNTP-feed sites and doesn't hurt uucp-feed sites unless
+  		# they refuse a good fraction of what they get.
+! 		if test " $server" = " $me"	# if local
+! 		then
+! 			relaynews -r -n <$text
+! 		else
+! 			# N.B.: rsh exit status is not useful
+! 			rsh $server exec /bin/sh -c "PATH=$PATH exec relaynews -r -n" <$text
+! 		fi
+  		st=$?
+  		if test $st -ne 0
+--- 145,149 ----
+  		# NNTP-feed sites and doesn't hurt uucp-feed sites unless
+  		# they refuse a good fraction of what they get.
+! 		relaynews -r -n <$text
+  		st=$?
+  		if test $st -ne 0
+***************
+*** 151,155 ****
+  				mv $f $bad	# Not $text, save the ORIGINAL!
+  			fi
+! 			echo "$server relaynews \`$bad' failed, status $st (see errlog)" |
+  							mail "$NEWSMASTER"
+  		fi
+--- 167,171 ----
+  				mv $f $bad	# Not $text, save the ORIGINAL!
+  			fi
+! 			echo "relaynews <\`$bad' failed, status $st (see errlog)" |
+  							mail "$NEWSMASTER"
+  		fi
+
+*** cnpatch/old/input/newsspool.c	Sat Mar 16 21:49:04 1991
+--- input/newsspool.c	Sun Mar  3 01:10:08 1991
+***************
+*** 40,43 ****
+--- 40,45 ----
+  char buf[BUFSIZ*16];	/* try to get a batch in a few gulps */
+  int immed = 0;		/* try an immediate newsrun? */
++ char *suffix = ".t";	/* suffix for filename, default is plain text */
++ char grade[3] = "";	/* 3 = digit, period, NUL */
+  
+  void process();
+***************
+*** 65,69 ****
+  	progname = mkprogname(argv[0]);
+  
+! 	while ((c = getopt(argc, argv, "id")) != EOF)
+  		switch (c) {
+  		case 'i':	/* try immediate newsrun */
+--- 67,71 ----
+  	progname = mkprogname(argv[0]);
+  
+! 	while ((c = getopt(argc, argv, "ig:d")) != EOF)
+  		switch (c) {
+  		case 'i':	/* try immediate newsrun */
+***************
+*** 70,73 ****
+--- 72,80 ----
+  			immed++;
+  			break;
++ 		case 'g':	/* grade */
++ 			if (strchr("0123456789", *optarg) == NULL)
++ 				error("invalid grade `%s'", optarg);
++ 			sprintf(grade, "%c.", *optarg);
++ 			break;
+  		case 'd':	/* Debugging. */
+  			debug++;
+***************
+*** 211,215 ****
+  	for (;;) {
+  		now = time((time_t *)NULL);
+! 		sprintf(p, "%ld", now);
+  		if (debug)
+  			fprintf(stderr, "trying renaming to %s\n", name);
+--- 218,222 ----
+  	for (;;) {
+  		now = time((time_t *)NULL);
+! 		sprintf(p, "%s%ld%s", grade, now, suffix);
+  		if (debug)
+  			fprintf(stderr, "trying renaming to %s\n", name);
+***************
+*** 233,237 ****
+  
+  /*
+!  - cunskip - inspect block for silly #! cunbatch headers
+   */
+  int				/* number of chars at start to skip */
+--- 240,244 ----
+  
+  /*
+!  - cunskip - inspect block for silly #! cunbatch headers, classify input
+   */
+  int				/* number of chars at start to skip */
+***************
+*** 242,247 ****
+  	static char goop[] = "cunbatch";
+  #	define	GOOPLEN	(sizeof(goop)-1)	/* strlen(goop) */
+! 	static char goop2[] = "c7unbatch";
+! #	define	GOOP2LEN	(sizeof(goop2)-1)	/* strlen(goop2) */
+  	register char *p;
+  	register int nleft;
+--- 249,257 ----
+  	static char goop[] = "cunbatch";
+  #	define	GOOPLEN	(sizeof(goop)-1)	/* strlen(goop) */
+! 	static char suf[] = ".Z";
+! 	static char goop7[] = "c7unbatch";
+! #	define	GOOP7LEN	(sizeof(goop7)-1)	/* strlen(goop7) */
+! 	static char suf7[] = ".7";
+! 	static char comp[2] = { 037, 0235 };	/* compress's magic no. */
+  	register char *p;
+  	register int nleft;
+***************
+*** 252,255 ****
+--- 262,271 ----
+  	if (nleft < 2)				/* no room for a header */
+  		return(0);
++ 
++ 	if (p[0] == comp[0] && p[1] == comp[1]) {	/* compressed */
++ 		suffix = suf;
++ 		return(0);
++ 	}
++ 
+  	if (*p++ != '#' || *p++ != '!')		/* doesn't start with #! */
+  		return(0);
+***************
+*** 266,272 ****
+  		p += GOOPLEN;
+  		nleft -= GOOPLEN;
+! 	} else if (nleft >= GOOP2LEN+1 && STREQN(p, goop2, GOOP2LEN)) {
+! 		p += GOOP2LEN;
+! 		nleft -= GOOP2LEN;
+  	} else					/* no header */
+  		return(0);
+--- 282,290 ----
+  		p += GOOPLEN;
+  		nleft -= GOOPLEN;
+! 		suffix = suf;
+! 	} else if (nleft >= GOOP7LEN+1 && STREQN(p, goop7, GOOP7LEN)) {
+! 		p += GOOP7LEN;
+! 		nleft -= GOOP7LEN;
+! 		suffix = suf7;
+  	} else					/* no header */
+  		return(0);
+
+
+end of patch 16-Mar-1991
+-- 
+"But this *is* the simplified version   | Henry Spencer @ U of Toronto Zoology
+for the general public."     -S. Harris |  henry@zoo.toronto.edu  utzoo!henry

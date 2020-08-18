@@ -1,0 +1,1315 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 1-Sep-1990
+
+After a quiet summer, here we have a collection of pending odds and ends.
+
+Fixed an oversight in dbz that could cause a core dump if dbz was fed
+severely-mangled files.  Make mkhistory lock against expire (there are
+filename conflicts), and cope properly with the possibility that there is
+no old history file.  Use exec in remote newsrun for more speed and less
+process-table clutter.  Substantial speedups in newsgroup matching, with
+an eye to higher speed with complex sys lines.  Minor fixes to manpages
+to work with awf (if you don't know what awf is, harass Rich Salz to get
+it out into comp.sources.unix :-)).  Fix delgroup to update active.times.
+Some new porting problems in notebook/problems.  Relaynews now uses the
+dbz routines (or the fakes thereof), speeding things up and eliminating
+some inconsistencies in how certain (technically illegal) message-IDs
+are handled.  As a side effect, we now insist that store() return a value,
+with ancient no-store-value dbm's now considered the customer's problem.
+Unlawful white space in sys-file entries is now diagnosed.  Assorted
+cleanup and improvement of messages and documentation.
+
+start of patch 1-Sep-1990
+(suggested archive name: `pch1Sep90.Z')
+this should be run with   patch -p0 <thisfile
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+*** PATCHDATES.old	Sat Sep  1 22:28:16 1990
+--- PATCHDATES	Sat Sep  1 22:28:16 1990
+***************
+*** 1,16 ****
+--- 1,17 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
++ 1-Sep-1990
+
+Changed files, if any:
+
+*** cnpatch/old/README	Fri May 25 15:34:24 1990
+--- README	Tue Aug 21 14:16:33 1990
+***************
+*** 141,144 ****
+--- 141,153 ----
+  too many variables affecting how it should be done.
+  
++ For general background and information on running a news system, we highly
++ recommend the Nutshell Handbook:
++ 
++ 	"Managing UUCP and Usenet", by Tim O'Reilly and Grace Todino,
++ 	O'Reilly & Associates, 1989, ISBN 0-937175-48-X.  This latest
++ 	edition covers C News as well as B News.  It's not perfect but
++ 	it's lots better than nothing.  Inquiries to nuts@ora.com or
++ 	uunet!ora!nuts.
++ 
+  C News has been tested pretty thoroughly.  We're also thoroughly sick of
+  it and make no promises that there will ever be another release.  We may,
+
+*** cnpatch/old/conf/Makefile	Sat Apr 14 21:13:15 1990
+--- conf/Makefile	Sat Sep  1 20:57:27 1990
+***************
+*** 126,129 ****
+--- 126,130 ----
+  	mkdir save
+  	mv $(SHS) save
++ 	cp build.def save
+  
+  check:
+
+*** cnpatch/old/conf/build	Fri May 25 15:34:31 1990
+--- conf/build	Sat Sep  1 20:56:20 1990
+***************
+*** 176,179 ****
+--- 176,183 ----
+  echo 'a umask of 002 or 022 is appropriate.'
+  newsumask=`ask 'What umask should C News use' ${newsumask-002}`
++ case "$newsumask" in
++ 0*)	;;
++ *)	newsumask="0$newsumask"	;;
++ esac
+  
+  echo
+***************
+*** 329,332 ****
+--- 333,341 ----
+  	echo 'Does the store() function in your dbm/dbz return a'
+  	storeval=`yesno 'value (some old dbms did not)' ${storeval-yes}`
++ 	case "$storeval" in
++ 	no)	echo 'You will need to modify libfake/dbz.c/dbzstore() not'
++ 		echo 'to return the nonexistent value of store().'
++ 		;;
++ 	esac
+  	;;
+  esac
+***************
+*** 354,360 ****
+  case "$has" in
+  yes)	echo
+! 	echo 'A well-tuned strchr() function customized to your machine'
+! 	echo 'is usually faster than portable C.  Is your strchr() function'
+! 	faststrchr=`yesno 'indeed fast (okay to guess)' ${faststrchr-yes}`
+  	;;
+  esac
+--- 363,370 ----
+  case "$has" in
+  yes)	echo
+! 	echo 'The strchr() function is usually slower than in-line C code'
+! 	echo 'when small strings are involved, unless your compiler is very'
+! 	echo 'clever and can generate in-line code for strchr().  Is your'
+! 	faststrchr=`yesno 'compiler that good (okay to guess)' ${faststrchr-no}`
+  	;;
+  esac
+***************
+*** 366,373 ****
+  echo 'various problems for C News.  C News provides a small program named'
+  echo '"setnewsids" to run setuserid-root; all it does is change user and'
+! echo 'group ids and then execute C News "relaynews".  It is needed only in'
+! echo 'systems that are too old to do setuid(geteuid()).  Relaynews invokes'
+! echo 'it automatically if needed (and it then invokes relaynews in return).'
+! sete=`yesno 'Can this system do setuid(geteuid())' ${sete-yes}`
+  
+  echo
+--- 376,383 ----
+  echo 'various problems for C News.  C News provides a small program named'
+  echo '"setnewsids" to run setuserid-root; all it does is change user and'
+! echo 'group ids and then execute C News "relaynews".  It is needed only on'
+! echo 'uncooperative systems.  Relaynews invokes it automatically if needed'
+! echo '(and it then invokes relaynews in return).  Can this system do'
+! sete=`yesno 'setuid(geteuid()) to change the real uid/gid' ${sete-yes}`
+  
+  echo
+***************
+*** 550,565 ****
+  echo 'share a common set of control files and articles; this is used in'
+  echo 'article headers and related places.  For uucp sites, this usually'
+! echo 'should be the uucp name.  What is the name of the overall system'
+! whoami="`ask 'for news purposes' \"${whoami-nowhere}\"`"
+  
+  echo
+  echo 'The "From:" lines of news postings, on the other hand, should carry'
+  echo 'a mailing address, which in particular should be a domain address'
+  echo 'for sites that have one.  What is the mailing-address name of this'
+! mailname="`ask 'system, preferably a domain address' \"${mailname-$whoami.uucp}\"`"
+  
+  echo
+  echo 'What is the name of the organization, for insertion into articles'
+! organization="`ask 'posted from here' \"${organization-Godcorp}\"`"
+  
+  echo
+--- 560,583 ----
+  echo 'share a common set of control files and articles; this is used in'
+  echo 'article headers and related places.  For uucp sites, this usually'
+! echo 'should be the uucp name.  It is VITAL that you and your neighboring'
+! echo 'sites agree on this name -- if their news systems know you by a'
+! echo 'different name, or even a slightly-different variation of the same'
+! echo 'overall name, there will be trouble.  What is the name of the'
+! whoami="`ask 'overall system for news purposes' \"${whoami-nowhere}\"`"
+  
+  echo
++ case "$whoami" in
++ *.*)	tmp="$whoami"		;;
++ *)	tmp="$whoami.uucp"	;;
++ esac
+  echo 'The "From:" lines of news postings, on the other hand, should carry'
+  echo 'a mailing address, which in particular should be a domain address'
+  echo 'for sites that have one.  What is the mailing-address name of this'
+! mailname="`ask 'system, preferably a domain address' \"${mailname-$tmp}\"`"
+  
+  echo
+  echo 'What is the name of the organization, for insertion into articles'
+! tmp="${organization-Godcorp}"
+! organization="`ask 'posted from here' \"${tmp}\"`"
+  
+  echo
+***************
+*** 701,707 ****
+  	no)	echo 'echo "/FASTSTRCHR.*qqq/s;^;/* ;" >>nnewshsed'	;;
+  	esac
+- 	case "$storeval" in
+- 	yes)	echo 'echo "/NOSTOREVAL.*qqq/s;^;/* ;" >>nnewshsed'	;;
+- 	esac
+  	case "$addrsize" in
+  	big)	echo 'echo "/SMALLMEM.*qqq/s;^;/* ;" >>nnewshsed'	;;
+--- 719,722 ----
+***************
+*** 977,981 ****
+  		do
+  			echo "$warn"
+! 			eval "echo $v=\\\"\"\$$v\"\\\""
+  		done
+  	) >>$memory
+--- 992,1002 ----
+  		do
+  			echo "$warn"
+! 			if test " $v" = " organization"
+! 			then
+! 				echo "organization=\"$organization\""
+! 			else
+! 				# even this horror botches metachars in var
+! 				eval "echo $v=\\\"\"\$$v\"\\\""
+! 			fi
+  		done
+  	) >>$memory
+
+*** cnpatch/old/conf/yesno	Fri May 25 15:34:37 1990
+--- conf/yesno	Wed May 30 12:34:58 1990
+***************
+*** 20,24 ****
+  		;;
+  	yes|no)	break		;;	# NOTE BREAK OUT
+! 	*)	echo '???' >/dev/tty	;;
+  	esac
+  done
+--- 20,24 ----
+  		;;
+  	yes|no)	break		;;	# NOTE BREAK OUT
+! 	*)	echo "please answer \`yes' or \`no'" >/dev/tty	;;
+  	esac
+  done
+
+*** cnpatch/old/dbz/byteflip.c	Sat Apr 14 21:13:10 1990
+--- dbz/byteflip.c	Fri May 25 17:03:49 1990
+***************
+*** 31,33 ****
+--- 31,34 ----
+  		fwrite(out, 1, len, stdout);
+  	}
++ 	exit(0);
+  }
+
+*** cnpatch/old/dbz/dbz.c	Sat Apr 14 21:13:11 1990
+--- dbz/dbz.c	Mon Jul 30 17:25:30 1990
+***************
+*** 1062,1065 ****
+--- 1062,1066 ----
+  		DEBUG(("getconf: wrong of_t size (%d)\n", cp->valuesize));
+  		err = -1;
++ 		cp->valuesize = SOF;	/* to protect the loops below */
+  	}
+  	for (i = 0; i < cp->valuesize; i++)
+
+*** cnpatch/old/dbz/fake.c	Sat Apr 14 21:13:12 1990
+--- dbz/fake.c	Fri May 25 17:32:00 1990
+***************
+*** 27,31 ****
+  long lineno;				/* line number for messages etc. */
+  
+- void fail();
+  void doline();
+  void addchars();
+--- 27,30 ----
+***************
+*** 45,49 ****
+  	extern int optind;
+  	extern char *optarg;
+- 	extern FILE *efopen();
+  	void process();
+  	register long no;
+--- 44,47 ----
+
+*** cnpatch/old/expire/expire.c	Fri May 25 15:34:40 1990
+--- expire/expire.c	Mon Jul 30 17:56:04 1990
+***************
+*** 375,379 ****
+  		nf = split(line, field, NFACT, " \t");
+  		if (nf != NFACT)
+! 			fail("bad active-file line for `%s'", field[0]);
+  		ct = (struct ctl *)malloc(sizeof(struct ctl));
+  		if (ct == NULL)
+--- 375,379 ----
+  		nf = split(line, field, NFACT, " \t");
+  		if (nf != NFACT)
+! 			fail("wrong number of fields in active for `%s'", field[0]);
+  		ct = (struct ctl *)malloc(sizeof(struct ctl));
+  		if (ct == NULL)
+
+*** cnpatch/old/expire/mkhistory	Wed Jan 10 19:10:26 1990
+--- expire/mkhistory	Tue Aug 21 12:33:54 1990
+***************
+*** 21,24 ****
+--- 21,31 ----
+  	sleep 30
+  done
++ if newslock $ltemp $NEWSCTL/LOCKexpire
++ then
++ 	trap "rm -f $ltemp $lock $NEWSCTL/LOCKexpire ; exit 0" 0 1 2 15
++ else
++ 	echo "$0: expire is running, $0 aborted" >&2
++ 	exit 1
++ fi
+  
+  cd $NEWSARTS
+***************
+*** 33,39 ****
+  fi
+  mkdbm history.n
+! mv history history.o &&		# install new ASCII history file
+! mv history.n history &&
+! rm -f history.pag &&		# and related dbm files
+! rm -f history.dir &&
+  mv history.n.pag history.pag && mv history.n.dir history.dir
+--- 40,50 ----
+  fi
+  mkdbm history.n
+! 
+! if test -f history
+! then
+! 	mv history history.o
+! else
+! 	true
+! fi && mv history.n history &&
+! rm -f history.pag history.dir &&
+  mv history.n.pag history.pag && mv history.n.dir history.dir
+
+*** cnpatch/old/expire/updatemin.c	Wed Jan 10 19:10:28 1990
+--- expire/updatemin.c	Tue Jul 24 13:16:29 1990
+***************
+*** 20,23 ****
+--- 20,24 ----
+  
+  void fail();
++ void nfail();
+  void catch();
+  void slash();
+***************
+*** 63,67 ****
+  		fail("cannot open `%s'", ctlfile("active"));
+  	if (fopen(newname, "r") != NULL)
+! 		fail("`%s' already exists", newname);
+  	new = fopen(newname, "w");
+  	if (new == NULL)
+--- 64,68 ----
+  		fail("cannot open `%s'", ctlfile("active"));
+  	if (fopen(newname, "r") != NULL)
+! 		nfail("`%s' already exists", newname);
+  	new = fopen(newname, "w");
+  	if (new == NULL)
+***************
+*** 72,76 ****
+  		nf = split(line, field, NF, " \t\n");
+  		if (nf != NF)
+! 			fail("bad number of fields in `%s ...'", field[0]);
+  		name = strsave(field[0]);
+  		slash(name);
+--- 73,77 ----
+  		nf = split(line, field, NF, " \t\n");
+  		if (nf != NF)
+! 			nfail("bad number of fields in `%s ...'", field[0]);
+  		name = strsave(field[0]);
+  		slash(name);
+***************
+*** 181,185 ****
+  interrupt()
+  {
+! 	fail("interrupted", "");
+  }
+  
+--- 182,186 ----
+  interrupt()
+  {
+! 	nfail("interrupted", "");
+  }
+  
+***************
+*** 205,208 ****
+--- 206,223 ----
+  	/* possibly should rm newname, but it may be important evidence */
+  	errunlock(s1, s2);
++ }
++ 
++ /*
++  - nfail - fail but with errno meaningless
++  */
++ void
++ nfail(s1, s2)
++ char *s1;
++ char *s2;
++ {
++ 	extern int errno;
++ 
++ 	errno = 0;
++ 	fail(s1, s2);
+  }
+  
+
+*** cnpatch/old/h/news.h	Fri May 25 15:34:41 1990
+--- h/news.h	Sat Sep  1 20:19:54 1990
+***************
+*** 28,34 ****
+  /* #define MAXLONG 017777777777L	/* if your compiler lacks "unsigned long" type */
+  
+- /* adapt to library limitations */
+- #define NOSTOREVAL	/* qqq if your dbm store() returns no value (as in orig. v7) */
+- 
+  /* fundamental constants of the implementation */
+  #define SMALLMEM	/* qqq for PDP-11s, PDP-8s, IBM PCs, etc. */
+--- 28,31 ----
+
+*** cnpatch/old/input/newsrun	Tue Mar 13 13:41:20 1990
+--- input/newsrun	Mon Jul 30 18:31:13 1990
+***************
+*** 115,120 ****
+  			relaynews -r -n <$text
+  		else
+! 			# N.B.: rsh always returns exit status 0!
+! 			rsh $server /bin/sh -c "PATH=$PATH relaynews -r -n" <$text
+  		fi
+  		st=$?
+--- 115,120 ----
+  			relaynews -r -n <$text
+  		else
+! 			# N.B.: rsh exit status is not useful
+! 			rsh $server exec /bin/sh -c "PATH=$PATH exec relaynews -r -n" <$text
+  		fi
+  		st=$?
+
+*** cnpatch/old/libcnews/gethdr.c	Tue Jun 20 18:58:58 1989
+--- libcnews/gethdr.c	Sat Jul 14 19:37:20 1990
+***************
+*** 29,33 ****
+  	nnfree(&hdr);
+  	*ishdrp = NO;
+! 	hdr = fgetmfs(in, (int)*limitp, CONT_NO);
+  	if (hdr == NULL)
+  		return hdr;
+--- 29,33 ----
+  	nnfree(&hdr);
+  	*ishdrp = NO;
+! 	hdr = fgetmfs(in, intlimit(*limitp), CONT_NO);
+  	if (hdr == NULL)
+  		return hdr;
+***************
+*** 42,46 ****
+  		if (!iswhite(c))
+  			break;
+! 		contin = fgetmfs(in, (int)*limitp, CONT_NO);
+  		if (contin == NULL)
+  			break;
+--- 42,46 ----
+  		if (!iswhite(c))
+  			break;
+! 		contin = fgetmfs(in, intlimit(*limitp), CONT_NO);
+  		if (contin == NULL)
+  			break;
+***************
+*** 48,52 ****
+  		contlen = strlen(contin);
+  		*limitp -= contlen;
+! 		hdr = realloc(hdr, (unsigned)(hdrlen + contlen + 1)); /* 1 for NUL */
+  		if (hdr != NULL) {
+  			(void) strcpy(hdr + hdrlen, contin);
+--- 48,52 ----
+  		contlen = strlen(contin);
+  		*limitp -= contlen;
+! 		hdr = realloc(hdr, (unsigned)(hdrlen + contlen + SIZENUL));
+  		if (hdr != NULL) {
+  			(void) strcpy(hdr + hdrlen, contin);
+***************
+*** 74,76 ****
+--- 74,90 ----
+  		++cp;
+  	return c == ':' && cp > s;
++ }
++ 
++ /*
++  * make longlimit fit in an int.  for now, restrict it to 30000 if it won't fit.
++  */
++ STATIC int
++ intlimit(longlimit)
++ register long longlimit;
++ {
++ 	register int limit = (int)longlimit;	/* hmm, could overflow */
++ 
++ 	if (limit != longlimit)			/* longlimit won't fit in an int? */
++ 		limit = 30000;			/* HACK */
++ 	return limit;
+  }
+
+*** cnpatch/old/libcnews/ngmatch.c	Tue Mar 13 13:41:20 1990
+--- libcnews/ngmatch.c	Sat Jul 14 19:38:32 1990
+***************
+*** 90,93 ****
+--- 90,94 ----
+  	register int faildeepest = 0, hitdeepest = 0;	/* in case no match */
+  	register boolean negation;
++ 	register char *rgrp = grp;		/* optimisation */
+  
+  	if (debug)
+***************
+*** 102,106 ****
+  			negation = YES;
+  		}
+! 		depth = onepatmatch(patp, grp);	/* try 1 pattern, 1 group */
+  		if (patcomma != NULL)
+  			*patcomma++ = NGSEP;	/* point after the comma */
+--- 103,107 ----
+  			negation = YES;
+  		}
+! 		depth = onepatmatch(patp, rgrp);	/* try 1 pattern, 1 group */
+  		if (patcomma != NULL)
+  			*patcomma++ = NGSEP;	/* point after the comma */
+***************
+*** 143,146 ****
+--- 144,156 ----
+  		register boolean match = NO;
+  		register int incr = 20;
++ 
++ 		/*
++ 		 * optimisation: first bytes *must* match, unless first
++ 		 * pattern byte is start of ALL.
++ 		 */
++ 		if (*patwd != *grwd && *patwd != ALL[0]) {
++ 			depth = 0;		/* words differed - mismatch */
++ 			break;
++ 		}
+  
+  	    	/* null-terminate words */
+
+*** cnpatch/old/libcnews/string.c	Thu Aug 24 16:39:55 1989
+--- libcnews/string.c	Thu Jul 19 11:10:08 1990
+***************
+*** 10,14 ****
+  
+  /* forwards */
+! char *findhost();
+  
+  /*
+--- 10,15 ----
+  
+  /* forwards */
+! FORWARD char *findhost();
+! FORWARD _initishostchar();
+  
+  /*
+***************
+*** 62,66 ****
+  	register char *endp, *copy;
+  
+! 	endp = strchr(s, c);		/* find interesting part's end of s */
+  	if (endp != NULL)
+  		*endp = '\0';		/* restored below */
+--- 63,67 ----
+  	register char *endp, *copy;
+  
+! 	STRCHR(s, c, endp);		/* find interesting part's end of s */
+  	if (endp != NULL)
+  		*endp = '\0';		/* restored below */
+***************
+*** 99,113 ****
+  }
+  
+  /*
+!  * If c is NUL, hostchar will be false, so don't test (optimisation: ==).
+   */
+! #define nothostchar(c, ch) (!hostchar(c, ch) /* || (c) == '\0' */ )
+! /*
+!  * True if c can be part of a hostname. RFC 850 allows letters, digits, periods,
+!  * and hyphens and specifically disallows blanks. False may mean c is NUL.
+!  */
+! #define hostchar(c, ch) ((ch) = (c), \
+! 	(isascii(ch) && isalnum(ch) || (ch) == '.' || (ch) == '-'))
+  
+  /*
+   * Return true iff any host in hosts appears in s, as per hostin().
+--- 100,138 ----
+  }
+  
++ 
++ /* hostname and path routines follow */
++ 
++ 
++ #define CHARSETWIDTH 8			/* bits per character */
++ #define CHARSETSIZE  (1<<CHARSETWIDTH)	/* 2^CHARSETWIDTH */
++ 
++ #define initishostchar() (setishostchar? 0: _initishostchar())
++ /* These macros are both (currently) safe. */
++ /* If c is NUL, hostchar will be false, so don't test (optimisation: ==). */
++ #define nothostchar(c) (!hostchar(c) /* || (c) == '\0' */ )
++ /* True if c can be part of a hostname.  False may mean c is NUL. */
++ #define hostchar(c) ishostchar[(c) & (CHARSETSIZE-1)]
++ 
++ static char ishostchar[CHARSETSIZE];	/* char. sets > Latin-1 are out of luck */
++ static int setishostchar = NO;
++ 
+  /*
+!  * RFC 850 allows letters, digits, periods, and hyphens and specifically
+!  * disallows blanks in hostnames.
+   */
+! STATIC
+! _initishostchar()
+! {
+! 	if (!setishostchar) {
+! 		register char *p;
+! 		register int c;
+  
++ 		setishostchar = YES;
++ 		for (c = 0, p = ishostchar; c < sizeof ishostchar; c++)
++ 			*p++ = isascii(c) && isalnum(c);
++ 		ishostchar['.'] = ishostchar['-'] = YES;
++ 	}
++ }
++ 
+  /*
+   * Return true iff any host in hosts appears in s, as per hostin().
+***************
+*** 122,134 ****
+  	while (*host != '\0') {
+  		register char *delimp;
+- 		register int ch;
+  		register int delim;
+  		register boolean hostisin;
+  
+! 		while (nothostchar(*host, ch) && *host != '\0')
+  			++host;			/* skip leading delims */
+  		if (*host == '\0')		/* no more hosts */
+  			break;
+! 		for (delimp = host; hostchar(*delimp, ch); delimp++)
+  			;			/* skip to next delim */
+  		delim = *delimp;		/* may be NUL */
+--- 147,159 ----
+  	while (*host != '\0') {
+  		register char *delimp;
+  		register int delim;
+  		register boolean hostisin;
+  
+! 		initishostchar();
+! 		while (nothostchar(*host) && *host != '\0')
+  			++host;			/* skip leading delims */
+  		if (*host == '\0')		/* no more hosts */
+  			break;
+! 		for (delimp = host; hostchar(*delimp); delimp++)
+  			;			/* skip to next delim */
+  		delim = *delimp;		/* may be NUL */
+***************
+*** 157,161 ****
+   * Return the number of machines appearing in path,
+   * by counting transitions from delimiters.
+!  * See hostin() for the rules, and the macros.
+   */
+  int
+--- 182,186 ----
+   * Return the number of machines appearing in path,
+   * by counting transitions from delimiters.
+!  * See anyhostin() for the rules, and the macros.
+   */
+  int
+***************
+*** 164,172 ****
+  {
+  	register int count = 0;
+- 	register int ch;
+  
+  	for (; *path != '\0'; path++)
+! 		if (nothostchar(path[0], ch) &&
+! 		    (hostchar(path[1], ch) || path[1] == '\0'))
+  			++count;	/* trailing edge of delimiters */
+  	return count;
+--- 189,197 ----
+  {
+  	register int count = 0;
+  
++ 	initishostchar();
+  	for (; *path != '\0'; path++)
+! 		if (nothostchar(path[0]) &&
+! 		    (hostchar(path[1]) || path[1] == '\0'))
+  			++count;	/* trailing edge of delimiters */
+  	return count;
+***************
+*** 178,186 ****
+  {
+  	register char *p;
+- 	register int ch;
+  	static char *sender = NULL;
+  
+  	nnfree(&sender);		/* free the last answer */
+! 	for (p = path; hostchar(*p, ch); p++)
+  		;
+  	if (*p == '\0')			/* only a user name */
+--- 203,211 ----
+  {
+  	register char *p;
+  	static char *sender = NULL;
+  
++ 	initishostchar();
+  	nnfree(&sender);		/* free the last answer */
+! 	for (p = path; hostchar(*p); p++)
+  		;
+  	if (*p == '\0')			/* only a user name */
+***************
+*** 201,204 ****
+--- 226,230 ----
+   * and its trailing delimiter, from Approved: (or Sender:) (user@host).
+   * Result is malloced memory.
++  * This is also a profiling hot spot.
+   */
+  char *
+***************
+*** 206,223 ****
+  char *rawpath, *approved, *sender;
+  {
+! 	register char *newpath = strsave(nullify(rawpath));
+  	register char *p, *lastdelim = newpath, *site = NULL;
+- 	register int ch;
+  
+  	for (p = newpath; *p != '\0'; ++p)
+! 		if (nothostchar(*p, ch))
+  			lastdelim = p + 1;	/* just past delim */
+! 	if (lastdelim != NULL)
+! 		*lastdelim = '\0';		/* omit user's name */
+  
+  	if (approved != NULL) {			/* moderated article */
+! 		site = strchr(approved, '@');
+  		if (site == NULL)
+! 			site = strchr(nullify(sender), '@');
+  	}
+  	if (site != NULL) {
+--- 232,248 ----
+  char *rawpath, *approved, *sender;
+  {
+! 	register char *newpath = strsave(nullify(rawpath));	/* costly */
+  	register char *p, *lastdelim = newpath, *site = NULL;
+  
++ 	initishostchar();
+  	for (p = newpath; *p != '\0'; ++p)
+! 		if (nothostchar(*p))
+  			lastdelim = p + 1;	/* just past delim */
+! 	*lastdelim = '\0';			/* omit user's name */
+  
+  	if (approved != NULL) {			/* moderated article */
+! 		STRCHR(approved, '@', site);
+  		if (site == NULL)
+! 			STRCHR(nullify(sender), '@', site);
+  	}
+  	if (site != NULL) {
+***************
+*** 235,255 ****
+   * This function is a profiling hot spot, so it has been optimised.
+   */
+! char *
+  findhost(host, path)
+  register char *host, *path;
+  {
+! 	register int hostlen = strlen(host), ch;
+  
+! 	/* Special case: match host!path or host. */
+! 	if (STREQN(path, host, hostlen) && nothostchar(path[hostlen], ch))
+! 		return &path[hostlen];
+! 
+! 	/* Match path2!host!path or path2!host. */
+! 	while (*path != '\0')
+! 		if (hostchar(path[0], ch))	/* can't start after here */
+! 			++path;
+! 		else if ((++path, STREQN(path, host, hostlen)) &&
+! 	   	    nothostchar(path[hostlen], ch))
+! 			return &path[hostlen];
+! 	return NULL;
+  }
+--- 260,279 ----
+   * This function is a profiling hot spot, so it has been optimised.
+   */
+! STATIC char *
+  findhost(host, path)
+  register char *host, *path;
+  {
+! 	register char *pathp, *nxpathp;
+! 	register int hostlen = strlen(host);
+  
+! 	initishostchar();
+! 	for (pathp = path; ; pathp = nxpathp + 1) {
+! 		STRCHR(pathp, host[0], nxpathp);	/* find plausible start */
+! 		if (nxpathp == NULL)
+! 			return NULL;		/* path exhausted */
+! 		if (STREQN(pathp, host, hostlen) == 0 &&
+! 		    (pathp == path || nothostchar(pathp[-1])) &&
+! 		    nothostchar(pathp[hostlen]))
+! 			return &pathp[hostlen];
+! 	}
+  }
+
+*** cnpatch/old/man/news.5	Fri May 25 15:34:42 1990
+--- man/news.5	Sat Sep  1 19:40:47 1990
+***************
+*** 7,17 ****
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .de Is\" indentation start
+  .in +0.5i
+  ..
+! .de Ie\" indentation end
+  .in -0.5i
+  ..
+! .de Es\" example start
+  .LP
+  .nf
+--- 7,20 ----
+  .\" =()<.ds m @<NEWSMASTER>@>()=
+  .ds m usenet
+! .\" indentation start
+! .de Is
+  .in +0.5i
+  ..
+! .\" indentation end
+! .de Ie
+  .in -0.5i
+  ..
+! .\" example start
+! .de Es
+  .LP
+  .nf
+***************
+*** 19,23 ****
+  .Is
+  ..
+! .de Ee\" example end
+  .Ie
+  .ft R
+--- 22,27 ----
+  .Is
+  ..
+! .\" example end
+! .de Ee
+  .Ie
+  .ft R
+***************
+*** 25,29 ****
+  .LP
+  ..
+! .TH NEWS 5 "9 March 1990"
+  .BY "C News"
+  .SH NAME
+--- 29,33 ----
+  .LP
+  ..
+! .TH NEWS 5 "31 Aug 1990"
+  .BY "C News"
+  .SH NAME
+***************
+*** 329,332 ****
+--- 333,352 ----
+  header is ignored when receiving news;
+  it is only significant when sending.)
++ .PP
++ Note that some older news software
++ reportedly
++ attached magical significance to the
++ distributions ``world'' and ``local''; C News treats them as ordinary
++ distribution names with no special properties (except that ``world'' is
++ the default distribution of an article if none appears explicitly).
++ For example, a
++ .I distributions
++ list like
++ .B all,!local
++ will
++ .I not
++ prevent local articles from being sent unless they contain explicit
++ .B "Distribution: local"
++ lines.
+  .PP
+  The
+
+*** cnpatch/old/misc/act.to.times	Fri May 25 15:34:23 1990
+--- misc/act.to.times	Fri Jun 29 13:02:05 1990
+***************
+*** 1,2 ****
+--- 1,3 ----
++ #! /bin/sh
+  # act.to.times [file...] - turn an active file into a active.times file inaccurately
+  # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
+
+*** cnpatch/old/misc/delgroup	Mon Nov 13 17:39:48 1989
+--- misc/delgroup	Wed Aug  8 13:23:34 1990
+***************
+*** 45,48 ****
+--- 45,50 ----
+  awk "\$1 != \"$1\"" active >active.tmp
+  mv active active.old && mv active.tmp active
++ awk "\$1 != \"$1\"" active.times >active.times.t
++ mv active.times active.times.o && mv active.times.t active.times
+  
+  echo "You may wish to rmdir $NEWSARTS/`echo "$1" | sed 's;\.;/;g'` at some point."
+
+*** cnpatch/old/notebook/problems	Fri May 25 15:34:44 1990
+--- notebook/problems	Mon Jul 30 18:25:21 1990
+***************
+*** 1,3 ****
+! .DA "12 May 1990"
+  .TL
+  Known Porting Problems With C News
+--- 1,3 ----
+! .DA "21 July 1990"
+  .TL
+  Known Porting Problems With C News
+***************
+*** 78,81 ****
+--- 78,86 ----
+  are known to hit these bugs.
+  We are \fItold\fR that current \fIksh\fRs have fixed them.
++ .PP
++ It is reliably reported that SunOS 4.0.\fIx\fR shells will dump core
++ in some ill-defined circumstances, when the user environment (sum of all
++ environment variables) is exactly the wrong size.
++ Perhaps this has been fixed in 4.1.
+  .SH
+  Make vs. Test
+***************
+*** 150,153 ****
+--- 155,160 ----
+  Most current System V implementations from serious suppliers have enough
+  BSD compatibility that this is not an issue.
++ It is reported that AT&T 3B2 systems don't, to the point where
++ \fIreadnews\fR simply doesn't work.
+  .SH
+  Readnews Simplicity
+***************
+*** 439,440 ****
+--- 446,521 ----
+  We do
+  sympathize with people victimized by it, but can be of no practical help.
++ .SH
++ Compress Options
++ .PP
++ Some imbecilic vendors have altered \fIcompress\fR so that it must be
++ given a \fB\-u\fR option (instead of the standard \fB\-d\fR) to uncompress
++ a file.
++ The symptoms of this are strange:
++ local postings and occasional outside articles come through all right
++ (because they weren't compressed), but most outside traffic gets rejected
++ by \fIrelaynews\fR, which complains that it lacks `Path:' lines.
++ In general, a complaint about a lack of `Path:' tends to mean that
++ \fIrelaynews\fR got fed total gibberish.
++ .SH
++ ulimit
++ .PP
++ Most versions of System V have the concept of \fIulimit\fR,
++ a per-process limit on how big an individual file can be.
++ This limit can be lowered by anyone but raised only by the super-user;
++ normally \fIinit\fR or \fIlogin\fR initializes it to some suitable value.
++ Unfortunately, many System Vs set it far too low, at 1 megabyte.
++ This causes trouble with many things, but in particular,
++ \fIrelaynews\fR, \fIexpire\fR, etc.
++ need to be able to work with the \fIhistory\fR file,
++ which can easily be several megabytes.
++ It's necessary to deal with this on all paths by which
++ any of these programs might be invoked:
++ from \fIuucp\fR or other transport software bringing in news,
++ from \fIcron\fR,
++ and by users via \fIinews\fR for local postings.
++ It is difficult to do this in a portable way when super-user privileges
++ are needed.
++ .SH
++ Restricted Shells
++ .PP
++ There is an unfortunate interaction between the `#!' feature in shell files
++ and the ``restricted shell'' feature found in some Unixes (notably System V):
++ the restricted shell typically is just a different way of invoking
++ \fI/bin/sh\fR, and in some versions, careless code just checks the first
++ letter of the name the shell was invoked under to see if it was `r'.
++ Unfortunately, if the system has the `#!' feature and there is a shell
++ file named, say, \fIrnews\fR whose first line is `#!\ /bin/sh',
++ this shell file will end up invoking the restricted shell!
++ .PP
++ Simply deleting the `#!' line might fix this; on systems which have the
++ Korn shell, changing `#!\ /bin/sh' to `#!\ /bin/ksh' might work.
++ Otherwise you will have
++ to arrange to have your neighbors invoke \fIcunbatch\fR instead of
++ \fIrnews\fR, or else write a simple \fIrnews\fR that invokes the real
++ one under another name.
++ It would be wise to check for other shell files whose names begin with `r',
++ also, as \fIrnews\fR definitely isn't the only one.
++ .SH
++ Remote Invocation vs. Nonstandard Shells
++ .\" thanks to Paul Eggert for most of this
++ .PP
++ When \fInewsrun\fR is invoked on a host that is not the news server,
++ it uses \fIrsh\fP to propagate news batches to the server.
++ It runs \fI/bin/sh\fR explicitly to avoid major difficulties with
++ non-standard shells,
++ but it has to rely on the invoker's login shell to run that one command.
++ This means \fInewsrun\fR will emit spurious output
++ if its invoker's login shell is the C shell
++ and its invoker's \fI.cshrc\fR contains commands that generate output.
++ A similar problem occurs with \fIbash\fP and \fI.bashrc\fP.
++ .PP
++ The simplest solution is to use \fI/bin/sh\fP
++ as the login shell for \fInewsrun\fP's invoker.
++ Otherwise, if you have a networked news server,
++ check that the login shell is standard enough to invoke \fI/bin/sh\fP
++ by executing the following command as \fInewsrun\fP's invoker.
++ .DS
++ rsh \fInewsserver\fP exec /bin/sh \-c true
++ .DE
++ This command should output nothing.
+
+*** cnpatch/old/relay/article.c	Tue Jun 20 19:00:58 1989
+--- relay/article.c	Wed Jul 18 13:58:52 1990
+***************
+*** 13,16 ****
+--- 13,18 ----
+  register struct article *art;
+  {
++ 	static long uniqno = 0;
++ 
+  	art->a_status = ST_OKAY;
+  	hdrinit(&art->h);
+***************
+*** 30,33 ****
+--- 32,36 ----
+  	art->a_charswritten = 0;
+  	art->a_unread = 0;
++ 	art->a_id = uniqno++;
+  }
+  
+
+*** cnpatch/old/relay/article.h	Tue Jun 20 19:00:59 1989
+--- relay/article.h	Wed Jul 18 13:58:46 1990
+***************
+*** 23,26 ****
+--- 23,27 ----
+  	long a_charswritten;	/* into spool directory, for batcher */
+  	long a_unread;		/* bytes of article input yet unread */
++ 	long a_id;		/* article id #, unique within this batch */
+  };
+  
+
+*** cnpatch/old/relay/history.c	Fri May 25 15:34:44 1990
+--- relay/history.c	Wed Jun 27 14:05:15 1990
+***************
+*** 2,16 ****
+   * history file bashing
+   *
+-  * B 2.10+ news pulls a dirty (and undocumented) trick and converts
+-  * message-id's to lower case before using them as keys in the dbm file.
+-  * C news instead invokes rfc822ize on the key, which does the rational
+-  * part of what RFC 822 requires: it converts the `domain' part on the
+-  * right of the `@' to lower case.  We have not attempted to fully meet
+-  * 822's bizarre requirements, since they pretty much require a lex
+-  * scanner or a slightly-simplified version of the scanner found in the
+-  * shell, neither of which will be simple, which means either would
+-  * likely contain subtle bugs.  You'll want to fix your news readers
+-  * accordingly.
+-  *
+   * B 2.10.3+ rnews puts out a leading space before received
+   * time if the article contains an Expires: header; tough.
+--- 2,5 ----
+***************
+*** 30,35 ****
+  #include "libc.h"
+  #include "news.h"
+- #include "case.h"
+  #include "config.h"
+  #include "fgetmfs.h"
+  #include "headers.h"
+--- 19,24 ----
+  #include "libc.h"
+  #include "news.h"
+  #include "config.h"
++ #include "dbz.h"
+  #include "fgetmfs.h"
+  #include "headers.h"
+***************
+*** 48,56 ****
+  #endif
+  
+- typedef struct {
+- 	char *dptr;
+- 	int dsize;
+- } datum;
+- 
+  /* private data */
+  static FILE *fp = NULL;
+--- 37,40 ----
+***************
+*** 63,66 ****
+--- 47,51 ----
+  
+  /* other imports */
++ extern void prefuse();
+  extern boolean okrefusal;	/* flag from command line */
+  
+***************
+*** 120,128 ****
+  	if (!openhist())
+  		return msgidkey;
+! 	clnmsgid = rfc822ize(strsave(msgid));
+  	sanitise(clnmsgid);
+  	msgidkey.dptr = clnmsgid;
+  	msgidkey.dsize = strlen(clnmsgid) + SIZENUL;
+! 	keypos = fetch(msgidkey);		/* offset into ascii file */
+  	free(clnmsgid);
+  	return keypos;
+--- 105,113 ----
+  	if (!openhist())
+  		return msgidkey;
+! 	clnmsgid = strsave(msgid);
+  	sanitise(clnmsgid);
+  	msgidkey.dptr = clnmsgid;
+  	msgidkey.dsize = strlen(clnmsgid) + SIZENUL;
+! 	keypos = dbzfetch(msgidkey);		/* offset into ascii file */
+  	free(clnmsgid);
+  	return keypos;
+***************
+*** 270,274 ****
+  	long pos;
+  	datum msgidkey, posdatum;
+! 										
+  	pos = ftell(fp);  /* get seek ptr for dbm; could keep track instead */
+  	if (fprintf(fp, "%s%c%ld%c%s", msgid, FIELDSEP, now, SUBFIELDSEP, expiry)
+--- 255,259 ----
+  	long pos;
+  	datum msgidkey, posdatum;
+! 
+  	pos = ftell(fp);  /* get seek ptr for dbm; could keep track instead */
+  	if (fprintf(fp, "%s%c%ld%c%s", msgid, FIELDSEP, now, SUBFIELDSEP, expiry)
+***************
+*** 283,297 ****
+  		fulldisk(art, filename);
+  
+! 	msgidkey.dptr = rfc822ize(strsave(msgid));
+  	msgidkey.dsize = strlen(msgid) + SIZENUL;
+  	posdatum.dptr = (char *)&pos;
+  	posdatum.dsize = sizeof pos;
+! #ifdef NOSTOREVAL		/* original v7 dbm store() returned no value */
+! 	store(msgidkey, posdatum);
+! #else
+! 	if (store(msgidkey, posdatum) < 0)
+  		fulldisk(art, filename);
+- #endif
+- 	free(msgidkey.dptr);
+  }
+  
+--- 268,277 ----
+  		fulldisk(art, filename);
+  
+! 	msgidkey.dptr = msgid;
+  	msgidkey.dsize = strlen(msgid) + SIZENUL;
+  	posdatum.dptr = (char *)&pos;
+  	posdatum.dsize = sizeof pos;
+! 	if (dbzstore(msgidkey, posdatum) < 0)
+  		fulldisk(art, filename);
+  }
+  
+
+*** cnpatch/old/relay/sh/inews	Fri May 25 15:34:46 1990
+--- relay/sh/inews	Fri May 25 17:02:22 1990
+***************
+*** 254,259 ****
+  						>$modroute
+  				moderator="`cat $modroute `"
+! 				# TODO: next line confuses nn; change to stdout?
+! 				echo "$0: mailing your article to $moderator" >&2
+  				mail "$moderator" <$censart
+  				trap 0	# this is a child process - no cleanup here
+--- 254,258 ----
+  						>$modroute
+  				moderator="`cat $modroute `"
+! 				echo "mailing your article to $moderator"
+  				mail "$moderator" <$censart
+  				trap 0	# this is a child process - no cleanup here
+
+*** cnpatch/old/relay/sys.c	Fri May 25 15:34:48 1990
+--- relay/sys.c	Sun Jun  3 03:02:03 1990
+***************
+*** 26,29 ****
+--- 26,30 ----
+  FORWARD char *parsecolon(), *reparse();
+  FORWARD void readsys(), parsesysln(), parse(), parseflags(), newartfile();
++ FORWARD int spacein();
+  
+  /* exports */
+***************
+*** 132,135 ****
+--- 133,148 ----
+  	parse(&flagstring);
+  	parse(&sysp->sy_cmd);
++ 	errno = 0;
++ 	if (spacein(sysp->sy_name))
++ 		errunlock(
++ 		"whitespace in system name (or exclusions) of sys entry for `%s'",
++ 			sysp->sy_name);
++ 	if (spacein(sysp->sy_ngs))
++ 		errunlock(
++ 		"whitespace in newsgroups (or distributions) of sys entry for `%s'",
++ 			sysp->sy_name);
++ 	if (spacein(flagstring))
++ 		errunlock("whitespace in flags of sys entry for `%s'",
++ 			sysp->sy_name);
+  	/* could check for extra fields here */
+  
+***************
+*** 151,154 ****
+--- 164,174 ----
+  }
+  
++ STATIC int
++ spacein(s)
++ register char *s;
++ {
++ 	return strchr(s, ' ') != NULL || strchr(s, '\t') != NULL;
++ }
++ 
+  /*
+   * fill in defaults in sysp.
+***************
+*** 262,265 ****
+--- 282,286 ----
+  	sysp->sy_flags = 0;
+  	sysp->sy_lochops = 0;		/* default L value */
++ 	errno = 0;
+  	for (; *flags != '\0'; flags++)
+  		switch (*flags) {
+
+*** cnpatch/old/relay/transmit.c	Wed Jan 10 19:10:59 1990
+--- relay/transmit.c	Wed Jul 18 13:58:53 1990
+***************
+*** 81,90 ****
+  char *exclude;				/* no copy to him */
+  {
+  	register int flags = sys->sy_flags;
+  	register char *site = sys->sy_name;
+! 	register char *path =
+! 		canonpath(art->h.h_path, art->h.h_approved, art->h.h_sender);
+! 	register int result;
+  
+  	if (flags&FLG_LOCAL && hopcount(path) > sys->sy_lochops ||
+  	    STREQ(hostname(), site) ||
+--- 81,97 ----
+  char *exclude;				/* no copy to him */
+  {
++ 	static char *canpath;
++ 	static long lastid = -1;
+  	register int flags = sys->sy_flags;
+  	register char *site = sys->sy_name;
+! 	register char *path;
+! 	register int result = YES;
+  
++ 	if (art->a_id != lastid) {	/* new article? */
++ 		lastid = art->a_id;
++ 		nnfree(&canpath);
++ 		canpath = canonpath(art->h.h_path, art->h.h_approved, art->h.h_sender);
++ 	}
++ 	path = canpath;
+  	if (flags&FLG_LOCAL && hopcount(path) > sys->sy_lochops ||
+  	    STREQ(hostname(), site) ||
+***************
+*** 95,106 ****
+  		result = NO;
+  	else if (flags&(FLG_MOD|FLG_UNMOD)) {	/* u, m flag selection */
+! 		if ((flags&(FLG_MOD|FLG_UNMOD)) == (FLG_MOD|FLG_UNMOD))
+! 			result = YES;		/* too silly */
+! 		else
+  			result = (flags&FLG_MOD? moderated(art->h.h_ngs):
+  						!moderated(art->h.h_ngs));
+! 	} else
+! 		result = YES;
+! 	free(path);
+  	return result;
+  }
+--- 102,109 ----
+  		result = NO;
+  	else if (flags&(FLG_MOD|FLG_UNMOD)) {	/* u, m flag selection */
+! 		if ((flags&(FLG_MOD|FLG_UNMOD)) != (FLG_MOD|FLG_UNMOD))
+  			result = (flags&FLG_MOD? moderated(art->h.h_ngs):
+  						!moderated(art->h.h_ngs));
+! 	}
+  	return result;
+  }
+
+*** cnpatch/old/rna/readnews.1	Tue Jun 20 19:02:04 1989
+--- rna/readnews.1	Wed Jul  4 14:50:52 1990
+***************
+*** 1,5 ****
+! .TH READNEWS 1
+  .SH NAME
+! news, readnews \- read news articles
+  .SH SYNOPSIS
+  .B readnews
+--- 1,6 ----
+! .TH READNEWS 1 "4 July 1990"
+! .BY "C News"
+  .SH NAME
+! readnews \- read news articles
+  .SH SYNOPSIS
+  .B readnews
+
+
+end of patch 1-Sep-1990

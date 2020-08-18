@@ -1,0 +1,2135 @@
+#! /bin/sh
+# This is a shell archive, meaning:
+# 1. Remove everything above the #! /bin/sh line.
+# 2. Save the resulting text in a file.
+# 3. Execute the file with /bin/sh (not csh) to create the files:
+#	CHANGES.diff
+#	README.1.5.11
+#	xmit
+#	xfer
+#	inews
+# This archive created: Sun Feb 10 14:37:30 1991
+export PATH; PATH=/bin:$PATH
+echo shar: extracting "'CHANGES.diff'" '(2485 characters)'
+if test -f 'CHANGES.diff'
+then
+	echo shar: will not over-write existing file "'CHANGES.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'CHANGES.diff'
+	X*** CHANGES	Sat Sep  1 22:03:56 1990
+	X--- ../nntp/CHANGES	Fri Feb  8 18:22:39 1991
+	X***************
+	X*** 2,7
+	X  since the initial release.  Individuals who either reported the bug or
+	X  inspired the bug fix are in square brackets.
+	X  
+	X  1.5.10
+	X  	Fixes to spawn.c to allow it to work correctly with CNEWS.
+	X  	[All CNEWS sites....Sorry, guys and gals!]
+	X
+	X--- 2,41 -----
+	X  since the initial release.  Individuals who either reported the bug or
+	X  inspired the bug fix are in square brackets.
+	X  
+	X+ 1.5.11
+	X+ 	Fixes to spawn.c and batch.c for those system that need
+	X+ 	execle() to specifically call /bin/sh to exectute a sh script.
+	X+ 	[All CNEWS sites running System V.]
+	X+ 	Fixes to the timeout code to make it all work the GNUS.
+	X+ 	[leres@ee.lbl.gov]
+	X+ 	Fixes to nntpxmit to support CNEWS batch file formats which
+	X+ 	contain the name of the article file and its message id.
+	X+ 	[flee@guardian.cs.psu.edu]
+	X+ 	Fixes to nntpxmit to not mistake the delete character in an
+	X+ 	article as an EOF indication. [pst+@ir.stanford.edu]
+	X+ 	Added the $HOME environmental variable in the new environment
+	X+ 	provided to a child process. [steve@avalon.dartmouth.edu]
+	X+ 	Added rudimentary support to clientlib for TLI. [sob@tmc.edu]
+	X+ 	Changes to inews to optionally use gethostbyname() to get canonical
+	X+ 	hostname as needed. [jef@ee.lbl.gov]
+	X+ 	Changed extern int timezone to extern long timezone in time.c.
+	X+ 	[pk@unidoct.chemietechnik.uni-dortmund.de]
+	X+ 	Reset SIGCLD before calling serve for WIN/TCP users on System V.
+	X+ 	[wescott%micky%sauron%ncrcae@ncrlnk.dayton.ncr.com]
+	X+ 	Changed references to "server" in clientlib.c to "nntpserver" to
+	X+ 	avoid a conflict with WIN/TCP. [rdc30med@nmrdc1.nmrdc.nnmc.navy.mil]
+	X+ 	Defining DBZ will take care of defining DBM. [tgt@cblpf.att.com]
+	X+ 	Some minor changes to nntpxfer to remove the risk of doing an update
+	X+ 	when it's not necessary. [ccc141j@monu6.cc.monash.edu.au,
+	X+ 	corbin@utep-vaxa.uucp]
+	X+ 	Changes to nntpxmit to correctly utilize LOG_DEBUG when LOG is
+	X+ 	defined and not when it isn't. [alden@shape.mps.ohio-state.edu]
+	X+ 	Change order of setuid/setgid in spawn.c and batch.c to execute
+	X+ 	setgid first. [apple.com!arc!chet]
+	X+ 	Provided an optional and untested way to use a dynamically
+	X+ 	resizing article array in the server. This will allow large
+	X+ 	numbers of articles in each group without giving nntp heartburn.
+	X+ 	[leres@ee.lbl.gov]
+	X  1.5.10
+	X  	Fixes to spawn.c to allow it to work correctly with CNEWS.
+	X  	[All CNEWS sites....Sorry, guys and gals!]
+SHAR_EOF
+if test 2485 -ne "`wc -c < 'CHANGES.diff'`"
+then
+	echo shar: error transmitting "'CHANGES.diff'" '(should have been 2485 characters)'
+fi
+fi # end of overwriting check
+echo shar: extracting "'README.1.5.11'" '(3359 characters)'
+if test -f 'README.1.5.11'
+then
+	echo shar: will not over-write existing file "'README.1.5.11'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'README.1.5.11'
+	XWelcome to patch number 11 for NNTP 1.5.
+	X
+	X	If you have not installed the first ten patches, you must do so
+	X	before proceeding. You can get those patches (and this one) from
+	X	anoymous ftp on bcm.tmc.edu [128.249.2.1] or by sending a message
+	X	to the archive-server@bcm.tmc.edu with the following text:
+	X	send public nntp.patch.1
+	X	send public nntp.patch.2
+	X	send public nntp.patch.3
+	X	send public nntp.patch.4.shar
+	X	send public nntp.patch.5.shar
+	X	send public nntp.patch.6.shar
+	X	send public nntp.patch.7.shar
+	X	send public nntp.patch.8.pt1.shar
+	X	send public nntp.patch.8.pt2.shar
+	X	send public nntp.patch.9.pt1.shar
+	X	send public nntp.patch.9.pt2.shar
+	X	send public nntp.patch.9.pt3.shar
+	X	send public nntp.patch.10.pt1.shar
+	X	send public nntp.patch.10.pt2.shar
+	X
+	X	If you have all ten patches installed, you are ready to install
+	X	this set of patches. These patches are packaged as four shell archives.
+	X	Be sure to unpack the shars in the root of your nntp distribution.
+	X	They are as follows: 
+	X	CHANGES.diff  -- This will patch the CHANGES file in the root
+	X	of the nntp distrbution to reflect changes since the release of 1.5.
+	X	To install, just type patch < CHANGES.diffs
+	X	server.pt1.diff -- This patch is the first of two diffs to be applied
+	X	to the files in the server subdirectory.
+	X	To install, change directory to the server directory and type
+	X	patch < server.pt1.diff.
+	X	server.pt2.diff -- This patch is the first of two diffs to be applied
+	X	to the files in the server subdirectory.
+	X	To install, change directory to the server directory and type
+	X	patch < server.pt2.diff.
+	X	common.diff -- This patch is for the files in the common subdirectory.
+	X	To install, change directory to the common directory and type
+	X	patch < common.diff
+	X	xfer.diff -- This is a patch for nntpxfer.c in the xfer directory.
+	X	To install, change directory to the xfer directory and type
+	X	patch < xfer.diff.
+	X	xmit.diff -- This is a patch for the files in the xmit directory.
+	X	To install, change directory to the xmit directory and type
+	X	patch < xmit.diff.
+	X	inews.diff -- This patch is for the files in the inews subdirectory.
+	X	To install, change directory to the inews directory and type
+	X	patch < inews.diff.
+	X	
+	X	SPECIAL NOTE: Two new files (timer.c and timer.h) will be created
+	X	in the server subdirectory. New versions of README and conf.h.dist
+	X	will be created in the common subdirectory. A new version of
+	X	access_file will be created in the support subdirectory.
+	X
+	XBug reports and enhancements welcome,
+	XStan Barber
+	Xnntp@tmc.edu
+	X
+	XP.S. This patched version of NNTP has been compiled on the following systems:
+	X
+	XVax 3600 running Ultrix 3.1 (BNEWS 2.11.19)
+	XSolbourne Series 5/601 with OS/MP 4.0D (SunOS 4.0.3c compatible) (Same BNEWS)
+	XHP 9000/825 running HP-UX A.B3.00.5B
+	X
+	XP.P.S. The fully patched version is available via anonymous ftp from
+	Xlib.tmc.edu [129.106.5.1] and gazette.bcm.tmc.edu [128.249.2.2]. Look in
+	Xthe public directory for nntp.1.5.11.tar. A compressed version is also on line.
+	X
+	XP.P.P.S. This is the really FINAL release of NNTP 1.5. The next release will
+	Xbe 1.6. There will be no patch kit. NNTP 1.6 will be a full release and
+	Xwill only be distributed in full source.
+	X
+	XP.P.P.P.S. Much thanks to all our beta testers: 
+	Xmolenda@s1.msi.umn.edu,tale@cs.rpi.edu,anselmo-ed@cs.yale.edu,
+	Xleres@helios.ee.lbl.gov,vixie@decwrl.dec.com,scs@hela.iti.org,
+	Xwisner@ims.alaska.edu,nash@parc.xerox.com
+SHAR_EOF
+if test 3359 -ne "`wc -c < 'README.1.5.11'`"
+then
+	echo shar: error transmitting "'README.1.5.11'" '(should have been 3359 characters)'
+fi
+fi # end of overwriting check
+if test ! -d 'xmit'
+then
+	echo shar: creating directory "'xmit'"
+	mkdir 'xmit'
+fi
+echo shar: entering directory "'xmit'"
+cd 'xmit'
+echo shar: extracting "'xmit.diff'" '(35693 characters)'
+if test -f 'xmit.diff'
+then
+	echo shar: will not over-write existing file "'xmit.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'xmit.diff'
+	XIndex: Makefile
+	X*** Makefile	Sat Aug 18 17:14:40 1990
+	X--- ../../nntp/xmit/Makefile	Sat Jan 12 01:05:39 1991
+	X***************
+	X*** 25,31
+	X  	${CC} ${CFLAGS} -o nntpxmit ${SRVROBJ} ${LIBS}
+	X  
+	X  shlock: shlock.c
+	X! 	cc ${CFLAGS} -o shlock shlock.c
+	X  
+	X  ${SRVROBJ}: ${SRVRINC}
+	X  
+	X
+	X--- 25,31 -----
+	X  	${CC} ${CFLAGS} -o nntpxmit ${SRVROBJ} ${LIBS}
+	X  
+	X  shlock: shlock.c
+	X! 	cc ${CFLAGS} -DNNTPSRC -o shlock shlock.c
+	X  
+	X  ${SRVROBJ}: ${SRVRINC}
+	X  
+	XIndex: README
+	X*** README	Wed Jul  4 19:49:19 1990
+	X--- ../../nntp/xmit/README	Mon Dec 24 16:36:18 1990
+	X***************
+	X*** 1,4
+	X!      The program "nntpxmit" is an active trnamission client
+	X  (see the comment in nntpxmit.c for a description of the
+	X  difference between active and passive clients) written by Erik Fair
+	X  <fair@ucbvax.berkeley.edu, ...!ucbvax!fair>.  A larger comment on
+	X
+	X--- 1,4 -----
+	X!      The program "nntpxmit" is an active transmission client
+	X  (see the comment in nntpxmit.c for a description of the
+	X  difference between active and passive clients) written by Erik Fair
+	X  <fair@ucbvax.berkeley.edu, ...!ucbvax!fair>.  A larger comment on
+	X***************
+	X*** 26,33
+	X  logging via syslog.  Additionally, the "-d" option is availible
+	X  for debugging.
+	X  
+	X!      Please forward comments/suggestions for improvement/bugs to
+	X! sob@bcm.tmc.edu.
+	X  
+	X       [My thanks extended to Erik for writing nntpxmit, shlock,
+	X  and the stats scripts.  My thanks also to Mel Pleasant
+	X
+	X--- 26,32 -----
+	X  logging via syslog.  Additionally, the "-d" option is availible
+	X  for debugging.
+	X  
+	X!      Please forward comments/suggestions for improvement/bugs to nntp@tmc.edu.
+	X  
+	X       [My thanks extended to Erik for writing nntpxmit, shlock,
+	X  and the stats scripts.  My thanks also to Mel Pleasant
+	XIndex: get_tcp_conn.c
+	X*** /tmp/,RCSt1a20229	Sun Feb 10 13:48:06 1991
+	X--- /tmp/,RCSt2a20229	Sun Feb 10 13:48:06 1991
+	X***************
+	X*** 1,3
+	X  /*
+	X  ** Routines to open a TCP connection
+	X  **
+	X
+	X--- 1,8 -----
+	X+ #ifndef lint
+	X+ static char * rcsid = "$Header: get_tcp_conn.c,v 1.3 91/02/10 13:47:16 sob Exp $";
+	X+ #endif
+	X+ #define USE_KEEPALIVES /* XXX should be in ../common/conf.h */
+	X+ 
+	X  /*
+	X  ** Routines to open a TCP connection
+	X  **
+	X***************
+	X*** 316,322
+	X  			(void) close(sock);	/* dump descriptor */
+	X  			errno = e_save;
+	X  		} else
+	X! 			return(sock);
+	X  	}
+	X  	return(FAIL);
+	X  }
+	X
+	X--- 321,338 -----
+	X  			(void) close(sock);	/* dump descriptor */
+	X  			errno = e_save;
+	X  		} else
+	X! 								    {
+	X! #ifdef USE_KEEPALIVES
+	X! 								      int on = 1;
+	X! 								      if (setsockopt(sock,SOL_SOCKET,SO_KEEPALIVE,(char *)&on,sizeof(on)) < 0)
+	X! 								       { int e_save;
+	X! 									 e_save = errno;
+	X! 									 fprintf(stderr,"%s: %s [%s]: setsockopt KEEPALIVE: %s\n",Pname,host,inet_ntoa(sadr.sin_addr),errmsg(errno));
+	X! 									 /* don't bother erroring out, just note it and ignore it */
+	X! 								       }
+	X! #endif
+	X! 								      return(sock);
+	X! 								    }
+	X  	}
+	X  	return(FAIL);
+	X  }
+	XIndex: nntpxmit.c
+	XPrereq: 1.3
+	X*** nntpxmit.c	Sun Jul  8 01:18:10 1990
+	X--- ../../nntp/xmit/nntpxmit.c	Fri Jan 25 20:56:17 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char * rcsid = "@(#)$Header: nntpxmit.c,v 1.3 90/07/08 01:17:56 sob Exp $";
+	X  #endif
+	X  /* nntpxmit - transmit netnews articles across the internet with nntp
+	X  **
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char * rcsid = "@(#)$Header: nntpxmit.c,v 1.6 91/01/25 20:55:53 sob Exp $";
+	X  #endif
+	X  /* nntpxmit - transmit netnews articles across the internet with nntp
+	X  **
+	X***************
+	X*** 60,65
+	X  ** nntpxmit only implements active send, for now.
+	X  **
+	X  ** Erik E. Fair <fair@ucbarpa.berkeley.edu>, Dec 4, 1987
+	X  */
+	X  
+	X  #include "../common/conf.h"
+	X
+	X--- 60,66 -----
+	X  ** nntpxmit only implements active send, for now.
+	X  **
+	X  ** Erik E. Fair <fair@ucbarpa.berkeley.edu>, Dec 4, 1987
+	X+ ** Stan Barber <sob@bcm.tmc.edu>, Jan 1, 1989
+	X  */
+	X  
+	X  #include "../common/conf.h"
+	X***************
+	X*** 89,95
+	X  #else
+	X  #include <syslog.h>
+	X  #endif
+	X! #endif	SYSLOG
+	X  #include "../common/nntp.h"
+	X  #include "llist.h"
+	X  
+	X
+	X--- 90,96 -----
+	X  #else
+	X  #include <syslog.h>
+	X  #endif
+	X! #endif	/* SYSLOG */
+	X  #include "../common/nntp.h"
+	X  #include "llist.h"
+	X  
+	X***************
+	X*** 94,100
+	X  #include "llist.h"
+	X  
+	X  #define	MAXFNAME	BUFSIZ	/* maximum filename size - big enough? */
+	X! #define	FCLOSE(fp)	(void) fclose(fp); (fp) = (FILE *)NULL
+	X  
+	X  FILE	*getfp();
+	X  char	*errmsg();
+	X
+	X--- 95,101 -----
+	X  #include "llist.h"
+	X  
+	X  #define	MAXFNAME	BUFSIZ	/* maximum filename size - big enough? */
+	X! #define	FCLOSE(fp)	if (fp) (void) fclose(fp); (fp) = (FILE *)NULL
+	X  
+	X  char	*getline();
+	X  char	*getmsgid();
+	X***************
+	X*** 96,102
+	X  #define	MAXFNAME	BUFSIZ	/* maximum filename size - big enough? */
+	X  #define	FCLOSE(fp)	(void) fclose(fp); (fp) = (FILE *)NULL
+	X  
+	X! FILE	*getfp();
+	X  char	*errmsg();
+	X  void	requeue();
+	X  SIGRET	catchsig();
+	X
+	X--- 97,104 -----
+	X  #define	MAXFNAME	BUFSIZ	/* maximum filename size - big enough? */
+	X  #define	FCLOSE(fp)	if (fp) (void) fclose(fp); (fp) = (FILE *)NULL
+	X  
+	X! char	*getline();
+	X! char	*getmsgid();
+	X  char	*errmsg();
+	X  void	requeue();
+	X  SIGRET	catchsig();
+	X***************
+	X*** 151,156
+	X  extern	char	*index();
+	X  extern	char	*mktemp();
+	X  extern	char	*strcpy();
+	X  
+	X  #ifdef	USG
+	X  void
+	X
+	X--- 153,159 -----
+	X  extern	char	*index();
+	X  extern	char	*mktemp();
+	X  extern	char	*strcpy();
+	X+ extern	char	*strcat();
+	X  
+	X  #ifdef	USG
+	X  void
+	X***************
+	X*** 160,166
+	X  {
+	X  	while(l-- > 0) *s++ = 0;
+	X  }
+	X! #endif	USG
+	X  
+	X  main(ac, av)
+	X  int	ac;
+	X
+	X--- 163,169 -----
+	X  {
+	X  	while(l-- > 0) *s++ = 0;
+	X  }
+	X! #endif	/* USG */
+	X  
+	X  main(ac, av)
+	X  int	ac;
+	X***************
+	X*** 192,199
+	X  	(void) openlog(Pname, LOG_PID);
+	X  #else
+	X  	(void) openlog(Pname, LOG_PID, SYSLOG);
+	X! #endif	BSD_42
+	X! #endif	SYSLOG
+	X  
+	X  	for(i = 1; i < ac; i++) {
+	X  		if (av[i][0] == '-') {
+	X
+	X--- 195,202 -----
+	X  	(void) openlog(Pname, LOG_PID);
+	X  #else
+	X  	(void) openlog(Pname, LOG_PID, SYSLOG);
+	X! #endif	/* BSD_42 */
+	X! #endif	/* SYSLOG */
+	X  
+	X  	for(i = 1; i < ac; i++) {
+	X  		if (av[i][0] == '-') {
+	X***************
+	X*** 304,310
+	X  		Host, Stats.offered, Stats.accepted, Stats.rejected,
+	X  		Stats.failed);
+	X  	log(L_INFO, buf);
+	X! 	sprintf(buf, "%s xmit user %.1f system %.1f elapsed %.1f",
+	X  		Host, (user - ouser), (sys - osys), (Tend - Tbegin));
+	X  	log(L_INFO, buf);
+	X  	/* reset reference point */
+	X
+	X--- 307,313 -----
+	X  		Host, Stats.offered, Stats.accepted, Stats.rejected,
+	X  		Stats.failed);
+	X  	log(L_INFO, buf);
+	X! 	sprintf(buf, "%s xmit user %.3f system %.3f elapsed %.3f",
+	X  		Host, (user - ouser), (sys - osys), (Tend - Tbegin));
+	X  	log(L_INFO, buf);
+	X  	/* reset reference point */
+	X***************
+	X*** 330,336
+	X  char	*host, *file;
+	X  int	transport, isQfile;
+	X  {
+	X- 	register FILE	*fp;
+	X  #ifdef	FTRUNCATE
+	X  	char	*mode = "r+";		/* so we can use ftruncate() */
+	X  #else
+	X
+	X--- 333,338 -----
+	X  char	*host, *file;
+	X  int	transport, isQfile;
+	X  {
+	X  #ifdef	FTRUNCATE
+	X  	char	*mode = "r+";		/* so we can use ftruncate() */
+	X  #else
+	X***************
+	X*** 335,341
+	X  	char	*mode = "r+";		/* so we can use ftruncate() */
+	X  #else
+	X  	char	*mode = "r";
+	X! #endif	FTRUNCATE
+	X  
+	X  	if ((Qfp = fopen(file, mode)) == (FILE *)NULL) {
+	X  		char	buf[BUFSIZ];
+	X
+	X--- 337,344 -----
+	X  	char	*mode = "r+";		/* so we can use ftruncate() */
+	X  #else
+	X  	char	*mode = "r";
+	X! #endif	/* FTRUNCATE */
+	X! 	char	*msgid;
+	X  
+	X  	if ((Qfp = fopen(file, mode)) == (FILE *)NULL) {
+	X  		char	buf[BUFSIZ];
+	X***************
+	X*** 376,385
+	X  		*/
+	X  		catchsig(interrupted);
+	X  
+	X! 		while((fp = getfp(Qfp, Article, sizeof(Article))) != (FILE *)NULL) {
+	X! 			if (!sendarticle(host, fp)) {
+	X! 				(void) fclose(fp);
+	X! 				requeue(Article);
+	X  				Article[0] = '\0';
+	X  				cleanup();
+	X  				goodbye(DONT_WAIT);
+	X
+	X--- 379,387 -----
+	X  		*/
+	X  		catchsig(interrupted);
+	X  
+	X! 		while ((msgid = getline(Qfp, Article, sizeof(Article))) != NULL) {
+	X! 			if (!sendarticle(host, Article, msgid)) {
+	X! 				requeue(Article, msgid);
+	X  				Article[0] = '\0';
+	X  				cleanup();
+	X  				goodbye(DONT_WAIT);
+	X***************
+	X*** 386,392
+	X  				restsig();
+	X  				return(TRUE);
+	X  			}
+	X- 			(void) fclose(fp);
+	X  		}
+	X  
+	X  		cleanup();
+	X
+	X--- 388,393 -----
+	X  				restsig();
+	X  				return(TRUE);
+	X  			}
+	X  		}
+	X  
+	X  		cleanup();
+	X***************
+	X*** 401,407
+	X  		*/
+	X  		register int	retcode;
+	X  
+	X- 		retcode = sendarticle(host, Qfp);
+	X  		FCLOSE(Qfp);
+	X  		goodbye(retcode ? WAIT : DONT_WAIT);
+	X  		return(retcode && Stats.accepted == 1 && Stats.failed == 0);
+	X
+	X--- 402,407 -----
+	X  		*/
+	X  		register int	retcode;
+	X  
+	X  		FCLOSE(Qfp);
+	X  		retcode = sendarticle(host, file, (char *) NULL);
+	X  		goodbye(retcode ? WAIT : DONT_WAIT);
+	X***************
+	X*** 403,408
+	X  
+	X  		retcode = sendarticle(host, Qfp);
+	X  		FCLOSE(Qfp);
+	X  		goodbye(retcode ? WAIT : DONT_WAIT);
+	X  		return(retcode && Stats.accepted == 1 && Stats.failed == 0);
+	X  	}
+	X
+	X--- 403,409 -----
+	X  		register int	retcode;
+	X  
+	X  		FCLOSE(Qfp);
+	X+ 		retcode = sendarticle(host, file, (char *) NULL);
+	X  		goodbye(retcode ? WAIT : DONT_WAIT);
+	X  		return(retcode && Stats.accepted == 1 && Stats.failed == 0);
+	X  	}
+	X***************
+	X*** 417,423
+	X  **	Watch all network I/O for errors, return FALSE if
+	X  **		the connection fails and we have to cleanup.
+	X  */
+	X! sendarticle(host, fp)
+	X  char	*host;
+	X  FILE	*fp;
+	X  {
+	X
+	X--- 418,424 -----
+	X  **	Watch all network I/O for errors, return FALSE if
+	X  **		the connection fails and we have to cleanup.
+	X  */
+	X! sendarticle(host, file, msgid)
+	X  char	*host;
+	X  char	*file;
+	X  char	*msgid;
+	X***************
+	X*** 419,425
+	X  */
+	X  sendarticle(host, fp)
+	X  char	*host;
+	X! FILE	*fp;
+	X  {
+	X  	register int	code;
+	X  	char	buf[BUFSIZ];
+	X
+	X--- 420,427 -----
+	X  */
+	X  sendarticle(host, file, msgid)
+	X  char	*host;
+	X! char	*file;
+	X! char	*msgid;
+	X  {
+	X  	register int	code;
+	X  	FILE	*fp = NULL;
+	X***************
+	X*** 422,427
+	X  FILE	*fp;
+	X  {
+	X  	register int	code;
+	X  	char	buf[BUFSIZ];
+	X  	char	*e_xfer = "%s xfer: %s";
+	X  
+	X
+	X--- 424,431 -----
+	X  char	*msgid;
+	X  {
+	X  	register int	code;
+	X+ 	FILE	*fp = NULL;
+	X+ 	int	error;
+	X  	char	buf[BUFSIZ];
+	X  	char	*e_xfer = "%s xfer: %s";
+	X  
+	X***************
+	X*** 425,431
+	X  	char	buf[BUFSIZ];
+	X  	char	*e_xfer = "%s xfer: %s";
+	X  
+	X! 	switch(code = ihave(fp)) {
+	X  	case CONT_XFER:
+	X  		/*
+	X  		** They want it. Give it to 'em.
+	X
+	X--- 429,442 -----
+	X  	char	buf[BUFSIZ];
+	X  	char	*e_xfer = "%s xfer: %s";
+	X  
+	X! 	errno = 0;
+	X! 	if (msgid == NULL || *msgid == '\0') {
+	X! 		if ((msgid = getmsgid(file, &fp)) == NULL) {
+	X! 			if (fp) { (void) fclose(fp); fp = NULL; }
+	X! 			return TRUE;
+	X! 		}
+	X! 	}
+	X! 	switch(code = ihave(msgid)) {
+	X  	case CONT_XFER:
+	X  		/*
+	X  		** They want it. Give it to 'em.
+	X***************
+	X*** 430,437
+	X  		/*
+	X  		** They want it. Give it to 'em.
+	X  		*/
+	X! 		if (!sendfile(fp)) {
+	X! 			sprintf(buf, e_xfer, host, errmsg(errno));
+	X  			log(L_NOTICE, buf);
+	X  			Stats.failed++;
+	X  			return(FALSE);
+	X
+	X--- 441,465 -----
+	X  		/*
+	X  		** They want it. Give it to 'em.
+	X  		*/
+	X! 		if (!fp) { fp = fopen(file, "r"); }
+	X! 		if (fp == NULL && errno != ENOENT) {
+	X! 			/* Worse than "No such file or directory"? */
+	X! 			sprintf(buf, E_fopen, file, "r", errmsg(errno));
+	X! 			log(L_WARNING, buf);
+	X! 			goodbye(DONT_WAIT);
+	X! 			exit(EX_OSERR);
+	X! 		}
+	X! 		if (fp == NULL) {
+	X! 			/* Hmph. The file didn't exist. */
+	X! 			error = sendcmd(".");
+	X! 		} else {
+	X! 			error = !sendfile(fp);
+	X! 			(void) fclose(fp);
+	X! 			fp = NULL;
+	X! 		}
+	X! 		if (error) {
+	X! 			sprintf(buf, "%s xfer: sendfile: %s",
+	X! 				host, errmsg(errno));
+	X  			log(L_NOTICE, buf);
+	X  			Stats.failed++;
+	X  			if (fp) { (void) fclose(fp); fp = NULL; }
+	X***************
+	X*** 434,439
+	X  			sprintf(buf, e_xfer, host, errmsg(errno));
+	X  			log(L_NOTICE, buf);
+	X  			Stats.failed++;
+	X  			return(FALSE);
+	X  		}
+	X  		/*
+	X
+	X--- 462,468 -----
+	X  				host, errmsg(errno));
+	X  			log(L_NOTICE, buf);
+	X  			Stats.failed++;
+	X+ 			if (fp) { (void) fclose(fp); fp = NULL; }
+	X  			return(FALSE);
+	X  		}
+	X  		/*
+	X***************
+	X*** 440,445
+	X  		** Did the article transfer OK?
+	X  		** Stay tuned to this same socket to find out!
+	X  		*/
+	X  		if ((code = readreply(buf, sizeof(buf))) != OK_XFERED) {
+	X  			Stats.failed++;
+	X  			if (code < 0) {
+	X
+	X--- 469,475 -----
+	X  		** Did the article transfer OK?
+	X  		** Stay tuned to this same socket to find out!
+	X  		*/
+	X+ 		errno = 0;
+	X  		if ((code = readreply(buf, sizeof(buf))) != OK_XFERED) {
+	X  			Stats.failed++;
+	X  			if (code < 0) {
+	X***************
+	X*** 451,456
+	X  
+	X  					sprintf(errbuf, e_xfer, host, buf);
+	X  					log(L_NOTICE, errbuf);
+	X  				}
+	X  				return(FALSE);
+	X  			}
+	X
+	X--- 481,487 -----
+	X  
+	X  					sprintf(errbuf, e_xfer, host, buf);
+	X  					log(L_NOTICE, errbuf);
+	X+ 				if (fp) { (void) fclose(fp); fp = NULL; }
+	X  				}
+	X  				return(FALSE);
+	X  			}
+	X***************
+	X*** 454,461
+	X  				}
+	X  				return(FALSE);
+	X  			}
+	X! 			if (ReQueue_Fails && code != ERR_XFERRJCT) {
+	X! 				requeue(Article);
+	X  				Article[0] = '\0';
+	X  			}
+	X  		}
+	X
+	X--- 485,492 -----
+	X  				}
+	X  				return(FALSE);
+	X  			}
+	X! 			if (ReQueue_Fails && code != ERR_XFERRJCT && fp != NULL) {
+	X! 				requeue(Article, msgid);
+	X  				Article[0] = '\0';
+	X  			}
+	X  		}
+	X***************
+	X*** 464,469
+	X  		/* they don't want it */
+	X  		break;
+	X  	case ERR_XFERFAIL:
+	X  		/* they can't do it right now, but maybe later */
+	X  		return(FALSE);
+	X  		break;
+	X
+	X--- 495,501 -----
+	X  		/* they don't want it */
+	X  		break;
+	X  	case ERR_XFERFAIL:
+	X+ 		if (fp) { (void) fclose(fp); fp = NULL; }
+	X  		/* they can't do it right now, but maybe later */
+	X  		return(FALSE);
+	X  		break;
+	X***************
+	X*** 479,484
+	X  		} else {
+	X  			sprintf(buf, "%s improper response to IHAVE: %d while offering %s", host, code, Article);
+	X  			log(L_WARNING, buf);
+	X  		}
+	X  		return(FALSE);
+	X  	}
+	X
+	X--- 511,517 -----
+	X  		} else {
+	X  			sprintf(buf, "%s improper response to IHAVE: %d while offering %s", host, code, Article);
+	X  			log(L_WARNING, buf);
+	X+ 			if (fp) { (void) fclose(fp); fp = NULL; }
+	X  		}
+	X  		return(FALSE);
+	X  	}
+	X***************
+	X*** 482,487
+	X  		}
+	X  		return(FALSE);
+	X  	}
+	X  	return(TRUE);
+	X  }
+	X  
+	X
+	X--- 515,521 -----
+	X  		}
+	X  		return(FALSE);
+	X  	}
+	X+ 	if (fp) { (void) fclose(fp); fp = NULL; }
+	X  	return(TRUE);
+	X  }
+	X  
+	X***************
+	X*** 549,556
+	X  ** Get the message-id header field data with a minimum of fuss.
+	X  */
+	X  char *
+	X! getmsgid(fp)
+	X! FILE *fp;
+	X  {
+	X  	static	char	buf[BUFSIZ];
+	X  	static	char	*msgid = "message-id";
+	X
+	X--- 583,591 -----
+	X  ** Get the message-id header field data with a minimum of fuss.
+	X  */
+	X  char *
+	X! getmsgid(file, fpp)
+	X! char *file;
+	X! FILE **fpp;
+	X  {
+	X  	static	char	buf[BUFSIZ];
+	X  	static	char	msgid[] = "message-id";
+	X***************
+	X*** 553,559
+	X  FILE *fp;
+	X  {
+	X  	static	char	buf[BUFSIZ];
+	X! 	static	char	*msgid = "message-id";
+	X  	register char	*cp, *cp2;
+	X  
+	X  	while(fgets(buf, sizeof(buf), fp) != (char *)NULL) {
+	X
+	X--- 588,594 -----
+	X  FILE **fpp;
+	X  {
+	X  	static	char	buf[BUFSIZ];
+	X! 	static	char	msgid[] = "message-id";
+	X  	register char	*cp, *cp2;
+	X  
+	X  	*fpp = fopen(file, "r");
+	X***************
+	X*** 556,562
+	X  	static	char	*msgid = "message-id";
+	X  	register char	*cp, *cp2;
+	X  
+	X! 	while(fgets(buf, sizeof(buf), fp) != (char *)NULL) {
+	X  		switch(buf[0]) {
+	X  		case '\n':
+	X  			return((char *)NULL);	/* EOH, we failed */
+	X
+	X--- 591,600 -----
+	X  	static	char	msgid[] = "message-id";
+	X  	register char	*cp, *cp2;
+	X  
+	X! 	*fpp = fopen(file, "r");
+	X! 	if (*fpp == NULL) return NULL;
+	X! 
+	X! 	while(fgets(buf, sizeof(buf), *fpp) != NULL) {
+	X  		switch(buf[0]) {
+	X  		case '\n':
+	X  			(void) fclose(*fpp);
+	X***************
+	X*** 559,565
+	X  	while(fgets(buf, sizeof(buf), fp) != (char *)NULL) {
+	X  		switch(buf[0]) {
+	X  		case '\n':
+	X! 			return((char *)NULL);	/* EOH, we failed */
+	X  		case 'M':
+	X  		case 'm':
+	X  			if ((cp = index(buf, ':')) == (char *)NULL)
+	X
+	X--- 597,605 -----
+	X  	while(fgets(buf, sizeof(buf), *fpp) != NULL) {
+	X  		switch(buf[0]) {
+	X  		case '\n':
+	X! 			(void) fclose(*fpp);
+	X! 			*fpp = NULL;
+	X! 			return NULL;	/* EOH, we failed */
+	X  		case 'M':
+	X  		case 'm':
+	X  			cp = index(buf, ':');
+	X***************
+	X*** 562,569
+	X  			return((char *)NULL);	/* EOH, we failed */
+	X  		case 'M':
+	X  		case 'm':
+	X! 			if ((cp = index(buf, ':')) == (char *)NULL)
+	X! 				continue;
+	X  			*cp++ = '\0';
+	X  			if (strncmp(lcase(buf), msgid, sizeof(*msgid)) == 0) {
+	X  				/* dump extraneous trash - umass.bitnet */
+	X
+	X--- 602,609 -----
+	X  			return NULL;	/* EOH, we failed */
+	X  		case 'M':
+	X  		case 'm':
+	X! 			cp = index(buf, ':');
+	X! 			if (cp == NULL) continue;
+	X  			*cp++ = '\0';
+	X  			if (strncmp(lcase(buf), msgid, strlen(msgid)) == 0) {
+	X  				/* dump extraneous trash - umass.bitnet */
+	X***************
+	X*** 565,571
+	X  			if ((cp = index(buf, ':')) == (char *)NULL)
+	X  				continue;
+	X  			*cp++ = '\0';
+	X! 			if (strncmp(lcase(buf), msgid, sizeof(*msgid)) == 0) {
+	X  				/* dump extraneous trash - umass.bitnet */
+	X  				/* hope nobody quotes an '>' in a msgid */
+	X  				if ((cp2 = index(cp, '>')) != (char *)NULL)
+	X
+	X--- 605,611 -----
+	X  			cp = index(buf, ':');
+	X  			if (cp == NULL) continue;
+	X  			*cp++ = '\0';
+	X! 			if (strncmp(lcase(buf), msgid, strlen(msgid)) == 0) {
+	X  				/* dump extraneous trash - umass.bitnet */
+	X  				/* hope nobody quotes an '>' in a msgid */
+	X  				cp2 = index(cp, '>');
+	X***************
+	X*** 568,575
+	X  			if (strncmp(lcase(buf), msgid, sizeof(*msgid)) == 0) {
+	X  				/* dump extraneous trash - umass.bitnet */
+	X  				/* hope nobody quotes an '>' in a msgid */
+	X! 				if ((cp2 = index(cp, '>')) != (char *)NULL)
+	X! 					*++cp2 = '\0';
+	X  				return(sp_strip(cp));
+	X  			}
+	X  			break;
+	X
+	X--- 608,616 -----
+	X  			if (strncmp(lcase(buf), msgid, strlen(msgid)) == 0) {
+	X  				/* dump extraneous trash - umass.bitnet */
+	X  				/* hope nobody quotes an '>' in a msgid */
+	X! 				cp2 = index(cp, '>');
+	X! 				if (cp2 != NULL) *++cp2 = '\0';
+	X! 				(void) rewind(*fpp);
+	X  				return(sp_strip(cp));
+	X  			}
+	X  			break;
+	X***************
+	X*** 575,581
+	X  			break;
+	X  		}
+	X  	}
+	X! 	return((char *)NULL);	/* EOF, we failed */
+	X  }
+	X  
+	X  #ifdef	notdef	/* nobody obeys the triply damned protocol anyway! */
+	X
+	X--- 616,624 -----
+	X  			break;
+	X  		}
+	X  	}
+	X! 	(void) fclose(*fpp);
+	X! 	*fpp = NULL;
+	X! 	return NULL;	/* EOF, failed. */
+	X  }
+	X  
+	X  #ifdef	notdef	/* nobody obeys the triply damned protocol anyway! */
+	X***************
+	X*** 715,721
+	X  	}
+	X  	return(FALSE);
+	X  }
+	X! #endif	notdef
+	X  
+	X  /*
+	X  ** Read the header of a netnews article, snatch the message-id therefrom,
+	X
+	X--- 758,764 -----
+	X  	}
+	X  	return(FALSE);
+	X  }
+	X! #endif	/* notdef */
+	X  
+	X  /*
+	X  ** Read the header of a netnews article, snatch the message-id therefrom,
+	X***************
+	X*** 721,728
+	X  ** Read the header of a netnews article, snatch the message-id therefrom,
+	X  ** and ask the remote if they have that one already.
+	X  */
+	X! ihave(fp)
+	X! FILE	*fp;
+	X  {
+	X  	register int	code;
+	X  	register char	*id;
+	X
+	X--- 764,771 -----
+	X  ** Read the header of a netnews article, snatch the message-id therefrom,
+	X  ** and ask the remote if they have that one already.
+	X  */
+	X! ihave(id)
+	X! char	*id;
+	X  {
+	X  	register int	code;
+	X  	char	buf[BUFSIZ];
+	X***************
+	X*** 725,731
+	X  FILE	*fp;
+	X  {
+	X  	register int	code;
+	X- 	register char	*id;
+	X  	char	buf[BUFSIZ];
+	X  
+	X  	if ((id = getmsgid(fp)) == (char *)NULL || *id == '\0') {
+	X
+	X--- 768,773 -----
+	X  char	*id;
+	X  {
+	X  	register int	code;
+	X  	char	buf[BUFSIZ];
+	X  
+	X  	if (id == NULL || *id == '\0') {
+	X***************
+	X*** 728,734
+	X  	register char	*id;
+	X  	char	buf[BUFSIZ];
+	X  
+	X! 	if ((id = getmsgid(fp)) == (char *)NULL || *id == '\0') {
+	X  		/*
+	X  		** something botched locally with the article
+	X  		** so we don't send it, but we don't break off
+	X
+	X--- 770,776 -----
+	X  	register int	code;
+	X  	char	buf[BUFSIZ];
+	X  
+	X! 	if (id == NULL || *id == '\0') {
+	X  		/*
+	X  		** something botched locally with the article
+	X  		** so we don't send it, but we don't break off
+	X***************
+	X*** 752,758
+	X  	switch(code = converse(buf, sizeof(buf))) {
+	X  	case CONT_XFER:
+	X  		Stats.accepted++;
+	X- 		rewind(fp);
+	X  		return(code);
+	X  	case ERR_GOTIT:
+	X  		Stats.rejected++;
+	X
+	X--- 794,799 -----
+	X  	switch(code = converse(buf, sizeof(buf))) {
+	X  	case CONT_XFER:
+	X  		Stats.accepted++;
+	X  		return(code);
+	X  	case ERR_GOTIT:
+	X  		Stats.rejected++;
+	X***************
+	X*** 768,778
+	X  }
+	X  
+	X  /*
+	X! ** Given that fp points to an open file containing filenames,
+	X! ** open and return a file pointer to the next filename in the file.
+	X! ** Don't you love indirection?
+	X! **
+	X! ** Returns a valid FILE pointer or NULL if end of file.
+	X  */
+	X  FILE *
+	X  getfp(fp, filename, fnlen)
+	X
+	X--- 809,819 -----
+	X  }
+	X  
+	X  /*
+	X! ** Read the next line from fp into line,
+	X! ** break it apart into filename and message-id,
+	X! ** and return a pointer to the message-id.
+	X! ** Returns "" if no message-id.
+	X! ** Returns NULL at end of file.
+	X  */
+	X  char *
+	X  getline(fp, line, len)
+	X***************
+	X*** 774,784
+	X  **
+	X  ** Returns a valid FILE pointer or NULL if end of file.
+	X  */
+	X! FILE *
+	X! getfp(fp, filename, fnlen)
+	X! register FILE	*fp;
+	X! char	*filename;
+	X! register int	fnlen;
+	X  {
+	X  	register FILE	*newfp = (FILE *)NULL;
+	X  	register char	*cp;
+	X
+	X--- 815,825 -----
+	X  ** Returns "" if no message-id.
+	X  ** Returns NULL at end of file.
+	X  */
+	X! char *
+	X! getline(fp, line, len)
+	X! FILE	*fp;
+	X! char	*line;
+	X! int	len;
+	X  {
+	X  	register char	*cp;
+	X  
+	X***************
+	X*** 780,786
+	X  char	*filename;
+	X  register int	fnlen;
+	X  {
+	X- 	register FILE	*newfp = (FILE *)NULL;
+	X  	register char	*cp;
+	X  	char	*mode = "r";
+	X  
+	X
+	X--- 821,826 -----
+	X  char	*line;
+	X  int	len;
+	X  {
+	X  	register char	*cp;
+	X  
+	X  	do {
+	X***************
+	X*** 782,788
+	X  {
+	X  	register FILE	*newfp = (FILE *)NULL;
+	X  	register char	*cp;
+	X- 	char	*mode = "r";
+	X  
+	X  	while(newfp == (FILE *)NULL) {
+	X  		if (fgets(filename, fnlen, fp) == (char *)NULL)
+	X
+	X--- 822,827 -----
+	X  int	len;
+	X  {
+	X  	register char	*cp;
+	X  
+	X  	do {
+	X  		if (fgets(line, len, fp) == NULL) return NULL;
+	X***************
+	X*** 784,792
+	X  	register char	*cp;
+	X  	char	*mode = "r";
+	X  
+	X! 	while(newfp == (FILE *)NULL) {
+	X! 		if (fgets(filename, fnlen, fp) == (char *)NULL)
+	X! 			return((FILE *)NULL);		/* EOF, tell caller */
+	X  
+	X  		filename[fnlen - 1] = '\0';	/* make sure */
+	X  
+	X
+	X--- 823,831 -----
+	X  {
+	X  	register char	*cp;
+	X  
+	X! 	do {
+	X! 		if (fgets(line, len, fp) == NULL) return NULL;
+	X! 		line[len - 1] = '\0';
+	X  
+	X  		cp = index(line, '\n');
+	X  		if (cp != NULL) *cp = '\0';
+	X***************
+	X*** 788,794
+	X  		if (fgets(filename, fnlen, fp) == (char *)NULL)
+	X  			return((FILE *)NULL);		/* EOF, tell caller */
+	X  
+	X! 		filename[fnlen - 1] = '\0';	/* make sure */
+	X  
+	X  		/* if fgets() ever forgets the '\n', we're fucked */
+	X  		if (*(cp = &filename[strlen(filename) - 1]) == '\n')
+	X
+	X--- 827,835 -----
+	X  		if (fgets(line, len, fp) == NULL) return NULL;
+	X  		line[len - 1] = '\0';
+	X  
+	X! 		cp = index(line, '\n');
+	X! 		if (cp != NULL) *cp = '\0';
+	X! 	} while (line[0] == '\0');
+	X  
+	X  	cp = &line[0];
+	X  	while (*cp != '\0' && !isspace(*cp)) ++cp;
+	X***************
+	X*** 790,818
+	X  
+	X  		filename[fnlen - 1] = '\0';	/* make sure */
+	X  
+	X! 		/* if fgets() ever forgets the '\n', we're fucked */
+	X! 		if (*(cp = &filename[strlen(filename) - 1]) == '\n')
+	X! 			*cp = '\0';
+	X! 
+	X! 		if (filename[0] == '\0')
+	X! 			continue;
+	X! 
+	X! 		if ((newfp = fopen(filename, mode)) == (FILE *)NULL) {
+	X! 			/*
+	X! 			** The only permissible error is `file non-existant'
+	X! 			** anything else indicates something is seriously
+	X! 			** wrong, and we should go away to let the shell
+	X! 			** script clean up.
+	X! 			*/
+	X! 			if (errno != ENOENT) {
+	X! 				char	buf[BUFSIZ];
+	X! 
+	X! 				sprintf(buf, E_fopen, filename, mode, errmsg(errno));
+	X! 				log(L_WARNING, buf);
+	X! 				goodbye(DONT_WAIT);
+	X! 				exit(EX_OSERR);
+	X! 			}
+	X! 		}
+	X  	}
+	X  	return(newfp);
+	X  }
+	X
+	X--- 831,842 -----
+	X  		if (cp != NULL) *cp = '\0';
+	X  	} while (line[0] == '\0');
+	X  
+	X! 	cp = &line[0];
+	X! 	while (*cp != '\0' && !isspace(*cp)) ++cp;
+	X! 	if (*cp != '\0') {
+	X! 		*cp++ = '\0';
+	X! 		while (*cp != '\0' && isspace(*cp)) ++cp;
+	X! 		/* cp now points to the message-id, if any. */
+	X  	}
+	X  	return cp;
+	X  }
+	X***************
+	X*** 814,820
+	X  			}
+	X  		}
+	X  	}
+	X! 	return(newfp);
+	X  }
+	X  
+	X  /*
+	X
+	X--- 838,844 -----
+	X  		while (*cp != '\0' && isspace(*cp)) ++cp;
+	X  		/* cp now points to the message-id, if any. */
+	X  	}
+	X! 	return cp;
+	X  }
+	X  
+	X  /*
+	X***************
+	X*** 833,839
+	X  		** Nothing to clean up after, reset stuff and
+	X  		** nuke the queue file.
+	X  		*/
+	X! 		requeue((char *)NULL);
+	X  		if (feof(Qfp)) {
+	X  			dprintf(stderr, "%s: unlink(%s)\n", Pname, Qfile);
+	X  			if (unlink(Qfile) < 0) {
+	X
+	X--- 857,863 -----
+	X  		** Nothing to clean up after, reset stuff and
+	X  		** nuke the queue file.
+	X  		*/
+	X! 		requeue((char *)NULL, (char *)NULL);
+	X  		if (feof(Qfp)) {
+	X  			dprintf(stderr, "%s: unlink(%s)\n", Pname, Qfile);
+	X  			if (unlink(Qfile) < 0) {
+	X***************
+	X*** 853,859
+	X  ** Calling this with a NULL pointer resets the internal pointer.
+	X  */
+	X  void
+	X! requeue(article)
+	X  char *article;
+	X  {
+	X  	static ll_t *lp = &FailedArticles;
+	X
+	X--- 877,884 -----
+	X  ** Calling this with a NULL pointer resets the internal pointer.
+	X  */
+	X  void
+	X! requeue(article, msgid)
+	X! char *msgid;
+	X  char *article;
+	X  {
+	X  	char buf[BUFSIZ];
+	X***************
+	X*** 856,861
+	X  requeue(article)
+	X  char *article;
+	X  {
+	X  	static ll_t *lp = &FailedArticles;
+	X  
+	X  	if (article == (char *)NULL) {
+	X
+	X--- 881,887 -----
+	X  char *msgid;
+	X  char *article;
+	X  {
+	X+ 	char buf[BUFSIZ];
+	X  	static ll_t *lp = &FailedArticles;
+	X  
+	X  	if (article == (char *)NULL) {
+	X***************
+	X*** 866,873
+	X  	if (*article == '\0')
+	X  		return;
+	X  
+	X! 	dprintf(stderr, "%s: requeue(%s)\n", Pname, article);
+	X! 	if ((lp = l_alloc(lp, article, strlen(article) + 1)) == (ll_t *)NULL) {
+	X  		fprintf(stderr, "%s: requeue(%s) failed, dumping fail list\n",
+	X  			Pname, article);
+	X  		/*
+	X
+	X--- 892,904 -----
+	X  	if (*article == '\0')
+	X  		return;
+	X  
+	X! 	(void) strcpy(buf, article);
+	X! 	if (msgid != NULL && *msgid != '\0') {
+	X! 		(void) strcat(strcat(buf, " "), msgid);
+	X! 	}
+	X! 
+	X! 	dprintf(stderr, "%s: requeue(%s)\n", Pname, buf);
+	X! 	if ((lp = l_alloc(lp, buf, strlen(buf) + 1)) == (ll_t *)NULL) {
+	X  		fprintf(stderr, "%s: requeue(%s) failed, dumping fail list\n",
+	X  			Pname, buf);
+	X  		/*
+	X***************
+	X*** 869,875
+	X  	dprintf(stderr, "%s: requeue(%s)\n", Pname, article);
+	X  	if ((lp = l_alloc(lp, article, strlen(article) + 1)) == (ll_t *)NULL) {
+	X  		fprintf(stderr, "%s: requeue(%s) failed, dumping fail list\n",
+	X! 			Pname, article);
+	X  		/*
+	X  		** Wow! Did you know that this could blow the stack
+	X  		** if we recurse too deeply? I sure didn't!
+	X
+	X--- 900,906 -----
+	X  	dprintf(stderr, "%s: requeue(%s)\n", Pname, buf);
+	X  	if ((lp = l_alloc(lp, buf, strlen(buf) + 1)) == (ll_t *)NULL) {
+	X  		fprintf(stderr, "%s: requeue(%s) failed, dumping fail list\n",
+	X! 			Pname, buf);
+	X  		/*
+	X  		** Wow! Did you know that this could blow the stack
+	X  		** if we recurse too deeply? I sure didn't!
+	X***************
+	X*** 891,897
+	X  	register FILE	*tmpfp;
+	X  	register int	nart = 0;
+	X  	char	*mode = "w+";
+	X! 	char	*template = "/tmp/nntpxmitXXXXXX";
+	X  	char	buf[BUFSIZ];
+	X  	static char	*tempfile = (char *)NULL;
+	X  
+	X
+	X--- 922,928 -----
+	X  	register FILE	*tmpfp;
+	X  	register int	nart = 0;
+	X  	char	*mode = "w+";
+	X! 	static char template[] = "/tmp/nntpxmitXXXXXX";
+	X  	char	buf[BUFSIZ];
+	X  	static char	*tempfile = (char *)NULL;
+	X  
+	X***************
+	X*** 897,903
+	X  
+	X  	dprintf(stderr, "%s: rewrite(%s)\n", Pname, Qfile);
+	X  
+	X! 	if (tempfile == (char *)NULL)		/* should only need this once */
+	X  		tempfile = mktemp(template);
+	X  
+	X  	if ((tmpfp = fopen(tempfile, mode)) == (FILE *)NULL) {
+	X
+	X--- 928,934 -----
+	X  
+	X  	dprintf(stderr, "%s: rewrite(%s)\n", Pname, Qfile);
+	X  
+	X! 	if (tempfile == (char *)NULL)	/* should only need this once */
+	X  		tempfile = mktemp(template);
+	X  
+	X  	if ((tmpfp = fopen(tempfile, mode)) == (FILE *)NULL) {
+	X***************
+	X*** 946,952
+	X  			sprintf(buf, E_unlk, tempfile, errmsg(errno));
+	X  			log(L_WARNING, buf);
+	X  		}
+	X! 		requeue((char *)NULL);		/* reset */
+	X  		return;
+	X  	}
+	X  
+	X
+	X--- 977,983 -----
+	X  			sprintf(buf, E_unlk, tempfile, errmsg(errno));
+	X  			log(L_WARNING, buf);
+	X  		}
+	X! 		requeue((char *)NULL,(char *)NULL);	/* reset */
+	X  		return;
+	X  	}
+	X  
+	X***************
+	X*** 962,968
+	X  			sprintf(buf, E_unlk, tempfile, errmsg(errno));
+	X  			log(L_WARNING, buf);
+	X  		}
+	X! 		requeue((char *)NULL);		/* reset */
+	X  		return;
+	X  	}
+	X  #else
+	X
+	X--- 993,999 -----
+	X  			sprintf(buf, E_unlk, tempfile, errmsg(errno));
+	X  			log(L_WARNING, buf);
+	X  		}
+	X! 		requeue((char *)NULL,(char *)NULL);	/* reset */
+	X  		return;
+	X  	}
+	X  #else
+	X***************
+	X*** 975,981
+	X  			sprintf(buf, E_unlk, tempfile, errmsg(errno));
+	X  			log(L_WARNING, buf);
+	X  		}
+	X! 		requeue((char *)NULL);		/* reset */
+	X  		return;
+	X  	}
+	X  	/* Try to get our lock back (but continue whether we do or not) */
+	X
+	X--- 1006,1012 -----
+	X  			sprintf(buf, E_unlk, tempfile, errmsg(errno));
+	X  			log(L_WARNING, buf);
+	X  		}
+	X! 		requeue((char *)NULL,(char *)NULL);	/* reset */
+	X  		return;
+	X  	}
+	X  	/* Try to get our lock back (but continue whether we do or not) */
+	X***************
+	X*** 980,986
+	X  	}
+	X  	/* Try to get our lock back (but continue whether we do or not) */
+	X  	(void) lockfd(fileno(Qfp), Qfile, DONT_BLOCK);
+	X! #endif	FTRUNCATE
+	X  
+	X  	dprintf(stderr, "%s: copying %s back to %s\n", Pname, tempfile, Qfile);
+	X  	while(fgets(buf, sizeof(buf), tmpfp) != (char *)NULL)
+	X
+	X--- 1011,1017 -----
+	X  	}
+	X  	/* Try to get our lock back (but continue whether we do or not) */
+	X  	(void) lockfd(fileno(Qfp), Qfile, DONT_BLOCK);
+	X! #endif	/* FTRUNCATE */
+	X  
+	X  	dprintf(stderr, "%s: copying %s back to %s\n", Pname, tempfile, Qfile);
+	X  	while(fgets(buf, sizeof(buf), tmpfp) != (char *)NULL)
+	X***************
+	X*** 997,1003
+	X  		sprintf(buf, E_unlk, tempfile, errmsg(errno));
+	X  		log(L_WARNING, buf);
+	X  	}
+	X! 	requeue((char *)NULL);		/* reset */
+	X  	dprintf(stderr, "%s: rewrite(%s): done\n", Pname, Qfile);
+	X  	return;
+	X  }
+	X
+	X--- 1028,1034 -----
+	X  		sprintf(buf, E_unlk, tempfile, errmsg(errno));
+	X  		log(L_WARNING, buf);
+	X  	}
+	X! 	requeue((char *)NULL,(char *)NULL);		/* reset */
+	X  	dprintf(stderr, "%s: rewrite(%s): done\n", Pname, Qfile);
+	X  	return;
+	X  }
+	X***************
+	X*** 1015,1021
+	X  
+	X  #ifndef RELSIG
+	X  	catchsig(SIG_IGN);	/* for System V - hope we're quick enough */
+	X! #endif	RELSIG
+	X  	sprintf(buf, "%s signal %d", Host, sig);
+	X  	log(L_NOTICE, buf);
+	X  	requeue(Article);
+	X
+	X--- 1046,1052 -----
+	X  
+	X  #ifndef RELSIG
+	X  	catchsig(SIG_IGN);	/* for System V - hope we're quick enough */
+	X! #endif	/* RELSIG */
+	X  	sprintf(buf, "%s signal %d", Host, sig);
+	X  	log(L_NOTICE, buf);
+	X  	requeue(Article,(char *)NULL);
+	X***************
+	X*** 1018,1024
+	X  #endif	RELSIG
+	X  	sprintf(buf, "%s signal %d", Host, sig);
+	X  	log(L_NOTICE, buf);
+	X! 	requeue(Article);
+	X  	cleanup();
+	X  	if (Report_Stats)
+	X  		logstats();
+	X
+	X--- 1049,1055 -----
+	X  #endif	/* RELSIG */
+	X  	sprintf(buf, "%s signal %d", Host, sig);
+	X  	log(L_NOTICE, buf);
+	X! 	requeue(Article,(char *)NULL);
+	X  	cleanup();
+	X  	if (Report_Stats)
+	X  		logstats();
+	X***************
+	X*** 1073,1078
+	X  int	importance;
+	X  char	*error;
+	X  {
+	X  	FILE	*report = (importance == L_INFO ? stdout : stderr);
+	X  	fprintf(report, "%s: %s\n", Pname, error);
+	X  #ifdef	SYSLOG
+	X
+	X--- 1104,1110 -----
+	X  int	importance;
+	X  char	*error;
+	X  {
+	X+ 	int skip = FALSE;
+	X  	FILE	*report = (importance == L_INFO ? stdout : stderr);
+	X  	fprintf(report, "%s: %s\n", Pname, error);
+	X  #ifdef	SYSLOG 
+	X***************
+	X*** 1075,1081
+	X  {
+	X  	FILE	*report = (importance == L_INFO ? stdout : stderr);
+	X  	fprintf(report, "%s: %s\n", Pname, error);
+	X! #ifdef	SYSLOG
+	X  	switch(importance) {
+	X  #ifdef LOG
+	X  	case L_DEBUG:	importance = LOG_DEBUG;		break;
+	X
+	X--- 1107,1113 -----
+	X  	int skip = FALSE;
+	X  	FILE	*report = (importance == L_INFO ? stdout : stderr);
+	X  	fprintf(report, "%s: %s\n", Pname, error);
+	X! #ifdef	SYSLOG 
+	X  	switch(importance) {
+	X  #ifdef LOG
+	X  	case L_DEBUG:	importance = LOG_DEBUG;		break;
+	X***************
+	X*** 1079,1084
+	X  	switch(importance) {
+	X  #ifdef LOG
+	X  	case L_DEBUG:	importance = LOG_DEBUG;		break;
+	X  #endif
+	X  	case L_INFO:	importance = LOG_INFO;		break;
+	X  	case L_NOTICE:	importance = LOG_NOTICE;	break;
+	X
+	X--- 1111,1118 -----
+	X  	switch(importance) {
+	X  #ifdef LOG
+	X  	case L_DEBUG:	importance = LOG_DEBUG;		break;
+	X+ #else
+	X+ 	case L_DEBUG:	skip = TRUE;			break;
+	X  #endif
+	X  	case L_INFO:	importance = LOG_INFO;		break;
+	X  	case L_NOTICE:	importance = LOG_NOTICE;	break;
+	X***************
+	X*** 1085,1092
+	X  	case L_WARNING:	importance = LOG_WARNING;	break;
+	X  	default:	importance = LOG_DEBUG;		break;
+	X  	}
+	X! 	syslog(importance, error);
+	X! #endif	SYSLOG
+	X  }
+	X  
+	X  /*
+	X
+	X--- 1119,1126 -----
+	X  	case L_WARNING:	importance = LOG_WARNING;	break;
+	X  	default:	importance = LOG_DEBUG;		break;
+	X  	}
+	X! 	if (skip == FALSE) syslog(importance, error);
+	X! #endif	/* SYSLOG */
+	X  }
+	X  
+	X  /*
+	X***************
+	X*** 1109,1115
+	X  		}
+	X  		return(FALSE);
+	X  	}
+	X! #endif	F_TLOCK
+	X  #else
+	X  #ifdef	LOCK_EX
+	X  	if (flock(fd, LOCK_EX|(non_blocking ? LOCK_NB : 0)) < 0) {
+	X
+	X--- 1143,1149 -----
+	X  		}
+	X  		return(FALSE);
+	X  	}
+	X! #endif	/* F_TLOCK */
+	X  #else
+	X  #ifdef	LOCK_EX
+	X  	if (flock(fd, LOCK_EX|(non_blocking ? LOCK_NB : 0)) < 0) {
+	X***************
+	X*** 1119,1125
+	X  		}
+	X  		return(FALSE);
+	X  	}
+	X! #endif	LOCK_EX
+	X! #endif	USG
+	X  	return(TRUE);
+	X  }
+	X
+	X--- 1153,1159 -----
+	X  		}
+	X  		return(FALSE);
+	X  	}
+	X! #endif	/* LOCK_EX */
+	X! #endif	/* USG */
+	X  	return(TRUE);
+	X  }
+	XIndex: nntpxmit.h
+	X*** nntpxmit.h	Fri Aug 10 22:56:08 1990
+	X--- ../../nntp/xmit/nntpxmit.h	Mon Feb  4 02:34:48 1991
+	X***************
+	X*** 11,21
+	X  #include <sys/stat.h>
+	X  #endif MMAP
+	X  
+	X- #ifdef SIGRET
+	X- #undef SIGRET
+	X- #endif
+	X- #define SIGRET void	/* Newfangled signal() returns void, old returns int */
+	X- 
+	X  typedef	SIGRET	(*ifunp)();	/* pointer to function that returns */
+	X  				/* whatever signal() returns */
+	X  
+	X
+	X--- 11,16 -----
+	X  #include <sys/stat.h>
+	X  #endif MMAP
+	X  
+	X  typedef	SIGRET	(*ifunp)();	/* pointer to function that returns */
+	X  				/* whatever signal() returns */
+	X  
+	XIndex: remote.c
+	XPrereq: 1.2
+	X*** remote.c	Fri Aug 10 22:56:22 1990
+	X--- ../../nntp/xmit/remote.c	Fri Feb  8 18:32:18 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char * rcsid = "@(#)$Header: remote.c,v 1.2 90/08/10 22:56:12 sob Exp $";
+	X  #endif
+	X  /*
+	X  ** remote communication routines for NNTP/SMTP style communication.
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char * rcsid = "@(#)$Header: remote.c,v 1.5 91/02/08 18:32:11 sob Exp $";
+	X  #endif
+	X  /*
+	X  ** remote communication routines for NNTP/SMTP style communication.
+	X***************
+	X*** 298,304
+	X  	rmt_rd = (FILE *)NULL;
+	X  	(void) fclose(rmt_wr);
+	X  	rmt_wr = (FILE *)NULL;
+	X! 	if (pstate != (ifunp)(-1));
+	X  		(void) signal(SIGPIPE, pstate);
+	X  }
+	X  
+	X
+	X--- 298,304 -----
+	X  	rmt_rd = (FILE *)NULL;
+	X  	(void) fclose(rmt_wr);
+	X  	rmt_wr = (FILE *)NULL;
+	X! 	if (pstate != (ifunp)(-1))
+	X  		(void) signal(SIGPIPE, pstate);
+	X  }
+	X  
+	X***************
+	X*** 335,341
+	X  		fp->_flag |= _IOERR;		/* set stdio error */
+	X  #endif
+	X  #ifndef ETIMEDOUT
+	X! 		errno = EPIPE;			/* USG doesn't have ETIMEDOUT */
+	X  #else
+	X  		errno = ETIMEDOUT;		/* connection timed out */
+	X  #endif
+	X
+	X--- 335,341 -----
+	X  		fp->_flag |= _IOERR;		/* set stdio error */
+	X  #endif
+	X  #ifndef ETIMEDOUT
+	X! 		errno = EPIPE;			/* USG doesn't have ETIMEDOUT*/
+	X  #else
+	X  		errno = ETIMEDOUT;		/* connection timed out */
+	X  #endif
+	X***************
+	X*** 446,451
+	X  	while((c = fgetc(fp)) != EOF && !feof(fp)) {
+	X  #endif !MMAP
+	X  		switch(c) {
+	X  		case '\n':
+	X  			PUTC('\r');		/* \n -> \r\n */
+	X  			PUTC(c);
+	X
+	X--- 446,453 -----
+	X  	while((c = fgetc(fp)) != EOF && !feof(fp)) {
+	X  #endif !MMAP
+	X  		switch(c) {
+	X+ 		case '\177':			/* skip deletes... */
+	X+ 			break;
+	X  		case '\n':
+	X  			PUTC('\r');		/* \n -> \r\n */
+	X  			PUTC(c);
+	XIndex: shlock.c
+	XPrereq: 1.2
+	X*** shlock.c	Wed Jul  4 20:01:52 1990
+	X--- ../../nntp/xmit/shlock.c	Sat Jan 12 01:04:42 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char * rcsid = "@(#)$Header: shlock.c,v 1.2 90/01/15 01:37:33 sob Exp $";
+	X  #endif
+	X  /*
+	X  ** Program to produce reliable locks for shell scripts.
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char * rcsid = "@(#)$Header: shlock.c,v 1.3 91/01/12 01:04:24 sob Exp $";
+	X  #endif
+	X  /*
+	X  ** Program to produce reliable locks for shell scripts.
+	X***************
+	X*** 33,38
+	X  #include <fcntl.h>			/* Needed on hpux */
+	X  #include <sys/file.h>
+	X  #include <errno.h>
+	X  #include "../common/conf.h"
+	X  
+	X  #define	LOCK_SET	0
+	X
+	X--- 33,39 -----
+	X  #include <fcntl.h>			/* Needed on hpux */
+	X  #include <sys/file.h>
+	X  #include <errno.h>
+	X+ #ifdef NNTPSRC
+	X  #include "../common/conf.h"
+	X  #endif
+	X  
+	X***************
+	X*** 34,39
+	X  #include <sys/file.h>
+	X  #include <errno.h>
+	X  #include "../common/conf.h"
+	X  
+	X  #define	LOCK_SET	0
+	X  #define	LOCK_FAIL	1
+	X
+	X--- 35,41 -----
+	X  #include <errno.h>
+	X  #ifdef NNTPSRC
+	X  #include "../common/conf.h"
+	X+ #endif
+	X  
+	X  #define	LOCK_SET	0
+	X  #define	LOCK_FAIL	1
+SHAR_EOF
+if test 35693 -ne "`wc -c < 'xmit.diff'`"
+then
+	echo shar: error transmitting "'xmit.diff'" '(should have been 35693 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'xmit'"
+cd ..
+if test ! -d 'xfer'
+then
+	echo shar: creating directory "'xfer'"
+	mkdir 'xfer'
+fi
+echo shar: entering directory "'xfer'"
+cd 'xfer'
+echo shar: extracting "'xfer.diff'" '(4642 characters)'
+if test -f 'xfer.diff'
+then
+	echo shar: will not over-write existing file "'xfer.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'xfer.diff'
+	X*** README	Wed Jul  4 19:48:10 1990
+	X--- ../../nntp/xfer/README	Sat Feb  2 13:32:39 1991
+	X***************
+	X*** 1,6
+	X! This is a "passive" news transmission client.  It queries
+	X! other servers for news with NEWNEWS and gets it via the article
+	X! command.
+	X  
+	X  This program still remains largely undocuemented and experimental.
+	X  PLEASE READ THE SOURCE for the best information. This will be more
+	X
+	X--- 1,5 -----
+	X! This is a "passive" news transmission client.  It queries other servers
+	X! for news with NEWNEWS and gets it via the ARTICLE command.
+	X  
+	X  This program still remains largely undocumented and experimental.
+	X  PLEASE READ THE SOURCE for the best information. This will be more
+	X***************
+	X*** 2,8
+	X  other servers for news with NEWNEWS and gets it via the article
+	X  command.
+	X  
+	X! This program still remains largely undocuemented and experimental.
+	X  PLEASE READ THE SOURCE for the best information. This will be more
+	X  integrated into the NNTP distribution, but it is a slow process.
+	X  
+	X
+	X--- 1,7 -----
+	X  This is a "passive" news transmission client.  It queries other servers
+	X  for news with NEWNEWS and gets it via the ARTICLE command.
+	X  
+	X! This program still remains largely undocumented and experimental.
+	X  PLEASE READ THE SOURCE for the best information. This will be more
+	X  integrated into the NNTP distribution, but it is a slow process.
+	X
+	XIndex: nntpxfer.c
+	XPrereq:  1.7
+	X*** nntpxfer.c	Sat Aug 25 16:59:00 1990
+	X--- ../../nntp/xfer/nntpxfer.c	Sat Feb  2 13:31:49 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char * scsid = "@(#)$Header: nntpxfer.c,v 1.7 90/08/25 16:58:52 sob Exp $";
+	X  #endif
+	X  /*
+	X   * nntpxfer
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char * scsid = "@(#)$Header: nntpxfer.c,v 1.9 91/02/02 13:31:37 sob Exp $";
+	X  #endif
+	X  /*
+	X   * nntpxfer
+	X***************
+	X*** 78,83
+	X  #ifndef TIMEOUT
+	X  #define TIMEOUT (30*60)
+	X  #endif
+	X  
+	X  char	*malloc();
+	X  char	*strcpy();
+	X
+	X--- 78,86 -----
+	X  #ifndef TIMEOUT
+	X  #define TIMEOUT (30*60)
+	X  #endif
+	X+ #ifndef MAX_ARTICLES
+	X+ #define MAX_ARTICLES 4096
+	X+ #endif
+	X  
+	X  char	*malloc();
+	X  char	*strcpy();
+	X***************
+	X*** 104,110
+	X  	char dtname[128];
+	X  	char newsgroups[BUFSIZ];
+	X  	char lasttime[16];
+	X- 	int connected = 0;		/* 1 = connected */
+	X  	int i;
+	X  	int omitupdate = 0;		/* 1 = don't update datetime */
+	X  	long clock;
+	X
+	X--- 107,112 -----
+	X  	char dtname[128];
+	X  	char newsgroups[BUFSIZ];
+	X  	char lasttime[16];
+	X  	int i;
+	X  	int omitupdate = 0;		/* 1 = don't update datetime */
+	X  	long clock;
+	X***************
+	X*** 128,134
+	X  	
+	X  	if (argc > 2)
+	X  		{
+	X! 		omitupdate++;
+	X  		(void) strcpy(newsgroups, argv[2]);
+	X  		(void) strcpy(lastdate, argv[3]);
+	X  		(void) strcpy(lasttime, argv[4]);
+	X
+	X--- 130,136 -----
+	X  	
+	X  	if (argc > 2)
+	X  		{
+	X! 		omitupdate=1;
+	X  		(void) strcpy(newsgroups, argv[2]);
+	X  		(void) strcpy(lastdate, argv[3]);
+	X  		(void) strcpy(lasttime, argv[4]);
+	X***************
+	X*** 303,309
+	X  			break;
+	X  		if (wewant(buf))
+	X  			{
+	X! 			if (newart > MAX_ARTICLES)
+	X  				{
+	X  				omitupdate++;
+	X  				continue;
+	X
+	X--- 305,311 -----
+	X  			break;
+	X  		if (wewant(buf))
+	X  			{
+	X! 			if (newart >= MAX_ARTICLES)
+	X  				{
+	X  				omitupdate=1;
+	X  				continue;
+	X***************
+	X*** 305,311
+	X  			{
+	X  			if (newart > MAX_ARTICLES)
+	X  				{
+	X! 				omitupdate++;
+	X  				continue;
+	X  				}
+	X  			artlist[newart] = malloc((unsigned)(strlen(buf)+1));
+	X
+	X--- 307,313 -----
+	X  			{
+	X  			if (newart >= MAX_ARTICLES)
+	X  				{
+	X! 				omitupdate=1;
+	X  				continue;
+	X  				}
+	X  			artlist[newart] = malloc((unsigned)(strlen(buf)+1));
+	X***************
+	X*** 367,372
+	X  artfetch(articleid)
+	X  char *articleid;
+	X  	{
+	X  	int lines = 0;
+	X  	char buf[BUFSIZ];
+	X  	FILE *inews;
+	X
+	X--- 369,375 -----
+	X  artfetch(articleid)
+	X  char *articleid;
+	X  	{
+	X+ #ifdef DEBUG
+	X  	int lines = 0;
+	X  #endif
+	X  	char buf[BUFSIZ];
+	X***************
+	X*** 368,373
+	X  char *articleid;
+	X  	{
+	X  	int lines = 0;
+	X  	char buf[BUFSIZ];
+	X  	FILE *inews;
+	X  
+	X
+	X--- 371,377 -----
+	X  	{
+	X  #ifdef DEBUG
+	X  	int lines = 0;
+	X+ #endif
+	X  	char buf[BUFSIZ];
+	X  	FILE *inews;
+	X  
+	X***************
+	X*** 412,417
+	X  		(void) sockread(buf);
+	X  		if (buf[0] == '.' && buf[1] == '\0')
+	X  			break;
+	X  		lines++;
+	X  		(void) strcat(buf,"\n");
+	X  		(void) fputs(((buf[0] == '.') ? buf + 1 : buf),
+	X
+	X--- 416,422 -----
+	X  		(void) sockread(buf);
+	X  		if (buf[0] == '.' && buf[1] == '\0')
+	X  			break;
+	X+ #ifdef DEBUG
+	X  		lines++;
+	X  #endif
+	X  		(void) strcat(buf,"\n");
+	X***************
+	X*** 413,418
+	X  		if (buf[0] == '.' && buf[1] == '\0')
+	X  			break;
+	X  		lines++;
+	X  		(void) strcat(buf,"\n");
+	X  		(void) fputs(((buf[0] == '.') ? buf + 1 : buf),
+	X  			   inews);
+	X
+	X--- 418,424 -----
+	X  			break;
+	X  #ifdef DEBUG
+	X  		lines++;
+	X+ #endif
+	X  		(void) strcat(buf,"\n");
+	X  		(void) fputs(((buf[0] == '.') ? buf + 1 : buf),
+	X  			   inews);
+SHAR_EOF
+if test 4642 -ne "`wc -c < 'xfer.diff'`"
+then
+	echo shar: error transmitting "'xfer.diff'" '(should have been 4642 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'xfer'"
+cd ..
+if test ! -d 'inews'
+then
+	echo shar: creating directory "'inews'"
+	mkdir 'inews'
+fi
+echo shar: entering directory "'inews'"
+cd 'inews'
+echo shar: extracting "'inews.diff'" '(2473 characters)'
+if test -f 'inews.diff'
+then
+	echo shar: will not over-write existing file "'inews.diff'"
+else
+sed 's/^	X//' << \SHAR_EOF > 'inews.diff'
+	XIndex: inews.c
+	XPrereq: 1.19
+	X*** inews.c	Fri Aug 10 22:53:40 1990
+	X--- ../../nntp/inews/inews.c	Fri Feb  8 18:29:38 1991
+	X***************
+	X*** 1,5
+	X  #ifndef lint
+	X! static char *sccsid = "@(#)$Header: inews.c,v 1.19 90/08/10 22:53:27 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X
+	X--- 1,5 -----
+	X  #ifndef lint
+	X! static char *sccsid = "@(#)$Header: inews.c,v 1.21 91/02/08 18:29:35 sob Exp $";
+	X  #endif
+	X  
+	X  /*
+	X***************
+	X*** 41,46
+	X  char	host_name[256];
+	X  struct	passwd *passwd;
+	X  
+	X  main(argc, argv)
+	X  int	argc;
+	X  char	*argv[];
+	X
+	X--- 41,50 -----
+	X  char	host_name[256];
+	X  struct	passwd *passwd;
+	X  
+	X+ #ifdef REALDOMAIN
+	X+ #include <netdb.h>
+	X+ #endif
+	X+ 
+	X  main(argc, argv)
+	X  int	argc;
+	X  char	*argv[];
+	X***************
+	X*** 91,96
+	X  
+	X  	uname(host_name);
+	X  
+	X  	server = getserverbyfile(SERVER_FILE);
+	X  	if (server == NULL) {
+	X  		fprintf(stderr,
+	X
+	X--- 95,109 -----
+	X  
+	X  	uname(host_name);
+	X  
+	X+ #ifdef REALDOMAIN
+	X+ 	{
+	X+ 	struct hostent *hp;
+	X+ 
+	X+ 	if (hp = gethostbyname(host_name))
+	X+ 		strcpy(host_name, hp->h_name);
+	X+ 	}
+	X+ #endif
+	X+ 
+	X  	server = getserverbyfile(SERVER_FILE);
+	X  	if (server == NULL) {
+	X  		fprintf(stderr,
+	X***************
+	X*** 145,151
+	X  		cp = s + strlen(s) - 1;
+	X  		if (cp >= s && *cp == '\n')
+	X  			*cp = '\0';
+	X- 
+	X  		if (s[0] == '.')    /* Single . is eof, so put in extra one */
+	X  			(void) fputc('.', ser_wr_fp);
+	X  		if (in_header && strneql(s, "From:", sizeof("From:")-1)) {
+	X
+	X--- 158,163 -----
+	X  		cp = s + strlen(s) - 1;
+	X  		if (cp >= s && *cp == '\n')
+	X  			*cp = '\0';
+	X  		if (s[0] == '.')    /* Single . is eof, so put in extra one */
+	X  			(void) fputc('.', ser_wr_fp);
+	X  		if (in_header && strneql(s, "From:", sizeof("From:")-1)) {
+	X***************
+	X*** 176,181
+	X  		}
+	X  		fprintf(ser_wr_fp, "%s\r\n", s);
+	X  	}
+	X    
+	X  	append_signature();
+	X  
+	X
+	X--- 188,204 -----
+	X  		}
+	X  		fprintf(ser_wr_fp, "%s\r\n", s);
+	X  	}
+	X+ 	if (in_header) {
+	X+ 		/* Still in header after EOF?  Hmm... */
+	X+ 		in_header = 0;
+	X+ 		if (!seen_pathline)
+	X+ 			gen_frompath(PATH);
+	X+ 		if (!seen_fromline)
+	X+ 			gen_frompath(FROM);
+	X+ 		else
+	X+ fprintf(ser_wr_fp, "Originator: %s@%s\r\n", passwd->pw_name, host_name);
+	X+ 		fprintf(ser_wr_fp, "\r\n");
+	X+ 	}
+	X    
+	X  	append_signature();
+	X  
+	X***************
+	X*** 310,316
+	X  	}
+	X  
+	X  	if (which == FROM){
+	X! #ifdef DOMAIN
+	X  #ifdef HIDDENNET
+	X  			fprintf(ser_wr_fp, "From: %s@%s (",
+	X  				passwd->pw_name,
+	X
+	X--- 333,339 -----
+	X  	}
+	X  
+	X  	if (which == FROM){
+	X! #if defined(DOMAIN) && ! defined(REALDOMAIN)
+	X  #ifdef HIDDENNET
+	X  			fprintf(ser_wr_fp, "From: %s@%s (",
+	X  				passwd->pw_name,
+SHAR_EOF
+if test 2473 -ne "`wc -c < 'inews.diff'`"
+then
+	echo shar: error transmitting "'inews.diff'" '(should have been 2473 characters)'
+fi
+fi # end of overwriting check
+echo shar: done with directory "'inews'"
+cd ..
+#	End of shell archive
+exit 0

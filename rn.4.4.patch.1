@@ -1,0 +1,1310 @@
+This is rn 4.4 patch number 1.
+
+Please note that rn 4.4 on lib.tmc.edu, gazette.bcm.tmc.edu, bcm.tmc.edu
+and tmc.edu have all been updated to rn 4.4.1 and have this patch installed.
+
+Description:
+	1. The patchlevel file contains "beta11". Following this patch, it will
+	indicate that patch 1 has been sucessfully applied.
+	2. The man pages did not have the "cannonically" correct comment
+	macro for comments. 
+	3. Configure contained the unprintable control-A character. It now
+	used tr to create it when Configure is run.
+	4. Cnews does not guarentee that minimum message number listed in 
+	the active file is in fact the minimum. rn now compensates for this
+	problem.
+	5. The Makefile would strip rn even when it was not being installed.
+	6. The shell scripts that use the .newsrc file now obey the NEWSRC
+	environmental variable if present.
+
+Install this patch using Larry Wall's patch program.
+
+
+*** patchlevel	Tue Oct  1 23:38:41 1991
+--- ../rn4.4.1/patchlevel	Wed Sep 18 08:09:22 1991
+***************
+*** 1
+! Patch: beta11
+
+--- 1 -----
+! Patch:  1
+Index: Configure
+Prereq: 4.4
+*** Configure	Tue Oct  1 23:38:40 1991
+--- ../rn4.4.1/Configure	Wed Sep 25 14:38:20 1991
+***************
+*** 15,21
+  # If these # comments don't work, trim them.  Don't worry about the other
+  # shell scripts, Configure will trim # comments from them for you.
+  #
+! # $Id: Configure,v 4.4 1991/09/09 20:18:23 sob Exp sob $
+  #
+  # $Log: Configure,v $
+  # Revision 4.4  1991/09/09  20:18:23  sob
+
+--- 15,21 -----
+  # If these # comments don't work, trim them.  Don't worry about the other
+  # shell scripts, Configure will trim # comments from them for you.
+  #
+! # $Id: Configure,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+  #
+  # $Log: Configure,v $
+  # Revision 4.4.1.1  1991/09/25  19:38:08  sob
+***************
+*** 18,23
+  # $Id: Configure,v 4.4 1991/09/09 20:18:23 sob Exp sob $
+  #
+  # $Log: Configure,v $
+  # Revision 4.4  1991/09/09  20:18:23  sob
+  # release 4.4
+  #
+
+--- 18,26 -----
+  # $Id: Configure,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+  #
+  # $Log: Configure,v $
++ # Revision 4.4.1.1  1991/09/25  19:38:08  sob
++ # various fixed
++ #
+  # Revision 4.4  1991/09/09  20:18:23  sob
+  # release 4.4
+  #
+***************
+*** 25,31
+  
+  # Yes, you may rip this off to use in other distribution packages.
+  
+! CTRLA='' : there should be a control-A between the single-quotes.
+  
+  bopt=''
+  n=''
+
+--- 28,34 -----
+  
+  # Yes, you may rip this off to use in other distribution packages.
+  
+! CTRL=`echo a | tr a '\011'`
+  
+  bopt=''
+  n=''
+Index: Makefile.SH
+Prereq: 4.4
+*** Makefile.SH	Tue Oct  1 23:39:28 1991
+--- ../rn4.4.1/Makefile.SH	Wed Sep 25 14:39:16 1991
+***************
+*** 3,9
+  esac
+  echo "Extracting Makefile (with variable substitutions)"
+  cat >Makefile <<!GROK!THIS!
+! # $Id: Makefile.SH,v 4.4 1991/09/09 20:18:23 sob Exp sob $
+  #
+  # This software is Copyright 1991 by Stan Barber. 
+  #
+
+--- 3,9 -----
+  esac
+  echo "Extracting Makefile (with variable substitutions)"
+  cat >Makefile <<!GROK!THIS!
+! # $Id: Makefile.SH,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+  #
+  # This software is Copyright 1991 by Stan Barber. 
+  #
+***************
+*** 18,23
+  # is at the user's own risk. 
+  #
+  # $Log: Makefile.SH,v $
+  # Revision 4.4  1991/09/09  20:18:23  sob
+  # release 4.4
+  #
+
+--- 18,26 -----
+  # is at the user's own risk. 
+  #
+  # $Log: Makefile.SH,v $
++ # Revision 4.4.1.1  1991/09/25  19:38:08  sob
++ # Changed some install directives
++ #
+  # Revision 4.4  1991/09/09  20:18:23  sob
+  # release 4.4
+  #
+***************
+*** 113,120
+  	- mv $(rnbin)/rn $(rnbin)/rn.old
+  #NNTP	- ln -s rn $(rnbin)/rrn
+  	- if test `pwd` != $(rnbin); then cp $(public) $(rnbin); fi
+! 	cd $(rnbin); chmod 755 $(public); strip rn
+! 	chmod 755 makedir
+  	- ./makedir `./filexp $(rnlib)`
+  	- if test `pwd` != `./filexp $(rnlib)`; then cp INIT $(private) `./filexp $(rnlib)`; fi
+  	- if test ! -f `./filexp $(rnlib)/newsnews`; then cp newsnews `./filexp $(rnlib)`; fi
+
+--- 116,124 -----
+  	- mv $(rnbin)/rn $(rnbin)/rn.old
+  #NNTP	- ln -s rn $(rnbin)/rrn
+  	- if test `pwd` != $(rnbin); then cp $(public) $(rnbin); fi
+! 	- if test `pwd` != $(rnbin); then cd $(rnbin); chmod 755 $(public); strip rn ; fi
+! #	- if test ! -x makedir; then chmod 755 makedir; fi
+! 	- chmod 755 makedir
+  	- ./makedir `./filexp $(rnlib)`
+  	- if test `pwd` != `./filexp $(rnlib)`; then cp INIT $(private) `./filexp $(rnlib)`; fi
+  #NNTP	- if test `pwd` != `./filexp $(rnlib)`; then strip `./filexp $(rnlib)`/getactive ; fi
+***************
+*** 117,122
+  	chmod 755 makedir
+  	- ./makedir `./filexp $(rnlib)`
+  	- if test `pwd` != `./filexp $(rnlib)`; then cp INIT $(private) `./filexp $(rnlib)`; fi
+  	- if test ! -f `./filexp $(rnlib)/newsnews`; then cp newsnews `./filexp $(rnlib)`; fi
+  	cd `./filexp $(rnlib)`; chmod 755 $(private); chmod 644 INIT newsnews
+  	- if test `pwd` != $(mansrc); then \
+
+--- 121,127 -----
+  	- chmod 755 makedir
+  	- ./makedir `./filexp $(rnlib)`
+  	- if test `pwd` != `./filexp $(rnlib)`; then cp INIT $(private) `./filexp $(rnlib)`; fi
++ #NNTP	- if test `pwd` != `./filexp $(rnlib)`; then strip `./filexp $(rnlib)`/getactive ; fi
+  	- if test ! -f `./filexp $(rnlib)/newsnews`; then cp newsnews `./filexp $(rnlib)`; fi
+  	cd `./filexp $(rnlib)`; chmod 755 $(private); chmod 644 INIT newsnews
+  	- if test `pwd` != $(mansrc); then \
+Index: Pnews.1
+Prereq: 4.4
+*** Pnews.1	Tue Oct  1 23:39:33 1991
+--- ../rn4.4.1/Pnews.1	Wed Sep 25 14:37:05 1991
+***************
+*** 1,22
+! ''' $Id: Pnews.1,v 4.4 1991/09/09 20:18:23 sob Exp sob $
+! ''' 
+! ''' $Log: Pnews.1,v $
+! # Revision 4.4  1991/09/09  20:18:23  sob
+! # release 4.4
+! #
+! ''' 
+! ''' This software is Copyright 1991 by Stan Barber. 
+! '''
+! ''' Permission is hereby granted to copy, reproduce, redistribute or otherwise
+! ''' use this software as long as: there is no monetary profit gained
+! ''' specifically from the use or reproduction of this software, it is not
+! ''' sold, rented, traded or otherwise marketed, and this copyright notice is
+! ''' included prominently in any copy made. 
+! '''
+! ''' The author make no claims as to the fitness or correctness of this software
+! ''' for any use whatsoever, and it is provided as is. Any use of this software
+! ''' is at the user's own risk. 
+! '''
+  .de Sh
+  .br
+  .ne 5
+
+--- 1,25 -----
+! .\" $Id: Pnews.1,v 4.4.1.1 1991/09/25 19:36:48 sob Exp sob $
+! .\" 
+! .\" $Log: Pnews.1,v $
+! .\" Revision 4.4.1.1  1991/09/25  19:36:48  sob
+! .\" Changed quote macro to "standard" one
+! .\"
+! .\" Revision 4.4  1991/09/09  20:18:23  sob
+! .\" release 4.4
+! .\"
+! .\" 
+! .\" This software is Copyright 1991 by Stan Barber. 
+! .\"
+! .\" Permission is hereby granted to copy, reproduce, redistribute or otherwise
+! .\" use this software as long as: there is no monetary profit gained
+! .\" specifically from the use or reproduction of this software, it is not
+! .\" sold, rented, traded or otherwise marketed, and this copyright notice is
+! .\" included prominently in any copy made. 
+! .\"
+! .\" The author make no claims as to the fitness or correctness of this software
+! .\" for any use whatsoever, and it is provided as is. Any use of this software
+! .\" is at the user's own risk. 
+! .\"
+  .de Sh
+  .br
+  .ne 5
+***************
+*** 28,38
+  .if t .sp .5v
+  .if n .sp
+  ..
+! '''
+! '''     Set up \*(-- to give an unbreakable dash;
+! '''     string Tr holds user defined translation string.
+! '''     Bell System Logo is used as a dummy character.
+! '''
+  .ie n \{\
+  .tr \(bs-\*(Tr
+  .ds -- \(bs-
+
+--- 31,41 -----
+  .if t .sp .5v
+  .if n .sp
+  ..
+! .\"
+! .\"     Set up \*(-- to give an unbreakable dash;
+! .\"     string Tr holds user defined translation string.
+! .\"     Bell System Logo is used as a dummy character.
+! .\"
+  .ie n \{\
+  .tr \(bs-\*(Tr
+  .ds -- \(bs-
+Index: Rnmail.1
+Prereq: 4.4
+*** Rnmail.1	Tue Oct  1 23:39:34 1991
+--- ../rn4.4.1/Rnmail.1	Wed Sep 25 14:37:07 1991
+***************
+*** 1,22
+! ''' $Id: Rnmail.1,v 4.4 1991/09/09 20:18:23 sob Exp sob $
+! ''' 
+! ''' $Log: Rnmail.1,v $
+! # Revision 4.4  1991/09/09  20:18:23  sob
+! # release 4.4
+! #
+! ''' 
+! ''' This software is Copyright 1991 by Stan Barber. 
+! '''
+! ''' Permission is hereby granted to copy, reproduce, redistribute or otherwise
+! ''' use this software as long as: there is no monetary profit gained
+! ''' specifically from the use or reproduction of this software, it is not
+! ''' sold, rented, traded or otherwise marketed, and this copyright notice is
+! ''' included prominently in any copy made. 
+! '''
+! ''' The author make no claims as to the fitness or correctness of this software
+! ''' for any use whatsoever, and it is provided as is. Any use of this software
+! ''' is at the user's own risk. 
+! '''
+  .de Sh
+  .br
+  .ne 5
+
+--- 1,25 -----
+! .\" $Id: Rnmail.1,v 4.4.1.1 1991/09/25 19:36:48 sob Exp sob $
+! .\" 
+! .\" $Log: Rnmail.1,v $
+! .\" Revision 4.4.1.1  1991/09/25  19:36:48  sob
+! .\" Changed quote macro to "standard" one
+! .\"
+! .\" Revision 4.4  1991/09/09  20:18:23  sob
+! .\" release 4.4
+! .\"
+! .\" 
+! .\" This software is Copyright 1991 by Stan Barber. 
+! .\"
+! .\" Permission is hereby granted to copy, reproduce, redistribute or otherwise
+! .\" use this software as long as: there is no monetary profit gained
+! .\" specifically from the use or reproduction of this software, it is not
+! .\" sold, rented, traded or otherwise marketed, and this copyright notice is
+! .\" included prominently in any copy made. 
+! .\"
+! .\" The author make no claims as to the fitness or correctness of this software
+! .\" for any use whatsoever, and it is provided as is. Any use of this software
+! .\" is at the user's own risk. 
+! .\"
+  .de Sh
+  .br
+  .ne 5
+***************
+*** 28,38
+  .if t .sp .5v
+  .if n .sp
+  ..
+! '''
+! '''     Set up \*(-- to give an unbreakable dash;
+! '''     string Tr holds user defined translation string.
+! '''     Bell System Logo is used as a dummy character.
+! '''
+  .ie n \{\
+  .tr \(bs-\*(Tr
+  .ds -- \(bs-
+
+--- 31,41 -----
+  .if t .sp .5v
+  .if n .sp
+  ..
+! .\"
+! .\"     Set up \*(-- to give an unbreakable dash;
+! .\"     string Tr holds user defined translation string.
+! .\"     Bell System Logo is used as a dummy character.
+! .\"
+  .ie n \{\
+  .tr \(bs-\*(Tr
+  .ds -- \(bs-
+Index: newsetup.1
+Prereq: 4.4
+*** newsetup.1	Tue Oct  1 23:39:40 1991
+--- ../rn4.4.1/newsetup.1	Wed Sep 25 14:37:08 1991
+***************
+*** 1,23
+! ''' $Header: /home/sob/src/rn4.4/RCS/newsetup.1,v 4.4 1991/09/09 20:23:31 sob Exp sob $
+! ''' 
+! ''' $Log: newsetup.1,v $
+! # Revision 4.4  1991/09/09  20:23:31  sob
+! # release 4.4
+! #
+! '''
+! ''' This software is Copyright 1991 by Stan Barber. 
+! '''
+! ''' Permission is hereby granted to copy, reproduce, redistribute or otherwise
+! ''' use this software as long as: there is no monetary profit gained
+! ''' specifically from the use or reproduction of this software, it is not
+! ''' sold, rented, traded or otherwise marketed, and this copyright notice is
+! ''' included prominently in any copy made. 
+! '''
+! ''' The author make no claims as to the fitness or correctness of this software
+! ''' for any use whatsoever, and it is provided as is. Any use of this software
+! ''' is at the user's own risk. 
+! ''' 
+! ''' 
+  .de Sh
+  .br
+  .ne 5
+
+--- 1,26 -----
+! .\" $Id: newsetup.1,v 4.4.1.1 1991/09/25 19:36:48 sob Exp sob $
+! .\" 
+! .\" $Log: newsetup.1,v $
+! .\" Revision 4.4.1.1  1991/09/25  19:36:48  sob
+! .\" Changed quote macro to "standard" one
+! .\"
+! .\" Revision 4.4  1991/09/09  20:23:31  sob
+! .\" release 4.4
+! .\"
+! .\"
+! .\" This software is Copyright 1991 by Stan Barber. 
+! .\"
+! .\" Permission is hereby granted to copy, reproduce, redistribute or otherwise
+! .\" use this software as long as: there is no monetary profit gained
+! .\" specifically from the use or reproduction of this software, it is not
+! .\" sold, rented, traded or otherwise marketed, and this copyright notice is
+! .\" included prominently in any copy made. 
+! .\"
+! .\" The author make no claims as to the fitness or correctness of this software
+! .\" for any use whatsoever, and it is provided as is. Any use of this software
+! .\" is at the user's own risk. 
+! .\" 
+! .\" 
+  .de Sh
+  .br
+  .ne 5
+***************
+*** 29,39
+  .if t .sp .5v
+  .if n .sp
+  ..
+! '''
+! '''     Set up \*(-- to give an unbreakable dash;
+! '''     string Tr holds user defined translation string.
+! '''     Bell System Logo is used as a dummy character.
+! '''
+  .ie n \{\
+  .tr \(bs-\*(Tr
+  .ds -- \(bs-
+
+--- 32,42 -----
+  .if t .sp .5v
+  .if n .sp
+  ..
+! .\"
+! .\"     Set up \*(-- to give an unbreakable dash;
+! .\"     string Tr holds user defined translation string.
+! .\"     Bell System Logo is used as a dummy character.
+! .\"
+  .ie n \{\
+  .tr \(bs-\*(Tr
+  .ds -- \(bs-
+Index: newsetup.SH
+Prereq: 4.4
+*** newsetup.SH	Tue Oct  1 23:39:36 1991
+--- ../rn4.4.1/newsetup.SH	Wed Sep 25 14:38:27 1991
+***************
+*** 5,11
+  $spitshell >newsetup <<!GROK!THIS!
+  $startsh
+  #
+! # $Id: newsetup.SH,v 4.4 1991/09/09 20:23:31 sob Exp sob $
+  # 
+  # $Log: newsetup.SH,v $
+  # Revision 4.4  1991/09/09  20:23:31  sob
+
+--- 5,11 -----
+  $spitshell >newsetup <<!GROK!THIS!
+  $startsh
+  #
+! # $Id: newsetup.SH,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+  # 
+  # $Log: newsetup.SH,v $
+  # Revision 4.4.1.1  1991/09/25  19:38:08  sob
+***************
+*** 8,13
+  # $Id: newsetup.SH,v 4.4 1991/09/09 20:23:31 sob Exp sob $
+  # 
+  # $Log: newsetup.SH,v $
+  # Revision 4.4  1991/09/09  20:23:31  sob
+  # release 4.4
+  #
+
+--- 8,16 -----
+  # $Id: newsetup.SH,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+  # 
+  # $Log: newsetup.SH,v $
++ # Revision 4.4.1.1  1991/09/25  19:38:08  sob
++ # various fixed
++ #
+  # Revision 4.4  1991/09/09  20:23:31  sob
+  # release 4.4
+  #
+***************
+*** 44,51
+  #NNTPactive="/tmp/active.\$\$"
+  
+  dotdir="\${DOTDIR-\${HOME-\$LOGDIR}}"
+! $rm -f \$dotdir/.oldnewsrc
+! $echo "Creating .newsrc in \$dotdir to be used by news programs."
+  #NNTPrnlib=$rnlib
+  #NNTPcase \$rnlib in
+  #NNTP~*) rnlib=\`$filexp \$rnlib\` ;;
+
+--- 47,55 -----
+  #NNTPactive="/tmp/active.\$\$"
+  
+  dotdir="\${DOTDIR-\${HOME-\$LOGDIR}}"
+! newsrc="\${NEWSRC-\$dotdir/.newsrc}"
+! $rm -f \$newsrc-old
+! $echo "Creating \$newsrc to be used by news programs."
+  #NNTPrnlib=$rnlib
+  #NNTPcase \$rnlib in
+  #NNTP~*) rnlib=\`$filexp \$rnlib\` ;;
+***************
+*** 59,67
+  #NORMAL~*) active=\`$filexp \$active\` ;;
+  #NORMALesac
+  
+! if $test -s \$dotdir/.newsrc ; then
+!     $echo "Saving your current .newsrc as .oldnewsrc..."
+!     $mv -f \$dotdir/.newsrc \$dotdir/.oldnewsrc
+  fi
+  
+  : newsrc order determined here
+
+--- 63,71 -----
+  #NORMAL~*) active=\`$filexp \$active\` ;;
+  #NORMALesac
+  
+! if $test -s \$newsrc ; then
+!     $echo "Saving your current \$newsrc as \$newsrc-old..."
+!     $mv -f \$newsrc \$newsrc-old
+  fi
+  
+  : newsrc order determined here
+***************
+*** 95,101
+  	/^14 /!s/\$/:/
+  	/^14 /s/\$/!/
+  	s/^[0-9][0-9] //
+! ' >\$dotdir/.newsrc
+  
+  #NNTP$rm -f \$active
+  $rm -f /tmp/n.misc\$\$ /tmp/n.sci\$\$ /tmp/n.soc\$\$ /tmp/n.news\$\$ /tmp/n.comp\$\$
+
+--- 99,105 -----
+  	/^14 /!s/\$/:/
+  	/^14 /s/\$/!/
+  	s/^[0-9][0-9] //
+! ' >\$newsrc
+  
+  #NNTP$rm -f \$active
+  $rm -f /tmp/n.misc\$\$ /tmp/n.sci\$\$ /tmp/n.soc\$\$ /tmp/n.news\$\$ /tmp/n.comp\$\$
+Index: newsgroups.1
+Prereq: 4.4
+*** newsgroups.1	Tue Oct  1 23:39:39 1991
+--- ../rn4.4.1/newsgroups.1	Wed Sep 25 14:37:10 1991
+***************
+*** 1,23
+! ''' $Header: /home/sob/src/rn4.4/RCS/newsgroups.1,v 4.4 1991/09/09 20:23:31 sob Exp sob $
+! ''' 
+! ''' $Log: newsgroups.1,v $
+! # Revision 4.4  1991/09/09  20:23:31  sob
+! # release 4.4
+! #
+! '''
+! ''' This software is Copyright 1991 by Stan Barber. 
+! '''
+! ''' Permission is hereby granted to copy, reproduce, redistribute or otherwise
+! ''' use this software as long as: there is no monetary profit gained
+! ''' specifically from the use or reproduction of this software, it is not
+! ''' sold, rented, traded or otherwise marketed, and this copyright notice is
+! ''' included prominently in any copy made. 
+! '''
+! ''' The author make no claims as to the fitness or correctness of this software
+! ''' for any use whatsoever, and it is provided as is. Any use of this software
+! ''' is at the user's own risk. 
+! ''' 
+! ''' 
+  .de Sh
+  .br
+  .ne 5
+
+--- 1,26 -----
+! .\" $Id: newsgroups.1,v 4.4.1.1 1991/09/25 19:36:48 sob Exp sob $
+! .\" 
+! .\" $Log: newsgroups.1,v $
+! .\" Revision 4.4.1.1  1991/09/25  19:36:48  sob
+! .\" Changed quote macro to "standard" one
+! .\"
+! .\" Revision 4.4  1991/09/09  20:23:31  sob
+! .\" release 4.4
+! .\"
+! .\"
+! .\" This software is Copyright 1991 by Stan Barber. 
+! .\"
+! .\" Permission is hereby granted to copy, reproduce, redistribute or otherwise
+! .\" use this software as long as: there is no monetary profit gained
+! .\" specifically from the use or reproduction of this software, it is not
+! .\" sold, rented, traded or otherwise marketed, and this copyright notice is
+! .\" included prominently in any copy made. 
+! .\"
+! .\" The author make no claims as to the fitness or correctness of this software
+! .\" for any use whatsoever, and it is provided as is. Any use of this software
+! .\" is at the user's own risk. 
+! .\" 
+! .\" 
+  .de Sh
+  .br
+  .ne 5
+***************
+*** 29,39
+  .if t .sp .5v
+  .if n .sp
+  ..
+! '''
+! '''     Set up \*(-- to give an unbreakable dash;
+! '''     string Tr holds user defined translation string.
+! '''     Bell System Logo is used as a dummy character.
+! '''
+  .ie n \{\
+  .tr \(bs-\*(Tr
+  .ds -- \(bs-
+
+--- 32,42 -----
+  .if t .sp .5v
+  .if n .sp
+  ..
+! .\"
+! .\"     Set up \*(-- to give an unbreakable dash;
+! .\"     string Tr holds user defined translation string.
+! .\"     Bell System Logo is used as a dummy character.
+! .\"
+  .ie n \{\
+  .tr \(bs-\*(Tr
+  .ds -- \(bs-
+Index: newsgroups.SH
+Prereq: 4.4
+*** newsgroups.SH	Tue Oct  1 23:39:37 1991
+--- ../rn4.4.1/newsgroups.SH	Wed Sep 25 14:38:30 1991
+***************
+*** 4,10
+  echo "Extracting newsgroups (with variable substitutions)"
+  $spitshell >newsgroups <<!GROK!THIS!
+  $startsh
+! # $Id: newsgroups.SH,v 4.4 1991/09/09 20:23:31 sob Exp sob $
+  # 
+  # $Log: newsgroups.SH,v $
+  # Revision 4.4  1991/09/09  20:23:31  sob
+
+--- 4,10 -----
+  echo "Extracting newsgroups (with variable substitutions)"
+  $spitshell >newsgroups <<!GROK!THIS!
+  $startsh
+! # $Id: newsgroups.SH,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+  # 
+  # $Log: newsgroups.SH,v $
+  # Revision 4.4.1.1  1991/09/25  19:38:08  sob
+***************
+*** 7,12
+  # $Id: newsgroups.SH,v 4.4 1991/09/09 20:23:31 sob Exp sob $
+  # 
+  # $Log: newsgroups.SH,v $
+  # Revision 4.4  1991/09/09  20:23:31  sob
+  # release 4.4
+  #
+
+--- 7,15 -----
+  # $Id: newsgroups.SH,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+  # 
+  # $Log: newsgroups.SH,v $
++ # Revision 4.4.1.1  1991/09/25  19:38:08  sob
++ # various fixed
++ #
+  # Revision 4.4  1991/09/09  20:23:31  sob
+  # release 4.4
+  #
+***************
+*** 59,64
+  fi
+  
+  dotdir=\${DOTDIR-\${HOME-\$LOGDIR}}
+  
+  : Throwing .newsrc into the pot twice is a lovely hack to prevent
+  : bogus newsgroups from showing up as unsubscribed.
+
+--- 62,68 -----
+  fi
+  
+  dotdir=\${DOTDIR-\${HOME-\$LOGDIR}}
++ newsrc=\${NEWSRC-\$dotdir/.newsrc}
+  
+  : Throwing .newsrc into the pot twice is a lovely hack to prevent
+  : bogus newsgroups from showing up as unsubscribed.
+***************
+*** 63,69
+  : Throwing .newsrc into the pot twice is a lovely hack to prevent
+  : bogus newsgroups from showing up as unsubscribed.
+  
+! $cat \$dotdir/.newsrc \$dotdir/.newsrc \$active | \\
+  $sed -n	-e '/^options/d' \\
+  	-e '/^[	 ]/d' \\
+  	-e '/^control/d' \\
+
+--- 67,73 -----
+  : Throwing .newsrc into the pot twice is a lovely hack to prevent
+  : bogus newsgroups from showing up as unsubscribed.
+  
+! $cat \$newsrc \$newsrc \$active | \\
+  $sed -n	-e '/^options/d' \\
+  	-e '/^[	 ]/d' \\
+  	-e '/^control/d' \\
+***************
+*** 79,86
+  $echo $n "[Type return to continue] $c"
+  read tmp
+  $echo ""
+! $echo "Unsubscribed but mentioned in .newsrc:"
+! $sed -n < \$dotdir/.newsrc \\
+  	-e "/\$1.*!/"'s/^\([^!]*\)!.*\$/\1/p' | \\
+  $sort | \$pager
+  !GROK!THIS!
+
+--- 83,90 -----
+  $echo $n "[Type return to continue] $c"
+  read tmp
+  $echo ""
+! $echo "Unsubscribed but mentioned in \$newsrc:"
+! $sed -n < \$newsrc \\
+  	-e "/\$1.*!/"'s/^\([^!]*\)!.*\$/\1/p' | \\
+  $sort | \$pager
+  !GROK!THIS!
+Index: ngdata.c
+Prereq: 4.4
+*** ngdata.c	Tue Oct  1 23:39:18 1991
+--- ../rn4.4.1/ngdata.c	Wed Sep 25 14:39:03 1991
+***************
+*** 1,4
+! /* $Id: ngdata.c,v 4.4 1991/09/09 20:23:31 sob Exp sob $
+   *
+   * $Log: ngdata.c,v $
+   * Revision 4.4  1991/09/09  20:23:31  sob
+
+--- 1,4 -----
+! /* $Id: ngdata.c,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+   *
+   * $Log: ngdata.c,v $
+   * Revision 4.4.1.1  1991/09/25  19:38:08  sob
+***************
+*** 1,6
+  /* $Id: ngdata.c,v 4.4 1991/09/09 20:23:31 sob Exp sob $
+   *
+   * $Log: ngdata.c,v $
+   * Revision 4.4  1991/09/09  20:23:31  sob
+   * release 4.4
+   *
+
+--- 1,9 -----
+  /* $Id: ngdata.c,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+   *
+   * $Log: ngdata.c,v $
++  * Revision 4.4.1.1  1991/09/25  19:38:08  sob
++  * Some adaptions for CNEWS
++  *
+   * Revision 4.4  1991/09/09  20:23:31  sob
+   * release 4.4
+   *
+***************
+*** 155,161
+  	printf("Should be %ld\n",(long)softptr[num]) FLUSH;
+      }
+  #endif
+- #ifdef MININACT
+      {
+  	register char *s, ch;
+  	ART_NUM tmp;
+
+--- 158,163 -----
+  	printf("Should be %ld\n",(long)softptr[num]) FLUSH;
+      }
+  #endif
+      {
+  	register char *s, ch;
+  	ART_NUM tmp;
+***************
+*** 162,167
+  
+  	for (s=tmpbuf+len+1; isdigit(*s); s++) ;
+  	if (tmp = atol(s))
+  #ifdef CACHEFIRST
+  	    abs1st[num] = tmp;
+  #else
+
+--- 164,170 -----
+  
+  	for (s=tmpbuf+len+1; isdigit(*s); s++) ;
+  	if (tmp = atol(s))
++ #ifdef MININACT
+  #ifdef CACHEFIRST
+  	    abs1st[num] = tmp;
+  #else
+***************
+*** 167,172
+  #else
+  	    abs1st = tmp;
+  #endif
+  	if (!in_ng) {
+  	    for (s++; isdigit(*s); s++) ;
+  	    while (isspace(*s)) s++;
+
+--- 170,176 -----
+  #else
+  	    abs1st = tmp;
+  #endif
++ #endif
+  	if (!in_ng) {
+  	    for (s++; isdigit(*s); s++) ;
+  	    while (isspace(*s)) s++;
+***************
+*** 185,191
+  	    }
+  	}
+      }
+- #endif
+      return atol(tmpbuf+len+1);
+  }
+  
+
+--- 189,194 -----
+  	    }
+  	}
+      }
+      return atol(tmpbuf+len+1);
+  }
+  
+***************
+*** 248,254
+  register NG_NUM ngnum;
+  ART_NUM ngsize;
+  {
+!     register ART_NUM a1st;
+  #ifndef MININACT
+      ART_NUM x,y;
+  #endif
+
+--- 251,257 -----
+  register NG_NUM ngnum;
+  ART_NUM ngsize;
+  {
+!     ART_NUM a1st;
+  #ifndef MININACT
+      ART_NUM x,y;
+  #endif
+***************
+*** 265,272
+      return abs1st;
+  # endif
+  #else
+!     sprintf(cp,"GROUP %s",rcline[ngnum]);
+!     put_server(cp);
+      if (nntp_get(ser_line, sizeof(ser_line)) < 0) {
+  	fprintf(stderr, "\nrrn: Unexpected close of server socket.\n");
+  	finalize(1);
+
+--- 268,276 -----
+      return abs1st;
+  # endif
+  #else
+!     getngsize(ngnum); /* set moderated as side effect */
+!     sprintf(ser_line,"GROUP %s",rcline[ngnum]);
+!     put_server(ser_line);
+      if (nntp_get(ser_line, sizeof(ser_line)) < 0) {
+  	fprintf(stderr, "\nrrn: Unexpected close of server socket.\n");
+  	finalize(1);
+***************
+*** 316,321
+      return abs1st;
+  # endif
+  #else /* not MININACT */
+      sprintf(dirname,"%s/%s",spool,getngdir(rcline[ngnum]));
+      a1st = getngmin(dirname,0L);
+      if (!a1st)				/* nothing there at all? */
+
+--- 320,326 -----
+      return abs1st;
+  # endif
+  #else /* not MININACT */
++     getngsize(ngnum); /* set moderate as side effect */
+      sprintf(dirname,"%s/%s",spool,getngdir(rcline[ngnum]));
+      a1st = getngmin(dirname,0L);
+      if (!a1st)				/* nothing there at all? */
+Index: rcln.c
+Prereq: 4.4
+*** rcln.c	Tue Oct  1 23:38:48 1991
+--- ../rn4.4.1/rcln.c	Wed Sep 25 14:39:01 1991
+***************
+*** 1,4
+! /* $Id: rcln.c,v 4.4 1991/09/09 20:27:37 sob Exp sob $
+   *
+   * $Log: rcln.c,v $
+   * Revision 4.4  1991/09/09  20:27:37  sob
+
+--- 1,4 -----
+! /* $Id: rcln.c,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+   *
+   * $Log: rcln.c,v $
+   * Revision 4.4.1.1  1991/09/25  19:38:08  sob
+***************
+*** 1,6
+  /* $Id: rcln.c,v 4.4 1991/09/09 20:27:37 sob Exp sob $
+   *
+   * $Log: rcln.c,v $
+   * Revision 4.4  1991/09/09  20:27:37  sob
+   * release 4.4
+   *
+
+--- 1,9 -----
+  /* $Id: rcln.c,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+   *
+   * $Log: rcln.c,v $
++  * Revision 4.4.1.1  1991/09/25  19:38:08  sob
++  * Some adaptions for CNEWS
++  *
+   * Revision 4.4  1991/09/09  20:27:37  sob
+   * release 4.4
+   *
+***************
+*** 82,87
+  #else
+      if (!toread[ngnum])
+  #endif
+  					/* now is a good time to trim down */
+  	set_toread(ngnum);		/* the list due to expires if we */
+  					/* have not yet. */
+
+--- 85,91 -----
+  #else
+      if (!toread[ngnum])
+  #endif
++ #if !defined(SERVER) || defined(MININACT)
+  					/* now is a good time to trim down */
+  	set_toread(ngnum);		/* the list due to expires if we */
+  					/* have not yet. */
+***************
+*** 85,90
+  					/* now is a good time to trim down */
+  	set_toread(ngnum);		/* the list due to expires if we */
+  					/* have not yet. */
+  #ifdef DEBUGGING
+      if (artnum > ngmax[ngnum] + 100	/* allow for incoming articles */
+         ) {
+
+--- 89,95 -----
+  					/* now is a good time to trim down */
+  	set_toread(ngnum);		/* the list due to expires if we */
+  					/* have not yet. */
++ #endif
+  #ifdef DEBUGGING
+      if (artnum > ngmax[ngnum] + 100	/* allow for incoming articles */
+         ) {
+Index: respond.c
+Prereq: 4.4
+*** respond.c	Tue Oct  1 23:39:07 1991
+--- ../rn4.4.1/respond.c	Wed Sep 25 14:38:58 1991
+***************
+*** 1,4
+! /* $Id: respond.c,v 4.4 1991/09/09 20:27:37 sob Exp sob $
+   *
+   * $Log: respond.c,v $
+   * Revision 4.4  1991/09/09  20:27:37  sob
+
+--- 1,4 -----
+! /* $Id: respond.c,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+   *
+   * $Log: respond.c,v $
+   * Revision 4.4.1.1  1991/09/25  19:38:08  sob
+***************
+*** 1,6
+  /* $Id: respond.c,v 4.4 1991/09/09 20:27:37 sob Exp sob $
+   *
+   * $Log: respond.c,v $
+   * Revision 4.4  1991/09/09  20:27:37  sob
+   * release 4.4
+   *
+
+--- 1,9 -----
+  /* $Id: respond.c,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $
+   *
+   * $Log: respond.c,v $
++  * Revision 4.4.1.1  1991/09/25  19:38:08  sob
++  * Some adaptions for CNEWS
++  *
+   * Revision 4.4  1991/09/09  20:27:37  sob
+   * release 4.4
+   *
+***************
+*** 199,204
+  		  extract_it:
+  		    cnt = 0;
+  		    interp(cmd_buf,(sizeof cmd_buf),getval("EXSAVER",EXSAVER));
+  		    resetty();		/* restore tty state */
+  		    doshell(SH,cmd_buf);
+  		    noecho();		/* revert to cbreaking */
+
+--- 202,208 -----
+  		  extract_it:
+  		    cnt = 0;
+  		    interp(cmd_buf,(sizeof cmd_buf),getval("EXSAVER",EXSAVER));
++ 		    termlib_reset();
+  		    resetty();		/* restore tty state */
+  		    doshell(SH,cmd_buf);
+  		    noecho();		/* revert to cbreaking */
+***************
+*** 203,208
+  		    doshell(SH,cmd_buf);
+  		    noecho();		/* revert to cbreaking */
+  		    crmode();
+  		    break;
+  		}
+  		else
+
+--- 207,213 -----
+  		    doshell(SH,cmd_buf);
+  		    noecho();		/* revert to cbreaking */
+  		    crmode();
++ 		    termlib_init();
+  		    break;
+  		}
+  		else
+***************
+*** 250,255
+  	savedest = savestr(altbuf);
+  	interp(cmd_buf, (sizeof cmd_buf), getval("PIPESAVER",PIPESAVER));
+  				/* then set up for command */
+  	resetty();		/* restore tty state */
+  	if (use_pref)		/* use preferred shell? */
+  	    doshell(Nullch,cmd_buf);
+
+--- 255,261 -----
+  	savedest = savestr(altbuf);
+  	interp(cmd_buf, (sizeof cmd_buf), getval("PIPESAVER",PIPESAVER));
+  				/* then set up for command */
++ 	termlib_reset();
+  	resetty();		/* restore tty state */
+  	if (use_pref)		/* use preferred shell? */
+  	    doshell(Nullch,cmd_buf);
+***************
+*** 258,263
+  	    doshell(sh,cmd_buf);	/* do command with sh */
+  	noecho();		/* and stop echoing */
+  	crmode();		/* and start cbreaking */
+      }
+      else {			/* normal save */
+  	bool there, mailbox;
+
+--- 264,270 -----
+  	    doshell(sh,cmd_buf);	/* do command with sh */
+  	noecho();		/* and stop echoing */
+  	crmode();		/* and start cbreaking */
++ 	termlib_init();
+      }
+      else {			/* normal save */
+  	bool there, mailbox;
+***************
+*** 387,392
+  	    getval("MBOXSAVER",MBOXSAVER) :
+  	    getval("NORMSAVER",NORMSAVER) ), sizeof cmd_buf);
+  				/* format the command */
+  	resetty();		/* make terminal behave */
+  	if (doshell(use_pref?Nullch:SH,cmd_buf))
+  	    fputs("Not saved",stdout);
+
+--- 394,400 -----
+  	    getval("MBOXSAVER",MBOXSAVER) :
+  	    getval("NORMSAVER",NORMSAVER) ), sizeof cmd_buf);
+  				/* format the command */
++ 	termlib_reset();
+  	resetty();		/* make terminal behave */
+  	if (doshell(use_pref?Nullch:SH,cmd_buf)) {
+  	    termlib_init();
+***************
+*** 388,394
+  	    getval("NORMSAVER",NORMSAVER) ), sizeof cmd_buf);
+  				/* format the command */
+  	resetty();		/* make terminal behave */
+! 	if (doshell(use_pref?Nullch:SH,cmd_buf))
+  	    fputs("Not saved",stdout);
+  	else
+  	    printf("%s to %s %s",
+
+--- 396,403 -----
+  				/* format the command */
+  	termlib_reset();
+  	resetty();		/* make terminal behave */
+! 	if (doshell(use_pref?Nullch:SH,cmd_buf)) {
+! 	    termlib_init();
+  	    fputs("Not saved",stdout);
+  	} else {
+  	    termlib_init();
+***************
+*** 390,396
+  	resetty();		/* make terminal behave */
+  	if (doshell(use_pref?Nullch:SH,cmd_buf))
+  	    fputs("Not saved",stdout);
+! 	else
+  	    printf("%s to %s %s",
+  	      there?"Appended":"Saved",
+  	      mailbox?"mailbox":"file",
+
+--- 399,406 -----
+  	if (doshell(use_pref?Nullch:SH,cmd_buf)) {
+  	    termlib_init();
+  	    fputs("Not saved",stdout);
+! 	} else {
+! 	    termlib_init();
+  	    printf("%s to %s %s",
+  	      there?"Appended":"Saved",
+  	      mailbox?"mailbox":"file",
+***************
+*** 395,400
+  	      there?"Appended":"Saved",
+  	      mailbox?"mailbox":"file",
+  	      s);
+  	if (interactive)
+  	    putchar('\n') FLUSH;
+  	noecho();		/* make terminal do what we want */
+
+--- 405,411 -----
+  	      there?"Appended":"Saved",
+  	      mailbox?"mailbox":"file",
+  	      s);
++ 	}
+  	if (interactive)
+  	    putchar('\n') FLUSH;
+  	noecho();		/* make terminal do what we want */
+***************
+*** 446,451
+  	 myuid != newsuid &&
+  #endif
+  	 myuid != ROOTID ) ) {
+  	    if (debug)
+  		printf("\n%s@%s != %s\n",logname,sitename,from_buf) FLUSH;
+  #ifdef VERBOSE
+
+--- 457,463 -----
+  	 myuid != newsuid &&
+  #endif
+  	 myuid != ROOTID ) ) {
++ #ifdef DEBUGGING
+  	    if (debug)
+  		printf("\n%s@%s != %s\n",logname,sitename,from_buf) FLUSH;
+  #endif
+***************
+*** 448,453
+  	 myuid != ROOTID ) ) {
+  	    if (debug)
+  		printf("\n%s@%s != %s\n",logname,sitename,from_buf) FLUSH;
+  #ifdef VERBOSE
+  	    IF(verbose)
+  		fputs("\nYou can't cancel someone else's article\n",stdout)
+
+--- 460,466 -----
+  #ifdef DEBUGGING
+  	    if (debug)
+  		printf("\n%s@%s != %s\n",logname,sitename,from_buf) FLUSH;
++ #endif
+  #ifdef VERBOSE
+  	    IF(verbose)
+  		fputs("\nYou can't cancel someone else's article\n",stdout)
+***************
+*** 512,517
+  	 myuid != newsuid &&
+  #endif
+  	 myuid != ROOTID ) ) {
+  	    if (debug)
+  		printf("\n%s@%s != %s\n",logname,sitename,from_buf) FLUSH;
+  #ifdef VERBOSE
+
+--- 525,531 -----
+  	 myuid != newsuid &&
+  #endif
+  	 myuid != ROOTID ) ) {
++ #ifdef DEBUGGING
+  	    if (debug)
+  		printf("\n%s@%s != %s\n",logname,sitename,from_buf) FLUSH;
+  #endif
+***************
+*** 514,519
+  	 myuid != ROOTID ) ) {
+  	    if (debug)
+  		printf("\n%s@%s != %s\n",logname,sitename,from_buf) FLUSH;
+  #ifdef VERBOSE
+  	    IF(verbose)
+  		fputs("\nYou can't supersede someone else's article\n",stdout)
+
+--- 528,534 -----
+  #ifdef DEBUGGING
+  	    if (debug)
+  		printf("\n%s@%s != %s\n",logname,sitename,from_buf) FLUSH;
++ #endif
+  #ifdef VERBOSE
+  	    IF(verbose)
+  		fputs("\nYou can't supersede someone else's article\n",stdout)
+***************
+*** 637,642
+  	printf(nocd,dir) FLUSH;
+  	return;
+      }
+  #ifdef VERBOSE
+      IF(verbose)
+  	printf("\n(leaving cbreak mode; cwd=%s)\nInvoking command: %s\n\n",
+
+--- 652,658 -----
+  	printf(nocd,dir) FLUSH;
+  	return;
+      }
++     termlib_reset();
+  #ifdef VERBOSE
+      IF(verbose)
+  	printf("\n(leaving cbreak mode; cwd=%s)\nInvoking command: %s\n\n",
+***************
+*** 658,663
+  #ifdef TERSE
+  	fputs("\n(+cbreak)\n",stdout) FLUSH;
+  #endif
+  #ifdef SERVER
+      if (chdir(spool)) {
+  #else /* not SERVER */
+
+--- 674,680 -----
+  #ifdef TERSE
+  	fputs("\n(+cbreak)\n",stdout) FLUSH;
+  #endif
++     termlib_init();
+  #ifdef SERVER
+      if (chdir(spool)) {
+  #else /* not SERVER */
+Index: rn.1
+Prereq: 4.4
+*** rn.1	Tue Oct  1 23:38:17 1991
+--- ../rn4.4.1/rn.1	Wed Sep 25 14:37:13 1991
+***************
+*** 1,17
+! ''' $Header: /home/sob/src/rn4.4/RCS/rn.1,v 4.4 1991/09/09 20:27:37 sob Exp sob $
+! ''' 
+! ''' This software is Copyright 1991 by Stan Barber. 
+! '''
+! ''' Permission is hereby granted to copy, reproduce, redistribute or otherwise
+! ''' use this software as long as: there is no monetary profit gained
+! ''' specifically from the use or reproduction of this software, it is not
+! ''' sold, rented, traded or otherwise marketed, and this copyright notice is
+! ''' included prominently in any copy made. 
+! '''
+! ''' The author make no claims as to the fitness or correctness of this software
+! ''' for any use whatsoever, and it is provided as is. Any use of this software
+! ''' is at the user's own risk. 
+! ''' 
+  .de Sh
+  .br
+  .ne 5
+
+--- 1,17 -----
+! .\" $Id: rn.1,v 4.4.1.1 1991/09/25 19:36:48 sob Exp sob $
+! .\" 
+! .\" This software is Copyright 1991 by Stan Barber. 
+! .\"
+! .\" Permission is hereby granted to copy, reproduce, redistribute or otherwise
+! .\" use this software as long as: there is no monetary profit gained
+! .\" specifically from the use or reproduction of this software, it is not
+! .\" sold, rented, traded or otherwise marketed, and this copyright notice is
+! .\" included prominently in any copy made. 
+! .\"
+! .\" The author make no claims as to the fitness or correctness of this software
+! .\" for any use whatsoever, and it is provided as is. Any use of this software
+! .\" is at the user's own risk. 
+! .\" 
+  .de Sh
+  .br
+  .ne 5
+***************
+*** 29,39
+  .el .ne 3
+  .IP "\\$1" \\$2
+  ..
+! '''
+! '''     Set up \*(-- to give an unbreakable dash;
+! '''     string Tr holds user defined translation string.
+! '''     Bell System Logo is used as a dummy character.
+! '''
+  .tr \(bs-|\(bv\*(Tr
+  .ie n \{\
+  .ds -- \(bs-
+
+--- 29,39 -----
+  .el .ne 3
+  .IP "\\$1" \\$2
+  ..
+! .\"
+! .\"     Set up \*(-- to give an unbreakable dash;
+! .\"     string Tr holds user defined translation string.
+! .\"     Bell System Logo is used as a dummy character.
+! .\"
+  .tr \(bs-|\(bv\*(Tr
+  .ie n \{\
+  .ds -- \(bs-
+Index: rn.c
+Prereq: 4.4
+*** rn.c	Tue Oct  1 23:39:04 1991
+--- ../rn4.4.1/rn.c	Wed Sep 25 14:38:45 1991
+***************
+*** 24,31
+   * is at the user's own risk. 
+   */
+  
+! static char rnid[] = "@(#)$Id: rn.c,v 4.4 1991/09/09 20:27:37 sob Exp sob $";
+! static char patchlevel[] = "Pathlevel 0";
+  
+  /* $Log: rn.c,v $
+   * Revision 4.4  1991/09/09  20:27:37  sob
+
+--- 24,31 -----
+   * is at the user's own risk. 
+   */
+  
+! static char rnid[] = "@(#)$Id: rn.c,v 4.4.1.1 1991/09/25 19:38:08 sob Exp sob $";
+! static char patchlevel[] = "Patchlevel 1";
+  
+  /* $Log: rn.c,v $
+   * Revision 4.4.1.1  1991/09/25  19:38:08  sob
+***************
+*** 28,33
+  static char patchlevel[] = "Pathlevel 0";
+  
+  /* $Log: rn.c,v $
+   * Revision 4.4  1991/09/09  20:27:37  sob
+   * release 4.4
+   *
+
+--- 28,36 -----
+  static char patchlevel[] = "Patchlevel 1";
+  
+  /* $Log: rn.c,v $
++  * Revision 4.4.1.1  1991/09/25  19:38:08  sob
++  * Updated patchlevel message
++  *
+   * Revision 4.4  1991/09/09  20:27:37  sob
+   * release 4.4
+   *

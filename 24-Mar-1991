@@ -1,0 +1,938 @@
+Xref: news-server.csri.toronto.edu news.software.b:7165 comp.sources.bugs:2868
+Newsgroups: news.software.b,comp.sources.bugs
+Path: news-server.csri.toronto.edu!utzoo!henry
+From: henry@zoo.toronto.edu (Henry Spencer)
+Subject: C News patch of 24-Mar-1991
+Message-ID: <1991Mar25.172816.11761@zoo.toronto.edu>
+Date: Mon, 25 Mar 1991 17:28:16 GMT
+Organization: U of Toronto Zoology
+
+Last of the set.  Now you're allowed to install them. :-)  It is best to
+do them in date order, because this one in particular revisits one or two
+files that were touched by earlier ones.
+
+Minor cleanup in expire, including improving some messages.  Newsrun invokes
+relaynews with the -o option, picking up the value for it from explist (via
+staleness).  Newshist becomes a shell file.  Getabsdate command for use in
+the inews date-canonicalization machinery.  Addgroup doesn't try to create
+the directory for 'x' or '=' groups.  Addmissing avoids trying to include
+files found at the top level of NEWSARTS (which cannot be news articles
+anyway).  -u option for ctime.  Fix the stupid absolute-pathname bug in
+histfrom.  Add reporting on bad dates and bad headers to newsdaily.  More
+notes in notebook/problems.  Add discussions of cancel validation and
+"keywords" to notebook/rfcerrata.  Fix a bug in Aussie readnews (introduced
+by me) that made it dump core when confronted with a Date-less article
+(can't happen any more, but still worth fixing).  And the usual bits of
+cleanup and portability work.
+
+start of patch 24-Mar-1991
+(suggested archive name: `pch24Mar91.Z')
+this should be run with   patch -p0 <thisfile
+
+Please do the following (there is no easy way we can convince
+patch to do this automatically):
+rm misc/newshist.c
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+Prereq: 13-Dec-1990
+Prereq: 14-Dec-1990
+Prereq: 15-Dec-1990
+Prereq: 16-Mar-1991
+Prereq: 17-Mar-1991
+Prereq: 23-Mar-1991
+*** PATCHDATES.old	Sun Mar 24 00:16:23 1991
+--- PATCHDATES	Sun Mar 24 00:16:23 1991
+***************
+*** 1,26 ****
+--- 1,27 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
+  13-Dec-1990
+  14-Dec-1990
+  15-Dec-1990
+  16-Mar-1991
+  17-Mar-1991
+  23-Mar-1991
++ 24-Mar-1991
+
+Changed files, if any:
+
+*** cnpatch/old/conf/subst.gc	Sun Mar 24 00:17:08 1991
+--- conf/subst.gc	Sun Mar 24 00:15:11 1991
+***************
+*** 19,20 ****
+--- 19,22 ----
+  man/active.times.5
+  misc/act.to.times
++ relay/aux/relayrun
++ relay/aux/staleness
+
+*** cnpatch/old/expire/expire.c	Sun Mar 24 00:17:36 1991
+--- expire/expire.c	Wed Mar 20 11:46:26 1991
+***************
+*** 127,131 ****
+  char *whereexpire();
+  time_t back();
+! void checkdir();
+  void fail();
+  void die();
+--- 127,131 ----
+  char *whereexpire();
+  time_t back();
+! void checkadir();
+  void fail();
+  void die();
+***************
+*** 233,237 ****
+  		printlists();
+  	if (defarch != NULL)
+! 		checkdir(defarch);
+  	if (checkonly)
+  		exit(0);
+--- 233,237 ----
+  		printlists();
+  	if (defarch != NULL)
+! 		checkadir(defarch);
+  	if (checkonly)
+  		exit(0);
+***************
+*** 345,349 ****
+  	} else {
+  		ct->dir = strsave(field[3]);
+! 		checkdir(ct->dir);
+  	}
+  
+--- 345,349 ----
+  	} else {
+  		ct->dir = strsave(field[3]);
+! 		checkadir(ct->dir);
+  	}
+  
+***************
+*** 1059,1066 ****
+  
+  /*
+!  - checkdir - check that a directory is real, writeable, and full pathname
+   */
+  void				/* fail() if not */
+! checkdir(dir)
+  char *dir;
+  {
+--- 1059,1066 ----
+  
+  /*
+!  - checkadir - check archiving directory is real, writable, and full pathname
+   */
+  void				/* fail() if not */
+! checkadir(dir)
+  char *dir;
+  {
+***************
+*** 1072,1080 ****
+  	errno = 0;
+  	if (stat(dir, &stbuf) < 0 || (stbuf.st_mode&S_IFMT) != S_IFDIR)
+! 		GRUMP("`%s' is not a directory", dir);
+  	if (access(dir, 02) < 0)
+! 		GRUMP("directory `%s' not writeable", dir);
+  	if (dir[0] != '/')
+! 		GRUMP("directory `%s' not an absolute pathname", dir);
+  }
+  
+--- 1072,1080 ----
+  	errno = 0;
+  	if (stat(dir, &stbuf) < 0 || (stbuf.st_mode&S_IFMT) != S_IFDIR)
+! 		GRUMP("archiving directory `%s' is not a directory", dir);
+  	if (access(dir, 02) < 0)
+! 		GRUMP("archiving directory `%s' not writable", dir);
+  	if (dir[0] != '/')
+! 		GRUMP("archiving directory `%s' not a full pathname", dir);
+  }
+  
+
+*** cnpatch/old/input/newsrun	Sun Mar 24 00:18:01 1991
+--- input/newsrun	Sat Mar 23 21:38:37 1991
+***************
+*** 60,63 ****
+--- 60,66 ----
+  fi
+  
++ # Misc. setup.
++ stale="`staleness`"
++ 
+  # Master loop.
+  while :				# "while true", but : is faster
+***************
+*** 145,149 ****
+  		# NNTP-feed sites and doesn't hurt uucp-feed sites unless
+  		# they refuse a good fraction of what they get.
+! 		relaynews -r -n <$text
+  		st=$?
+  		if test $st -ne 0
+--- 148,152 ----
+  		# NNTP-feed sites and doesn't hurt uucp-feed sites unless
+  		# they refuse a good fraction of what they get.
+! 		relaynews -r -n $stale <$text
+  		st=$?
+  		if test $st -ne 0
+
+*** cnpatch/old/misc/Makefile	Sun Mar 24 00:19:36 1991
+--- misc/Makefile	Sat Mar 16 19:53:15 1991
+***************
+*** 11,18 ****
+  SHELL = /bin/sh
+  
+! MAINTBIN=newshist
+  MAINT = $(MAINTBIN) newsdaily newswatch newsboot locknews addgroup delgroup \
+! 	adddirs addfeed act.to.times histfrom newsfrom addmissing
+! UTILBIN = gngp newslock ctime getdate canonhdr
+  UTILS = $(UTILBIN) sizeof newshostname
+  THEM = $(MAINT) $(UTILS)
+--- 11,18 ----
+  SHELL = /bin/sh
+  
+! MAINTBIN=
+  MAINT = $(MAINTBIN) newsdaily newswatch newsboot locknews addgroup delgroup \
+! 	adddirs addfeed act.to.times histfrom newsfrom addmissing newshist
+! UTILBIN = gngp newslock ctime getdate canonhdr getabsdate
+  UTILS = $(UTILBIN) sizeof newshostname
+  THEM = $(MAINT) $(UTILS)
+***************
+*** 54,66 ****
+  	$(CC) $(CFLAGS) $(LDFLAGS) canonhdr.o $(PRE) $(LIBS) $(POST) -o $@
+  
+! NHCFLAGS = -I$(RN) $(CFLAGS)
+! RNEWSOBJS = $(RN)/history.o $(RN)/article.o $(RN)/hdrdefs.o \
+!  $(RN)/io.o $(RN)/msgs.o
+! NHLIBS = $(LIBS) $(DBM)
+! newshist:	newshist.o $(RNEWSOBJS) $(LIBS)
+! 	$(CC) $(NHCFLAGS) $(LDFLAGS) newshist.o $(RNEWSOBJS) $(PRE) $(NHLIBS) $(POST) -o $@
+! 
+! newshist.o:	newshist.c
+! 	$(CC) $(NHCFLAGS) -c newshist.c
+  
+  clean:
+--- 54,59 ----
+  	$(CC) $(CFLAGS) $(LDFLAGS) canonhdr.o $(PRE) $(LIBS) $(POST) -o $@
+  
+! getabsdate:	getabsdate.o $(LIBS)
+! 	$(CC) $(CFLAGS) $(LDFLAGS) getabsdate.o $(PRE) $(LIBS) $(POST) -o $@
+  
+  clean:
+
+*** cnpatch/old/misc/addgroup	Sun Mar 24 00:19:40 1991
+--- misc/addgroup	Mon Jan  7 14:15:17 1991
+***************
+*** 49,53 ****
+  
+  echo "$1 0000000000 0000000001 $2" >>$NEWSCTL/active
+! mkpdir $NEWSARTS/`echo $1 | tr . /`
+  
+  SENDER=${USER-unknown}@`hostname`
+--- 49,56 ----
+  
+  echo "$1 0000000000 0000000001 $2" >>$NEWSCTL/active
+! case "$2" in
+! [x=]*)	;;
+! *)	mkpdir $NEWSARTS/`echo $1 | tr . /`	;;
+! esac
+  
+  SENDER=${USER-unknown}@`hostname`
+
+*** cnpatch/old/misc/addmissing	Sun Mar 24 00:19:41 1991
+--- misc/addmissing	Wed Mar  6 15:53:32 1991
+***************
+*** 40,44 ****
+  
+  cd $NEWSARTS
+! find `ls | egrep -v '\.'` -type f -name '[0-9]*' -print | sort >/tmp/tree$$
+  
+  comm -13 /tmp/hist$$ /tmp/tree$$ | histinfo | sort |
+--- 40,52 ----
+  
+  cd $NEWSARTS
+! them=
+! for f in `ls | egrep -v '\.'`
+! do
+! 	if test -d $f
+! 	then
+! 		them="$them $f"
+! 	fi
+! done
+! find $them -type f -name '[0-9]*' -print | sort >/tmp/tree$$
+  
+  comm -13 /tmp/hist$$ /tmp/tree$$ | histinfo | sort |
+
+*** cnpatch/old/misc/ctime.c	Sun Mar 24 00:19:44 1991
+--- misc/ctime.c	Mon Mar  4 02:36:28 1991
+***************
+*** 9,20 ****
+  #include <sys/timeb.h>
+  
+! #define	DAY	(24L*60L*60L)
+  
+- struct timeb ftnow;
+- 
+  char *progname;
+  
+  extern long atol();
+! extern char *malloc();
+  extern struct tm *gmtime();
+  extern time_t time();
+--- 9,21 ----
+  #include <sys/timeb.h>
+  
+! /* privates */
+! static struct timeb ftnow;
+! static int gmt = 0;
+  
+  char *progname;
+  
++ /* imports */
+  extern long atol();
+! extern char *malloc(), *ctime(), *asctime();
+  extern struct tm *gmtime();
+  extern time_t time();
+***************
+*** 22,25 ****
+--- 23,28 ----
+  /* Forwards. */
+  extern void process();
++ extern int optind;
++ extern char *optarg;
+  
+  /*
+***************
+*** 30,37 ****
+  char *argv[];
+  {
+! 	register int c;
+! 	register int errflg = 0;
+! 	extern int optind;
+! 	extern char *optarg;
+  
+  	progname = argv[0];
+--- 33,37 ----
+  char *argv[];
+  {
+! 	register int c, errflg = 0;
+  
+  	progname = argv[0];
+***************
+*** 38,43 ****
+  	ftime(&ftnow);
+  
+! 	while ((c = getopt(argc, argv, "")) != EOF)
+  		switch (c) {
+  		case '?':
+  		default:
+--- 38,46 ----
+  	ftime(&ftnow);
+  
+! 	while ((c = getopt(argc, argv, "u")) != EOF)
+  		switch (c) {
++ 		case 'u':
++ 			++gmt;
++ 			break;
+  		case '?':
+  		default:
+***************
+*** 46,50 ****
+  		}
+  	if (errflg || optind == argc) {
+! 		(void) fprintf(stderr, "Usage: %s ascii_time ...\n", progname);
+  		exit(2);
+  	}
+--- 49,54 ----
+  		}
+  	if (errflg || optind == argc) {
+! 		(void) fprintf(stderr, "Usage: %s [-u] ascii_time ...\n",
+! 			       progname);
+  		exit(2);
+  	}
+***************
+*** 62,70 ****
+  char *tms;
+  {
+! 	time_t tm;
+! 	char *ctime();
+! 	long atol();
+  
+! 	tm = atol(tms);
+! 	(void) fputs(ctime(&tm), stdout);
+  }
+--- 66,76 ----
+  char *tms;
+  {
+! 	time_t tm = atol(tms);
+  
+! 	if (gmt) {
+! 		register struct tm *prstime = gmtime(&tm);
+! 
+! 		(void) fputs(asctime(prstime), stdout);
+! 	} else
+! 		(void) fputs(ctime(&tm), stdout);
+  }
+
+*** cnpatch/old/misc/gngp.c	Sun Mar 24 00:19:48 1991
+--- misc/gngp.c	Tue Mar 12 17:56:47 1991
+***************
+*** 5,8 ****
+--- 5,9 ----
+  
+  #include <stdio.h>
++ #include <string.h>
+  
+  char *progname;
+***************
+*** 98,103 ****
+  
+  	if (anchored) {
+- 		extern char *strpbrk();
+- 
+  		whitesp = strpbrk(text, " \t\n");
+  		if (whitesp != NULL) {
+--- 99,102 ----
+
+*** cnpatch/old/misc/histfrom	Sun Mar 24 00:19:50 1991
+--- misc/histfrom	Sat Dec 29 22:11:21 1990
+***************
+*** 19,23 ****
+  	;;
+  esac
+! if start=`/bin/getdate "$start"` && end=`/bin/getdate "$end"`
+  then
+  	: okay
+--- 19,23 ----
+  	;;
+  esac
+! if start=`getdate "$start"` && end=`getdate "$end"`
+  then
+  	: okay
+
+*** cnpatch/old/misc/locknews	Sun Mar 24 00:19:51 1991
+--- misc/locknews	Thu Jan 31 13:44:50 1991
+***************
+*** 11,18 ****
+  if newslock sys LOCK; then
+  	echo 'news system locked by you'
+! 	PS1="newslocked$PS1 " ${SHELL-/bin/sh}
+  	rm -f LOCK
+  	echo 'news system unlocked now'
+  else
+  	echo 'inadequate permissions, or news system already locked'
+  fi
+--- 11,20 ----
+  if newslock sys LOCK; then
+  	echo 'news system locked by you'
+! 	PS1="newslocked$PS1" ${SHELL-/bin/sh}
+  	rm -f LOCK
+  	echo 'news system unlocked now'
++ 	exit 0
+  else
+  	echo 'inadequate permissions, or news system already locked'
++ 	exit 1
+  fi
+
+*** cnpatch/old/misc/newsdaily	Sun Mar 24 00:19:55 1991
+--- misc/newsdaily	Sat Mar 23 21:55:14 1991
+***************
+*** 127,130 ****
+--- 127,154 ----
+  fi
+  
++ # And other signs of problems.
++ cd $NEWSCTL
++ egrep 'older than|too far in the future|unparsable Date' log.o | egrep ' - ' |
++ 	awk '{print $4}' | sort | uniq -c | sort -nr | sed 5q >$tmp
++ if test -s $tmp
++ then
++ 	(
++ 		echo 'leading five sites sending stale/future/misdated news:'
++ 		cat $tmp
++ 		echo
++ 	) >>$gripes
++ fi
++ egrep ' (no|empty) .* header|contains non-header|Message-ID' log.o |
++ 	egrep ' - ' | awk '{print $4}' | sort | uniq -c | sort -nr |
++ 	sed 5q >$tmp
++ if test -s $tmp
++ then
++ 	(
++ 		echo 'leading five sites sending news with bad headers:'
++ 		cat $tmp
++ 		echo
++ 	) >>$gripes
++ fi
++ 
+  # and send it
+  if test -s $gripes
+
+*** cnpatch/old/notebook/problems	Sun Mar 24 00:20:12 1991
+--- notebook/problems	Thu Mar 14 14:19:39 1991
+***************
+*** 1,3 ****
+! .DA "10 Dec 1990"
+  .TL
+  Known Porting Problems With C News
+--- 1,3 ----
+! .DA "14 March 1991"
+  .TL
+  Known Porting Problems With C News
+***************
+*** 186,190 ****
+  C News does not rely on the ANSI C ``void\ *'' type as far as we know.
+  .SH
+! Read/write Modes in fopen
+  .PP
+  Unix V7 documented only ``r'', ``w'', and ``a'' as suitable mode arguments
+--- 186,190 ----
+  C News does not rely on the ANSI C ``void\ *'' type as far as we know.
+  .SH
+! Modes in fopen
+  .PP
+  Unix V7 documented only ``r'', ``w'', and ``a'' as suitable mode arguments
+***************
+*** 195,198 ****
+--- 195,203 ----
+  we know that at least the older versions of Minix really don't implement
+  these modes.
++ .PP
++ A related complication in Minix is that \fIftell\fR
++ reportedly doesn't give the
++ right answer in ``a'' mode.
++ This makes \fIdbz\fR flunk its regression test.
+  .SH
+  MAXLONG
+***************
+*** 475,479 ****
+  sympathize with people victimized by it, but can be of no practical help.
+  .SH
+! Compress Options
+  .PP
+  Some imbecilic vendors have altered \fIcompress\fR so that it must be
+--- 480,484 ----
+  sympathize with people victimized by it, but can be of no practical help.
+  .SH
+! Compress Behavior
+  .PP
+  Some imbecilic vendors have altered \fIcompress\fR so that it must be
+***************
+*** 484,489 ****
+  (because they weren't compressed), but most outside traffic gets rejected
+  by \fIrelaynews\fR, which complains that it lacks `Path:' lines.
+! In general, a complaint about a lack of `Path:' tends to mean that
+! \fIrelaynews\fR got fed total gibberish.
+  .SH
+  ulimit
+--- 489,499 ----
+  (because they weren't compressed), but most outside traffic gets rejected
+  by \fIrelaynews\fR, which complains that it lacks `Path:' lines.
+! (In general, a complaint about a lack of `Path:' tends to mean that
+! \fIrelaynews\fR got fed total gibberish.)
+! .PP
+! Extremely old (pre-1985) versions of \fIcompress\fR run off at the mouth
+! with a status message
+! on \fIstderr\fR even when nothing goes wrong in the compression.
+! This upsets the batcher, which thinks any \fIstderr\fR output means trouble.
+  .SH
+  ulimit
+***************
+*** 618,619 ****
+--- 628,674 ----
+  .DE
+  is reported to solve this.
++ .SH
++ Amiga Library Ordering
++ .PP
++ It is reliably reported that when compiling some of the programs under
++ SVR4 on the Amiga, it is necessary to give ``\-lc \-lucb'' as library
++ options\(emlinking of the C library \fImust\fR precede linking of the
++ Berkeley-emulation library, or the code links but will not run.
++ .SH
++ AIX/370 vs. fsync()
++ .PP
++ The
++ .I relaynews
++ regression test fails under AIX/370, because the system refuses to do
++ an
++ .I fsync
++ on a file descriptor open to
++ .I /dev/null .
++ It is possible that this does not affect production use, however.
++ .SH
++ AIX/370 vs. Shell Files
++ .PP
++ AIX/370 has added at least one keyword (``on'') to the shell, and this is
++ known to cause syntax complaints
++ in at least one shell script (\fInewsrunning\fR).
++ Unless this is also a keyword in the final version of POSIX 1003.2,
++ we don't plan to fix this.
++ .SH
++ Struct Conditional Expressions
++ .PP
++ Some (all?) SCO Xenix compilers take offense to expressions like
++ .DS
++ value = (dbzint) ? dbzfetch(key) : fetch(key);
++ .DE
++ where the functions return
++ .I struct
++ values.
++ This occurs in three places in
++ .I dbz/dbzmain.c ,
++ and the workaround is to expand those conditionals to statements like:
++ .DS
++ if (dbzint)
++ 	value = dbzfetch(key);
++ else
++ 	value = fetch(key);
++ .DE
+
+*** cnpatch/old/notebook/rfcerrata	Sun Mar 24 00:20:17 1991
+--- notebook/rfcerrata	Mon Feb 11 17:19:54 1991
+***************
+*** 86,89 ****
+--- 86,148 ----
+  \fIcancel\fR.
+  .SH
++ cancel validation
++ .PP
++ RFC 1036 requires that a
++ .I cancel
++ message have a
++ .B Sender:
++ or
++ .B From:
++ header matching the message it is cancelling.
++ It is not entirely clear from the text whether this restriction is supposed
++ to be enforced at the originating site or at each receiving site,
++ although the latter is implied.
++ .PP
++ More seriously,
++ it is not clear what ``matching'' means in this context, considering
++ that a substantial fraction of the information in such lines is typically
++ in RFC 822 comments.
++ There is an unfortunate tradition of news readers generating
++ header comments in varying ways.
++ There is also a lot of obsolete or misdesigned
++ news software still operational,
++ and some of it gratuitously
++ alters the header comments
++ (and sometimes even the non-comment parts of the headers!)
++ in messages passing through.
++ While theoretically these complications should affect the original and
++ the cancellation identically, in practice this is not consistently so,
++ and it is difficult to generate a cancellation that works dependably.
++ This is not just speculation; there are verified cases of the originators
++ of messages having considerable difficulty cancelling them when it was
++ important to do so.
++ .PP
++ The value of RFC 1036 authentication is also somewhat questionable.
++ It provides no useful security against malice, because news is so
++ easy to forge.
++ While there is some value in preventing accidents, there is room for
++ doubt as to whether this is worth
++ the interference with legitimate cancellations.
++ .PP
++ C News takes the position that the RFC 1036 approach to authentication is
++ impossible to implement in a practical way, due to its vagueness and the
++ prevalence of gratuitous and unpredictable header rewriting,
++ and on balance the inability to cancel is worse than the largely-illusory
++ security provided.
++ C News therefore does not authenticate cancellations.
++ .PP
++ Doing something about the problem is difficult.
++ Specification of a
++ .I precise
++ algorithm for header matching would help, but finding one that
++ will disregard gratuitous header mangling is hard.
++ A more appealing approach would be to authenticate cancellations
++ by cryptographic means, but there are severe difficulties in key distribution
++ on an unreliable non-real-time network like Usenet, and
++ the cost of checking cryptographic credentials is disturbingly high.
++ Ultimately, it may be necessary to abandon destructive control messages
++ entirely, or reserve them for rare emergencies and route them through a
++ trusted moderator for cryptographic authentication.
++ .SH
+  ihave/sendme not documented
+  .PP
+***************
+*** 128,129 ****
+--- 187,205 ----
+  (see
+  .I relaynews (8)).
++ .SH
++ ``Keywords''
++ .PP
++ Section 2 says that a header begins with a ``keyword'' as the header name.
++ RFC 1036 never defines what a keyword is, and RFC 822 does not use the term.
++ ``Keyword'' here must be considered an informal term with no precise meaning,
++ imposing no additional restrictions on header syntax.
++ .PP
++ In particular, things like ``>from:\ foo@bar'', which causes B News to choke,
++ appear to be legal RFC 822 (and hence 1036) headers.
++ (Before quoting lexical rules,
++ such as the requirement for balancing brackets, please
++ note that the 822 lexical rules are context-sensitive.)
++ .PP
++ Theoretical legality notwithstanding,
++ such bizarre header names are dubious and unwise practice.
++ RFC 1036 probably should be tightened up to exclude them.
+
+*** cnpatch/old/rna/defs.h	Sun Mar 24 00:21:58 1991
+--- rna/defs.h	Tue Mar 12 17:58:05 1991
+***************
+*** 2,5 ****
+--- 2,6 ----
+  #include <sys/stat.h>
+  #include <stdio.h>
++ #include <string.h>
+  #include <ctype.h>
+  #include <time.h>
+
+*** cnpatch/old/rna/makefile	Sun Mar 24 00:22:03 1991
+--- rna/makefile	Sun Jan  6 01:58:39 1991
+***************
+*** 63,66 ****
+--- 63,72 ----
+  	cmp $(NEWSBIN)/inject/postnews postnews
+  
++ check:	readnews checknews postnews
++ 	cmp $(BINDIR)/readnews readnews || true
++ 	cmp $(BINDIR)/checknews checknews || true
++ 	cmp $(BINDIR)/postnews postnews || true
++ 	cmp $(NEWSBIN)/inject/postnews postnews || true
++ 
+  lint: $(LCOMMANDS)
+  
+
+*** cnpatch/old/rna/readnews.c	Sun Mar 24 00:22:09 1991
+--- rna/readnews.c	Tue Mar 12 17:58:21 1991
+***************
+*** 62,66 ****
+  	setbuf(stdout, buf);
+  	if (options(--argc, ++argv, true)) {
+! 		(void) fprintf(stderr, "Usage: readnews [-n newsgroups] [-i] [-clpC] [-s[-+? [group]]] [-u messageid]\n");
+  		exit(1);
+  	}
+--- 62,66 ----
+  	setbuf(stdout, buf);
+  	if (options(--argc, ++argv, true)) {
+! 		(void) fprintf(stderr, "Usage: readnews [-n newsgroups] [-i] [-clpC] [-s[-+? [group]]]\n");
+  		exit(1);
+  	}
+***************
+*** 515,519 ****
+  	extern char t_newsgroups[], t_path[], t_sender[];
+  	extern char t_replyto[], t_organization[];
+- 	extern char *strncpy();
+  	extern active	*activep();
+  
+--- 515,518 ----
+***************
+*** 580,585 ****
+  			if (h.h_lines != 0)
+  				(void) printf(" (%s lines)", h.h_lines);
+! 			itsdate = atot(h.h_date);
+! 			(void) printf(" %s", ctime(&itsdate));
+  			(void) printf(form, t_subject, h.h_subject);
+  			(void) printf(form, t_from, h.h_from);
+--- 579,587 ----
+  			if (h.h_lines != 0)
+  				(void) printf(" (%s lines)", h.h_lines);
+! 			if (h.h_date != NULL) {
+! 				itsdate = atot(h.h_date);
+! 				(void) printf(" %s", ctime(&itsdate));
+! 			} else
+! 				(void) printf(" %s", "<no date!>\n");
+  			(void) printf(form, t_subject, h.h_subject);
+  			(void) printf(form, t_from, h.h_from);
+
+Files that are new:
+
+new misc/getabsdate.c (patch can't create, so diff against null):
+Index: misc/getabsdate.c
+*** cnpatch/old/misc/getabsdate.c	Sun Mar 24 00:22:11 1991
+--- misc/getabsdate.c	Mon Mar  4 02:41:39 1991
+***************
+*** 0 ****
+--- 1,86 ----
++ /*
++  * getabsdate absolute_date ... - convert absolute_date to seconds since epoch
++  */
++ 
++ #include <stdio.h>
++ #include <ctype.h>
++ #include <time.h>
++ #include <sys/types.h>
++ #include <sys/timeb.h>
++ 
++ /* privates */
++ static struct timeb ftnow;
++ static int exitstatus = 0;
++ 
++ char *progname;
++ 
++ /* imports */
++ extern long atol();
++ extern char *malloc();
++ extern struct tm *gmtime();
++ extern time_t time();
++ extern int optind;
++ extern char *optarg;
++ 
++ extern char *strsave();
++ extern time_t getabsdate();
++ 
++ /* Forwards. */
++ extern void process();
++ 
++ /*
++  - main - parse arguments and handle options
++  */
++ main(argc, argv)
++ int argc;
++ char *argv[];
++ {
++ 	register int c, errflg = 0;
++ 
++ 	progname = argv[0];
++ 	ftime(&ftnow);
++ 
++ 	while ((c = getopt(argc, argv, "")) != EOF)
++ 		switch (c) {
++ 		case '?':
++ 		default:
++ 			errflg++;
++ 			break;
++ 		}
++ 	if (errflg || optind == argc) {
++ 		(void) fprintf(stderr, "Usage: %s ascii_time ...\n", progname);
++ 		exit(2);
++ 	}
++ 
++ 	for (; optind < argc; optind++)
++ 		process(argv[optind]);
++ 	exit(exitstatus);
++ }
++ 
++ /*
++  * process - print time_t of tm
++  */
++ void
++ process(timestr)
++ char *timestr;
++ {
++ 	register time_t tstime;
++ 	register char *copy = strsave(timestr);
++ 
++ 	if (copy == NULL) {
++ 		exitstatus = 1;
++ 		return;
++ 	}
++ 	tstime = getabsdate(copy, &ftnow);
++ 	if (tstime < 0) {
++ 		(void) fprintf(stderr, "%s: `%s' not a valid date\n",
++ 			       progname, timestr);
++ 		exitstatus = 1;
++ 	} else
++ 		(void) printf("%ld\n", tstime);
++ 	free(copy);
++ }
++ 
++ unprivileged()			/* strsave requires this; ugh */
++ {
++ }
+
+new misc/newshist (patch can't create, so diff against null):
+Index: misc/newshist
+*** cnpatch/old/misc/newshist	Sun Mar 24 00:22:12 1991
+--- misc/newshist	Sat Mar 16 19:51:30 1991
+***************
+*** 0 ****
+--- 1,41 ----
++ #! /bin/sh
++ # newshist - get history line for a message-ID, if any
++ # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
++ . ${NEWSCONFIG-/usr/lib/news/bin/config}
++ 
++ PATH=$NEWSCTL/bin:$NEWSBIN:$NEWSPATH ; export PATH
++ umask $NEWSUMASK
++ 
++ history="$NEWSCTL/history"
++ case "$1" in
++ -f)	history="$2"
++ 	shift ; shift
++ 	;;
++ esac
++ 
++ usage="Usage: newshist [-f historyfile] messageid ..."
++ case "$#" in
++ 0)	echo "$usage" >&2 ; exit 2	;;
++ esac
++ case "$1" in
++ -*)	echo "$usage" >&2 ; exit 2	;;
++ esac
++ 
++ status=1
++ for mid
++ do
++ 	it="`echo \"$mid\" | dbz -ix $history`"
++ 	if test " $it" = " "
++ 	then
++ 		it="`echo \"<$mid>\" | dbz -ix $history`"
++ 	fi
++ 	if test " $it" = " "
++ 	then
++ 		echo "$0: no history entry for \`$mid' nor \`<$mid>'" >&2
++ 	else
++ 		echo "$it"
++ 		status=0
++ 	fi
++ done
++ 
++ exit $status
+
+
+end of patch 24-Mar-1991
+-- 
+"[Some people] positively *wish* to     | Henry Spencer @ U of Toronto Zoology
+believe ill of the modern world."-R.Peto|  henry@zoo.toronto.edu  utzoo!henry

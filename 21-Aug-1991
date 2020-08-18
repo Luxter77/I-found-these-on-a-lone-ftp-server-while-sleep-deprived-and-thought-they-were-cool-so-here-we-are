@@ -1,0 +1,945 @@
+Newsgroups: news.software.b,comp.sources.bugs
+Subject: C News patch of 21-Aug-1991
+
+This is the third of the three August patches.  Two things that I am
+working on -- delayed ihave/sendme and a newsrun that exploits the new
+relaynews -u option -- did not get into it due to time constraints,
+and may appear in September.  Otherwise this is the last non-emergency
+patch before the cleanup release, tentatively expected early next year.
+
+WARNING:  BATCH FILES NOW USE RELATIVE PATHNAMES.  This affects certain
+other items of software that want to look at the batch files.  In most
+cases, a "cd /usr/spool/news" (or wherever) is all that is required to
+fix them.  Notably, nntpxmit needs no changes (although invocations of
+it may), and nntpsend can be fixed by changing the nntpxmit line in it
+from
+ 	time nntpxmit ${host}:${send}
+to
+ 	( cd /usr/spool/news ; time nntpxmit ${host}:$batchdir/${send} )
+
+Aside from that, this one includes...  Implementation of relaynews -u.
+Better reporting of bad headers, including the faulty input line.  Fix
+overzealous insertion of spaces after colons in inews.  Relaynews now
+ignores zero-length articles in a batch.  Relaynews now checks for more
+than one occurrence of the required headers, and drops articles which
+have such duplicates.  Sys-file second field checked for multiple slashes,
+to catch a common error.  Inews strips its own host name from the front
+of a presupplied Path header, to compensate for broken nntp software.
+And the usual bunch of minor cleanups, fixes, and better responses to
+odd situations.
+
+start of patch 21-Aug-1991
+(suggested archive name: `pch21Aug91.Z')
+this should be run with   patch -p0 <thisfile
+
+Please do the following (there is no easy way we can convince
+patch to do this automatically):
+rm misc/soonerthan
+
+The following is a complete list of patches to date.
+
+Prereq: 23-Jun-1989
+Prereq: 7-Jul-1989
+Prereq: 23-Jul-1989
+Prereq: 22-Aug-1989
+Prereq: 24-Aug-1989
+Prereq: 14-Sep-1989
+Prereq: 13-Nov-1989
+Prereq: 10-Jan-1990
+Prereq: 16-Jan-1990
+Prereq: 17-Jan-1990
+Prereq: 18-Jan-1990
+Prereq: 12-Mar-1990
+Prereq: 14-Apr-1990
+Prereq: 15-Apr-1990
+Prereq: 16-Apr-1990
+Prereq: 25-May-1990
+Prereq: 1-Sep-1990
+Prereq: 7-Sep-1990
+Prereq: 1-Dec-1990
+Prereq: 12-Dec-1990
+Prereq: 13-Dec-1990
+Prereq: 14-Dec-1990
+Prereq: 15-Dec-1990
+Prereq: 16-Mar-1991
+Prereq: 17-Mar-1991
+Prereq: 23-Mar-1991
+Prereq: 24-Mar-1991
+Prereq: 6-Jul-1991
+Prereq: 9-Aug-1991
+Prereq: 17-Aug-1991
+*** PATCHDATES.old	Wed Aug 21 13:01:34 1991
+--- PATCHDATES	Wed Aug 21 13:01:34 1991
+***************
+*** 1,30 ****
+--- 1,31 ----
+  23-Jun-1989
+  7-Jul-1989
+  23-Jul-1989
+  22-Aug-1989
+  24-Aug-1989
+  14-Sep-1989
+  13-Nov-1989
+  10-Jan-1990
+  16-Jan-1990
+  17-Jan-1990
+  18-Jan-1990
+  12-Mar-1990
+  14-Apr-1990
+  15-Apr-1990
+  16-Apr-1990
+  25-May-1990
+  1-Sep-1990
+  7-Sep-1990
+  1-Dec-1990
+  12-Dec-1990
+  13-Dec-1990
+  14-Dec-1990
+  15-Dec-1990
+  16-Mar-1991
+  17-Mar-1991
+  23-Mar-1991
+  24-Mar-1991
+  6-Jul-1991
+  9-Aug-1991
+  17-Aug-1991
++ 21-Aug-1991
+
+Changed files, if any:
+
+*** cnpatch/old/relay/active.c	Wed Aug 21 13:07:06 1991
+--- relay/active.c	Wed Jul 17 18:33:38 1991
+***************
+*** 234,239 ****
+  	register char *ngline = actlook(ong);
+  
+! 	if (ngline == NULL)
+! 		return NULL;			/* no such ong */
+! 	return strsvto(ngline, ' ');
+  }
+--- 234,237 ----
+  	register char *ngline = actlook(ong);
+  
+! 	return (ngline == NULL? NULL: strsvto(ngline, ' '));
+  }
+
+*** cnpatch/old/relay/control.c	Wed Aug 21 13:07:37 1991
+--- relay/control.c	Wed Jul 17 18:55:52 1991
+***************
+*** 41,45 ****
+   * since it allows people to escape from the control directory.
+   */
+! #define SHELLMETAS "<>|&;({$=*?[`'\"/"
+  
+  /* imports from news */
+--- 41,45 ----
+   * since it allows people to escape from the control directory.
+   */
+! #define SHELLMETAS "\\<>|^&;\n({$=*?[`'\"/"
+  
+  /* imports from news */
+***************
+*** 79,82 ****
+--- 79,91 ----
+  	if (STREQN(ctlcmd, nmcancel, STRLEN(nmcancel))) {
+  		art->a_status |= cancelart(ctlcmd + STRLEN(nmcancel));
++ 		return;
++ 	}
++ 	if (CISTREQN(ctlcmd, nmcancel, STRLEN(nmcancel)-1) &&
++ 	    (!isascii(ctlcmd[STRLEN(nmcancel)-1]) ||
++ 	     !isalpha(ctlcmd[STRLEN(nmcancel)-1]))) {
++ 		/* should really just log this */
++ 		errno = 0;
++ 		warning("malformed cancel `%s'", ctlcmd);
++ 		/* no need to return bad status; happens all the time */
+  		return;
+  	}
+
+*** cnpatch/old/relay/ctl/newgroup	Wed Aug 21 13:07:42 1991
+--- relay/ctl/newgroup	Wed Jul 17 19:01:20 1991
+***************
+*** 33,38 ****
+  esac
+  
+! greppat="^`echo $1 | sed 's/\./\\\\./g' ` "
+! if grep -s "$greppat" $NEWSCTL/active >/dev/null; then	# group exists?
+  	export SENDER
+  	chamod "$1" "$2" 		# change moderated flag if needed
+--- 33,39 ----
+  esac
+  
+! # escape egrep metacharacters.  In theory one could add " ' ` \ to the list.
+! egreppat="^(` echo "$1" | sed -e 's/[.+*()|[]/\\\\&/g' -e 's/,/|/g' `) "
+! if egrep "$egreppat" $NEWSCTL/active >/dev/null; then	# group exists?
+  	export SENDER
+  	chamod "$1" "$2" 		# change moderated flag if needed
+
+*** cnpatch/old/relay/ctl/rmgroup	Wed Aug 21 13:07:44 1991
+--- relay/ctl/rmgroup	Wed Jul 17 19:01:05 1991
+***************
+*** 16,20 ****
+  
+  # quit if no active entry
+! egrep "^`echo $1 | sed 's/\./\\\\./g'` " $NEWSCTL/active >/dev/null ||
+  	{ rm -f $hdr; exit 0; }
+  
+--- 16,22 ----
+  
+  # quit if no active entry
+! # escape egrep metacharacters.  In theory one could add " ' ` \ to the list.
+! egreppat="^(` echo "$1" | sed -e 's/[.+*()|[]/\\\\&/g' -e 's/,/|/g' `) "
+! egrep "$egreppat" $NEWSCTL/active >/dev/null ||
+  	{ rm -f $hdr; exit 0; }
+  
+
+*** cnpatch/old/relay/fileart.c	Wed Aug 21 13:07:53 1991
+--- relay/fileart.c	Wed Jul 17 18:57:26 1991
+***************
+*** 107,114 ****
+--- 107,122 ----
+  		if (comma != NULL)
+  			*comma = '\0';		/* will be restored below */
++ 
++ 		/*
++ 		 * Map group names in Newsgroups: header to local group
++ 		 * names for filing.
++ 		 */
+  		ng = realngname(ngs);
+  		if (ng == NULL)
+  			ng = strsave(ngs);
++ 
++ 		/* attempt to file the article */
+  		asgnartnum(art, openfirst, ng, artnumstr);
++ 
+  		/*
+  		 * If no such group in active or link failed, and the group
+***************
+*** 149,153 ****
+  int *junkgroupsp;
+  {
+! 	if (*junkgroupsp > 0 && goodngs == 0) {	/* all groups were "junked"? */
+  		asgnartnum(art, openfirst, JUNK, artnumstr);
+  		if (artnum >= 1 && art->a_status == ST_OKAY) {
+--- 157,168 ----
+  int *junkgroupsp;
+  {
+! 	if (goodngs != 0)
+! 		return;		/* shouldn't be here, with valid groups */
+! 
+! 	if (*junkgroupsp > 0) {
+! 		/*
+! 		 * All groups were "junked".  Try to file this article in
+! 		 * junk.
+! 		 */
+  		asgnartnum(art, openfirst, JUNK, artnumstr);
+  		if (artnum >= 1 && art->a_status == ST_OKAY) {
+***************
+*** 154,177 ****
+  			gotgoodng(art, JUNK, artnumstr);
+  			art->a_status |= ST_JUNKED;
+! 		} else {
+! 			/*
+! 			 * couldn't file article in junk.
+! 			 * was JUNK not 'x'ed (i.e. doesn't exist)?
+! 			 */
+! 			if (art->a_status != ST_REFUSED) {
+! 				static boolean warned = NO;
+  
+! 				art->a_status |= ST_REFUSED|ST_DROPPED;
+! 				if (!warned) {
+! 					warned = YES;
+! 					(void) fprintf(stderr, "%s: no %s group\n",
+! 						progname, JUNK);
+! 				}
+  			}
+  			prefuse(art);
+! 			(void) printf("no known groups in `%s' and no %s group\n",
+  				art->h.h_ngs, JUNK);
+  		}
+! 	} else if (goodngs == 0) {
+  		extern boolean histreject;
+  
+--- 169,195 ----
+  			gotgoodng(art, JUNK, artnumstr);
+  			art->a_status |= ST_JUNKED;
+! 		} else
+! 		/* couldn't file article in junk.  why? */
+! 		if (art->a_status&ST_REFUSED) {	/* junk is 'x'ed */
+! 			prefuse(art);
+! 			(void) printf(
+! 		"no known groups in `%s' and %s group is excluded in active\n",
+! 				art->h.h_ngs, JUNK);
+! 		} else {			/* junk is missing? */
+! 			static boolean warned = NO;
+  
+! 			art->a_status |= ST_REFUSED|ST_DROPPED;
+! 			if (!warned) {
+! 				warned = YES;
+! 				(void) fprintf(stderr,
+! 		"%s: can't file in %s group; is it absent from active?\n",
+! 					progname, JUNK);
+  			}
+  			prefuse(art);
+! 			(void) printf(
+! 			"no known groups in `%s' and no %s group\n",
+  				art->h.h_ngs, JUNK);
+  		}
+! 	} else {
+  		extern boolean histreject;
+  
+***************
+*** 183,187 ****
+  			history(art, NOLOG);
+  		prefuse(art);
+! 		(void) printf("all groups `%s' excluded in active\n", art->h.h_ngs);
+  		art->a_status |= ST_REFUSED;
+  	}
+--- 201,206 ----
+  			history(art, NOLOG);
+  		prefuse(art);
+! 		(void) printf("all groups `%s' excluded in active\n",
+! 			art->h.h_ngs);
+  		art->a_status |= ST_REFUSED;
+  	}
+***************
+*** 322,325 ****
+--- 341,345 ----
+  	register boolean worked;		/* open or link worked? */
+  
++ 	errno = 0;			/* paranoia */
+  	if (openfirst && goodngcnt == 0) {
+  		if (debug)
+***************
+*** 342,346 ****
+  			 * Moral: don't run Eunice on your PDP-11.
+  			 */
+! 			worked = symlink(fullartfile(art->a_tmpf), artname) == 0;
+  	}
+  	if (debug)
+--- 362,366 ----
+  			 * Moral: don't run Eunice on your PDP-11.
+  			 */
+! 			worked = symlink(fullartfile(art->a_tmpf), artname)==0;
+  	}
+  	if (debug)
+
+*** cnpatch/old/relay/hdrmunge.c	Wed Aug 21 13:08:03 1991
+--- relay/hdrmunge.c	Wed Jul 17 18:36:11 1991
+***************
+*** 239,246 ****
+  
+  		for (i = 0, pp = art->a_hptrs; i < art->a_hpused; ++i, ++pp) {
+! 			if (i >= art->a_hpused-1)	/* last in-core hdr? */
+! 				nxtln = art->a_hnext;
+! 			else
+! 				nxtln = pp[1];
+  			saved = *nxtln;
+  			*nxtln = '\0';
+--- 239,245 ----
+  
+  		for (i = 0, pp = art->a_hptrs; i < art->a_hpused; ++i, ++pp) {
+! 			/* last in-core hdr? */
+! 			nxtln = (i >= art->a_hpused-1? art->a_hnext: pp[1]);
+! 
+  			saved = *nxtln;
+  			*nxtln = '\0';
+***************
+*** 277,282 ****
+  int hdrlen;
+  {
+!     	if (!hdrparse(&art->h, line, reqdhdrs))
+! 		(void) hdrparse(&art->h, line, opthdrs);
+  	hdrmunge(art, line, hdrlen, hdrvilest);
+  }
+--- 276,295 ----
+  int hdrlen;
+  {
+! 	register int match;
+! 
+! 	match = hdrparse(&art->h, line, reqdhdrs);
+! 	if (!match)
+! 		match = hdrparse(&art->h, line, opthdrs);
+! 
+! 	/* duplicate required header and no previous refusal? */
+! 	if (match == YES+1 && !(art->a_status&ST_REFUSED)) {
+! 		register char *hdrnonl = strsave(line);
+! 
+! 		trim(hdrnonl);
+! 		decline(art);
+! 		prefuse(art);
+! 		(void) printf("duplicate required header `%s'\n", hdrnonl);
+! 		free(hdrnonl);
+! 	}
+  	hdrmunge(art, line, hdrlen, hdrvilest);
+  }
+
+*** cnpatch/old/relay/hdrparse.c	Wed Aug 21 13:08:05 1991
+--- relay/hdrparse.c	Wed Jul 17 18:36:43 1991
+***************
+*** 23,27 ****
+   * freeheader() will free this memory.
+   */
+! int
+  hdrparse(hdrs, line, hdrlst)
+  register struct headers *hdrs;
+--- 23,27 ----
+   * freeheader() will free this memory.
+   */
+! int					/* NO, YES or YES+1 (error) */
+  hdrparse(hdrs, line, hdrlst)
+  register struct headers *hdrs;
+***************
+*** 49,56 ****
+  		register char **ptrp = (char **)((char *)hdrs+(*hpp)->hdroff);
+  
+! 		nnfree(ptrp);		/* free prev. value in this article */
+! 		*ptrp = strsave(skipsp(&hackline[(*hpp)->hdrlen]));
+! 		if (*ptrp != NULL)
+! 			trim(*ptrp);		/* cut trailing \n */
+  	}
+  	free(hackline);
+--- 49,60 ----
+  		register char **ptrp = (char **)((char *)hdrs+(*hpp)->hdroff);
+  
+! 		if (*ptrp != NULL && hdrlst == reqdhdrs)
+! 			match = YES+1;		/* duplicate req'd hdr */
+! 		else {
+! 			nnfree(ptrp);	/* free prev. value in this article */
+! 			*ptrp = strsave(skipsp(&hackline[(*hpp)->hdrlen]));
+! 			if (*ptrp != NULL)
+! 				trim(*ptrp);	/* cut trailing \n */
+! 		}
+  	}
+  	free(hackline);
+
+*** cnpatch/old/relay/msgs.c	Wed Aug 21 13:08:14 1991
+--- relay/msgs.c	Tue Aug 13 11:34:55 1991
+***************
+*** 23,27 ****
+  char *file;
+  {
+! 	warning("error writing `%s', probably the disk filled", file);
+  	return ST_DISKFULL|ST_NEEDATTN|ST_DROPPED;
+  }
+--- 23,27 ----
+  char *file;
+  {
+! 	warning("error writing `%s'", file);
+  	return ST_DISKFULL|ST_NEEDATTN|ST_DROPPED;
+  }
+
+*** cnpatch/old/relay/procart.c	Wed Aug 21 13:08:17 1991
+--- relay/procart.c	Wed Jul 17 18:59:14 1991
+***************
+*** 166,172 ****
+  	 * brilliance, we can end up with non-header lines in the message
+  	 * header, though they are illegal.
+  	 */
+! 	if (!is_hdr && hdr != NULL && *hdr != '\n')
+! 		art->a_badhdr = YES;
+  	/* if is_hdr, there is no body: header fills limit */
+  	return (is_hdr? NULL: hdr);
+--- 166,187 ----
+  	 * brilliance, we can end up with non-header lines in the message
+  	 * header, though they are illegal.
++ 	 *
++ 	 * Don't print anything if this article has already been refused.
+  	 */
+! 	if (!is_hdr && hdr != NULL && *hdr != '\n' &&
+! 	    !(art->a_status&ST_REFUSED)) {
+! 		register char *hdrnonl = strsave(hdr);
+! 
+! #ifdef notdef
+! 		art->a_badhdr = YES;	
+! #endif
+! 		trim(hdrnonl);
+! 		decline(art);
+! 		prefuse(art);
+! 		(void) printf(
+! 		"article \"header\" contains non-RFC-1036-header line `%s'\n",
+! 			hdrnonl);
+! 		free(hdrnonl);
+! 	}
+  	/* if is_hdr, there is no body: header fills limit */
+  	return (is_hdr? NULL: hdr);
+***************
+*** 294,307 ****
+  				progname, art->h.h_msgid);
+  		history(art, STARTLOG);		/* history may be unwritable */
+! 		if (art->a_status&(ST_DROPPED|ST_REFUSED|ST_NEEDATTN))
+  			uninsart(art);		/* it was; can't keep the article */
+- 		else {
+- 			transmit(art, exclude);	/* writes systems on stdout */
+  			(void) putchar('\n');	/* ends the log line */
+  			ctlmsg(art);		/* NCMP */
+  #ifdef FLUSHLOG
+! 			(void) fflush(stdout);	/* crash-proofness */
+  #endif
+- 		}
+  	}
+  	art->a_status &= ~ST_REFUSED;	/* refusal is quite casual & common */
+--- 309,324 ----
+  				progname, art->h.h_msgid);
+  		history(art, STARTLOG);		/* history may be unwritable */
+! 		if (art->a_status&(ST_DROPPED|ST_REFUSED|ST_NEEDATTN)) {
+  			uninsart(art);		/* it was; can't keep the article */
+  			(void) putchar('\n');	/* ends the log line */
++ 		} else {
++ 			/* transmit() writes system names on stdout */
++ 			transmit(art, exclude);
++ 			(void) putchar('\n');	/* ends the log line */
+  			ctlmsg(art);		/* NCMP */
++ 		}
+  #ifdef FLUSHLOG
+! 		(void) fflush(stdout);		/* crash-proofness */
+  #endif
+  	}
+  	art->a_status &= ~ST_REFUSED;	/* refusal is quite casual & common */
+***************
+*** 326,329 ****
+--- 343,348 ----
+  	extern time_t getindate();
+  
++ 	if (art->a_status&ST_REFUSED)
++ 		return;			/* already rejected */
+  	if (now == 0) {
+  		now = time(&now);
+***************
+*** 334,337 ****
+--- 353,357 ----
+  		prefuse(art);
+  		(void) fputs(errstr, stdout);
++ #ifdef notdef
+  	} else if (art->a_badhdr) {
+  		prefuse(art);
+***************
+*** 338,341 ****
+--- 358,362 ----
+  		(void) fputs("article \"header\" contains non-header line\n",
+  			stdout);
++ #endif
+  	} else if (!msgidok(art))
+  		/* already complained */ ;
+***************
+*** 353,357 ****
+  	} else if (staledays > 0 && date < datestale) {
+  		prefuse(art);
+! 		(void) printf("older than %d days\n", staledays);
+  	} else if (hopcount(hdrs->h_path) > 0 &&
+  	    !ngmatch(oursys()->sy_ngs, ngs)) {
+--- 374,378 ----
+  	} else if (staledays > 0 && date < datestale) {
+  		prefuse(art);
+! 		(void) printf("ancient date `%s'\n", hdrs->h_date);
+  	} else if (hopcount(hdrs->h_path) > 0 &&
+  	    !ngmatch(oursys()->sy_ngs, ngs)) {
+
+*** cnpatch/old/relay/relaynews.c	Wed Aug 21 13:08:57 1991
+--- relay/relaynews.c	Wed Aug 14 17:52:39 1991
+***************
+*** 47,51 ****
+  
+  /*
+!  * setuid-root program to set ids to news/news & rexec rnews with
+   * NEWSPERMS in the environment to break loops.
+   */
+--- 47,51 ----
+  
+  /*
+!  * setuid-root program to set ids to news/news & re-exec rnews with
+   * NEWSPERMS in the environment to break loops.
+   */
+***************
+*** 63,66 ****
+--- 63,67 ----
+  /* internal */
+  static boolean userealids = NO;
++ static boolean uunlink = NO;
+  
+  /* imports */
+***************
+*** 102,105 ****
+--- 103,107 ----
+  	(void) signal(SIGHUP, SIG_IGN);
+  	(void) signal(SIGTERM, SIG_IGN);
++ 	(void) signal(SIGPIPE, SIG_IGN);	/* we check write returns */
+  
+  	procopts(argc, argv, &redirlogs, &okrefusal);
+***************
+*** 191,194 ****
+--- 193,200 ----
+  		if (getenv("NEWSPERMS") != 0)
+  			error("recursive loop setting ids", "");
++ 		/*
++ 		 * normally we would use execvp, but for security SETNEWSIDS
++ 		 * had better be an absolute path to a binary.
++ 		 */
+  		execv(ctlfile(SETNEWSIDS), argv);
+  		error("can't exec `%s' to set ids", ctlfile(SETNEWSIDS));
+***************
+*** 210,214 ****
+  	int c, errflg = 0;
+  
+! 	while ((c = getopt(argc, argv, "d:ino:rsx:")) != EOF)
+  		switch (c) {
+  		case 'd':		/* -d debug-options; thanks, henry */
+--- 216,220 ----
+  	int c, errflg = 0;
+  
+! 	while ((c = getopt(argc, argv, "d:ino:rsx:u")) != EOF)
+  		switch (c) {
+  		case 'd':		/* -d debug-options; thanks, henry */
+***************
+*** 232,235 ****
+--- 238,244 ----
+  			*okrefusalp = NO;
+  			break;
++ 		case 'u':		/* unlink good batches when done */
++ 			uunlink = YES;
++ 			break;
+  		case 'x':		/* -x site: don't send to site */
+  			/* you're welcome, erik */
+***************
+*** 249,253 ****
+  	if (errflg) {
+  		(void) fprintf(stderr,
+! 			"usage: %s [-inrs][-d fhlmt][-x site][-o days]\n",
+  			progname);
+  		exit(1);
+--- 258,262 ----
+  	if (errflg) {
+  		(void) fprintf(stderr,
+! 			"usage: %s [-inrsu][-d fhlmt][-x site][-o days]\n",
+  			progname);
+  		exit(1);
+***************
+*** 363,367 ****
+  
+  	if (optind == argc)
+! 		status |= process(stdin, "stdin");
+  	else
+  		for (; optind < argc; optind++)
+--- 372,376 ----
+  
+  	if (optind == argc)
+! 		status |= process(stdin, "(stdin)");
+  	else
+  		for (; optind < argc; optind++)
+***************
+*** 393,396 ****
+--- 402,418 ----
+  		status |= process(in, fullname);
+  		(void) nfclose(in);
++ 		/*
++ 		 * in unlink mode, try to unlink good batches in a
++ 		 * known-safe place, but not very hard
++ 		 */
++ 		if (uunlink && !(status&(ST_DROPPED|ST_SHORT))) {
++ 			static char *indir = NULL;
++ 
++ 			if (indir == NULL)
++ 				indir = strsave(fullartfile("in.coming/"));
++ 			if (STREQN(fullname, indir, strlen(indir)) &&
++ 			    !dotdot(fullname))
++ 				(void) unlink(fullname);
++ 		}
+  	}
+  	free(fullname);
+***************
+*** 398,401 ****
+--- 420,435 ----
+  }
+  
++ int
++ dotdot(file)			/* overly paranoid check for .. component */
++ register char *file;
++ {
++ 	register char *dot;
++ 
++ 	for (; (dot = strchr(file, '.')) != NULL; file = dot + 1)
++ 		if (dot[1] == '.')
++ 			return YES;
++ 	return NO;
++ }
++ 
+  /*
+   * process - process input file
+***************
+*** 477,481 ****
+  		}
+  		nnfree(&line);			/* free "#! rnews n" */
+! 		if (!feof(in))
+  			status |= cpinsart(in, inname, charcnt, YES);
+  	}
+--- 511,515 ----
+  		}
+  		nnfree(&line);			/* free "#! rnews n" */
+! 		if (!feof(in) && charcnt > 0)	/* anything to do? */
+  			status |= cpinsart(in, inname, charcnt, YES);
+  	}
+
+*** cnpatch/old/relay/sh/anne.jones	Wed Aug 21 13:09:01 1991
+--- relay/sh/anne.jones	Wed Jul 17 19:03:00 1991
+***************
+*** 60,64 ****
+  	else
+  		NAME=`(grep "^$USER:" /etc/passwd || ypmatch "$USER" passwd) |
+! 			sed 's/^[^:]*:[^:]*:[^:]*:[^:]*:\([^,:]*\).*$/\1/'  `
+  		# tailor: for BTL RJE format, add
+  		#	| sed -e 's/^[^-]*- *//' -e 's/ *(.*$//'
+--- 60,64 ----
+  	else
+  		NAME=`(grep "^$USER:" /etc/passwd || ypmatch "$USER" passwd) |
+! 		  sed -n 's/^[^:]*:[^:]*:[^:]*:[^:]*:\([^,:]*\).*$/\1/;p;q'  `
+  		# tailor: for BTL RJE format, add
+  		#	| sed -e 's/^[^-]*- *//' -e 's/ *(.*$//'
+***************
+*** 119,124 ****
+  *)					# canonicalise given date to RFC 822
+  	timet="` getabsdate \"$artdate\" `"
+! 	case "$timet" in
+! 	-*)
+  		echo "$0: bad Date: header" >&2
+  		rm -f $tmp $input
+--- 119,128 ----
+  *)					# canonicalise given date to RFC 822
+  	timet="` getabsdate \"$artdate\" `"
+! 	case "$?" in
+! 	0)
+! 		set `ctime -u "$timet"`
+! 		defdate="$1, $3 $2 $5 $4 GMT"
+! 		;;
+! 	*)
+  		echo "$0: bad Date: header" >&2
+  		rm -f $tmp $input
+***************
+*** 125,132 ****
+  		exit 1
+  		;;
+- 	*)
+- 		set `ctime -u "$timet"`
+- 		defdate="$1, $3 $2 $5 $4 GMT"
+- 		;;
+  	esac
+  	;;
+--- 129,132 ----
+***************
+*** 137,142 ****
+  *)
+  	timet="` getdate \"$expiry\" `"	# temporary; use getreldate eventually
+! 	case "$timet" in
+! 	-*)
+  		echo "$0: bad Expires: header" >&2
+  		rm -f $tmp $input
+--- 137,146 ----
+  *)
+  	timet="` getdate \"$expiry\" `"	# temporary; use getreldate eventually
+! 	case "$?" in
+! 	0)
+! 		set `ctime -u "$timet"`
+! 		expiry="$1, $3 $2 $5 $4 GMT"
+! 		;;
+! 	*)
+  		echo "$0: bad Expires: header" >&2
+  		rm -f $tmp $input
+***************
+*** 143,150 ****
+  		exit 1
+  		;;
+- 	*)
+- 		set `ctime -u "$timet"`
+- 		expiry="$1, $3 $2 $5 $4 GMT"
+- 		;;
+  	esac
+  	;;
+--- 147,150 ----
+***************
+*** 157,164 ****
+  	v6)	tr -d '[\1-\7]\13[\15-\37]' ;;
+  	esac |
+! 	sed -e 's/:	/: /' -e 's/:\([^ ]\)/: \1/' >$tmp
+  awk -f $NEWSBIN/inject/defhdrs.awk defpath="$badsites$USER" deffrom="$FROM" \
+   deforg="$deforg" defdate="$defdate" defexpiry="$expiry" \
+!  defmsgid="`set $date; echo \<$6$2$3.\`  echo $4 | tr -d : \`.$$@$host\>`" $tmp
+  status=$?
+  rm -f $tmp $input
+--- 157,165 ----
+  	v6)	tr -d '[\1-\7]\13[\15-\37]' ;;
+  	esac |
+! 	sed -e 's/:	/: /' -e '/^[^	 :]*:[^ ]/s/:/: /' >$tmp
+  awk -f $NEWSBIN/inject/defhdrs.awk defpath="$badsites$USER" deffrom="$FROM" \
+   deforg="$deforg" defdate="$defdate" defexpiry="$expiry" \
+!  defmsgid="`set $date; echo \<$6$2$3.\`  echo $4 | tr -d : \`.$$@$host\>`" \
+!  me="`newshostname`" $tmp
+  status=$?
+  rm -f $tmp $input
+
+*** cnpatch/old/relay/sh/defhdrs.awk	Wed Aug 21 13:09:05 1991
+--- relay/sh/defhdrs.awk	Wed Jul 17 19:03:35 1991
+***************
+*** 91,94 ****
+--- 91,98 ----
+  		hdrval[ctlname] = ctlname " " substr(hdrval[subjname], 8)
+  
++ 	# rewrite "Path: ME!blah" to "Path: blah", repeatedly
++ 	while (substr(hdrval[pathname], 1, length(me)+1) == (me "!"))
++ 		hdrval[pathname] = substr(hdrval[pathname], length(me)+2)
++ 
+  	# reorder & emit headers
+  
+
+*** cnpatch/old/relay/sh/inews	Wed Aug 21 13:09:10 1991
+--- relay/sh/inews	Fri Jul 19 14:15:15 1991
+***************
+*** 8,12 ****
+  # Yes, it's big, slow and awkward.  The alternative is casting a lot of
+  # local policy in C.
+- # TODO: rewrite Date: and Expires: dates
+  
+  # =()<. ${NEWSCONFIG-@<NEWSCONFIG>@}>()=
+--- 8,11 ----
+***************
+*** 159,163 ****
+  
+  # post with new headers and .signature
+! (anne.jones <$inhdrs		# bash headers
+   status=$?
+   case $status in
+--- 158,164 ----
+  
+  # post with new headers and .signature
+! (anne.jones <$inhdrs >/tmp/in$$realtmp	# bash headers
+!  mv /tmp/in$$realtmp $inhdrs
+!  cat $inhdrs		# | grep -v "^Lines:"	# uncomment if generating Lines:
+   status=$?
+   case $status in
+
+*** cnpatch/old/relay/sys.c	Wed Aug 21 13:09:13 1991
+--- relay/sys.c	Wed Jul 17 18:40:13 1991
+***************
+*** 16,23 ****
+--- 16,30 ----
+  #include "system.h"
+  
++ #ifndef BTCHDIR
+  #define BTCHDIR "out.going/"	/* prefix of relative batch file name */
++ #endif
+  #define BTCHPFX BTCHDIR		/* prefix of default batch file name */
++ #ifndef BTCHSFX
+  #define BTCHSFX "/togo"		/* suffix of same */
++ #endif
++ 
++ #ifndef CMDPFX
+  #define CMDPFX "uux - -r -z "	/* prefix of default command */
++ #endif
+  #define CMDSFX "!rnews"		/* suffix of same */
+  
+***************
+*** 159,162 ****
+--- 166,172 ----
+  	if (sysp->sy_distr == NULL)	/* default distr is ngs... */
+  		sysp->sy_distr = sysp->sy_ngs;
++ 	else if (strchr(sysp->sy_distr, '/') != NULL)
++ 		errunlock("slash in distribution subfield of sys entry for `%s'",
++ 			sysp->sy_name);
+  
+  	sysdeflt(sysp);			/* fill in any defaults */
+***************
+*** 225,229 ****
+--- 235,243 ----
+  {
+  	free(sysp->sy_cmd);		/* malloced by parse */
++ #ifdef BATCHSPOOL				/* UUNET special */
++ 	sysp->sy_cmd = str3save(BATCHSPOOL, SFNDELIM, file);
++ #else
+  	sysp->sy_cmd = strsave(artfile(file));
++ #endif
+  	free(file);
+  }
+***************
+*** 325,330 ****
+  		case 'U':		/* mostly harmless */
+  			break;
+! 		case 'H':		/* bugger off */
+! 		case 'S':		/* bugger off */
+  		case 'M':		/* multicast: obs., see batcher */
+  		case 'O':		/* multicast: obs., see batcher */
+--- 339,344 ----
+  		case 'U':		/* mostly harmless */
+  			break;
+! 		case 'H':		/* write history entry? sorry */
+! 		case 'S':	/* duplicate the work of the shell.  bzzt */
+  		case 'M':		/* multicast: obs., see batcher */
+  		case 'O':		/* multicast: obs., see batcher */
+
+*** cnpatch/old/relay/transmit.c	Wed Aug 21 13:09:17 1991
+--- relay/transmit.c	Wed Jul 17 18:40:49 1991
+***************
+*** 140,144 ****
+  
+  		mkfilenm(filename);
+! 	    	fullname = fullartfile(filename);
+  		free(filename);
+  	}
+--- 140,144 ----
+  
+  		mkfilenm(filename);
+! 	    	fullname = artfile(filename);	/* N.B.: relative path */
+  		free(filename);
+  	}
+
+*** cnpatch/old/relay/trbatch.c	Wed Aug 21 13:09:19 1991
+--- relay/trbatch.c	Wed Jul 17 18:42:24 1991
+***************
+*** 1,3 ****
+! /* 
+   * transmit batch file management
+   */
+--- 1,3 ----
+! /*
+   * transmit batch file management
+   */
+***************
+*** 56,67 ****
+  		bf = bfincache(name, ord);
+  
+- 	if (bf->bf_str == NULL)
+- 		bf->bf_str = fopenclex(name, "a");
+  	if (bf->bf_str == NULL) {
+  		if (bfrclose() != ST_OKAY)
+  			return NULL;
+  		bf->bf_str = fopenwclex(name, "a");	/* retry, may bitch */
+  	}
+  	return bf;
+  }
+  
+--- 56,81 ----
+  		bf = bfincache(name, ord);
+  
+  	if (bf->bf_str == NULL) {
++ 		bf->bf_str = fopenclex(name, "a");	/* silent try */
++ 		bfsetup(bf);
++ 	}
++ 	if (bf->bf_str == NULL) {
+  		if (bfrclose() != ST_OKAY)
+  			return NULL;
+  		bf->bf_str = fopenwclex(name, "a");	/* retry, may bitch */
++ 		bfsetup(bf);
+  	}
+  	return bf;
++ }
++ 
++ /*
++  * any stream-specific set up (reserved for future use)
++  */
++ STATIC
++ bfsetup(bf)
++ register struct batchfile *bf;
++ {
++ 	if (bf->bf_str == NULL)
++ 		return;
+  }
+  
+
+
+end of patch 21-Aug-1991
